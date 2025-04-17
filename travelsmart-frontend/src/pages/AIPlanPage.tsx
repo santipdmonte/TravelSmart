@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, FC } from 'react';
 import TravelPlanForm from '../components/TravelPlanForm';
 import TravelPlanDisplay from '../components/TravelPlanDisplay';
 import Button from '../components/Button';
 import { ViajeState, ViajeStateInput } from '../types/travel';
 import { createTravelPlan } from '../services/travelService';
 import logoImage from '../assets/logos/logo-v2-sin-bordes.png';
+import Navbar from '../components/Navbar';
 
 interface AIPlanPageProps {
   onBack: () => void;
 }
 
-const AIPlanPage = ({ onBack }: AIPlanPageProps) => {
+const AIPlanPage: FC<AIPlanPageProps> = ({ onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [travelPlan, setTravelPlan] = useState<ViajeState | null>(null);
@@ -32,28 +33,12 @@ const AIPlanPage = ({ onBack }: AIPlanPageProps) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-700 shadow-md">
-        <div className="container mx-auto p-4 flex items-center">
-          <button 
-            onClick={onBack}
-            className="mr-4 text-white hover:text-blue-200 focus:outline-none"
-            aria-label="Volver"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-3">
-            <img src={logoImage} alt="TravelSmart Logo" className="h-10" />
-            <div>
-              <h1 className="text-3xl font-bold text-white">TravelSmart</h1>
-              <p className="text-blue-100">Planifica tu próxima aventura con IA</p>
-            </div>
-          </div>
-        </div>
-      </header>
-      
-      <main className="container mx-auto p-4 md:p-6 max-w-4xl">
+      <Navbar />
+      <div className="max-w-[1400px] mx-auto p-4 px-6 md:px-8 pt-20">
+        <Button onClick={onBack} variant="outline" className="mb-4">
+          ← Volver
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">Plan de viaje con IA</h1>
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Crear plan de viaje con IA</h2>
           <TravelPlanForm onSubmit={handleCreatePlan} isLoading={isLoading} />
@@ -70,7 +55,7 @@ const AIPlanPage = ({ onBack }: AIPlanPageProps) => {
             <TravelPlanDisplay plan={travelPlan} />
           </div>
         )}
-      </main>
+      </div>
       
       <footer className="bg-gray-800 text-white p-4 text-center mt-auto">
         <p className="text-sm">© {new Date().getFullYear()} TravelSmart - Planificación inteligente de viajes</p>

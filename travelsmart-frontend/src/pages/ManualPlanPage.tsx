@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, FC } from 'react';
 import { ViajeState, DiaViajeState } from '../types/travel';
 import Button from '../components/Button';
 import DayForm from '../components/DayForm';
 import TravelPlanDisplay from '../components/TravelPlanDisplay';
 import logoImage from '../assets/logos/logo-v2-sin-bordes.png';
+import Navbar from '../components/Navbar';
 
 interface ManualPlanPageProps {
   onBack: () => void;
 }
 
-const ManualPlanPage = ({ onBack }: ManualPlanPageProps) => {
+const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
   const [destino, setDestino] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [dias, setDias] = useState<DiaViajeState[]>([
@@ -74,28 +75,12 @@ const ManualPlanPage = ({ onBack }: ManualPlanPageProps) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-700 shadow-md">
-        <div className="container mx-auto p-4 flex items-center">
-          <button 
-            onClick={onBack}
-            className="mr-4 text-white hover:text-blue-200 focus:outline-none"
-            aria-label="Volver"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </button>
-          <div className="flex items-center gap-3">
-            <img src={logoImage} alt="TravelSmart Logo" className="h-10" />
-            <div>
-              <h1 className="text-3xl font-bold text-white">TravelSmart</h1>
-              <p className="text-blue-100">Crea tu plan de viaje personalizado</p>
-            </div>
-          </div>
-        </div>
-      </header>
-      
-      <main className="container mx-auto p-4 md:p-6 max-w-4xl">
+      <Navbar />
+      <div className="max-w-[1400px] mx-auto p-4 px-6 md:px-8 pt-20">
+        <Button onClick={onBack} variant="outline" className="mb-4">
+          ← Volver
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">Plan de viaje manual</h1>
         {showPreview ? (
           <>
             <div className="flex justify-between items-center mb-4">
@@ -183,7 +168,7 @@ const ManualPlanPage = ({ onBack }: ManualPlanPageProps) => {
             </div>
           </>
         )}
-      </main>
+      </div>
       
       <footer className="bg-gray-800 text-white p-4 text-center mt-auto">
         <p className="text-sm">© {new Date().getFullYear()} TravelSmart - Planificación inteligente de viajes</p>

@@ -1,6 +1,40 @@
-# TravelSmart Frontend
+# TravelSmart 🌎✈️
 
-Este es un proyecto frontend para TravelSmart creado con React, TypeScript, Vite y Tailwind CSS.
+TravelSmart es una plataforma innovadora diseñada para revolucionar la manera en que planificamos nuestros viajes. Combinando la potencia de la inteligencia artificial con la flexibilidad de la planificación manual, TravelSmart ofrece una experiencia única para crear itinerarios de viaje personalizados.
+
+## 🎯 Sobre el Proyecto
+
+TravelSmart nace de la necesidad de simplificar la planificación de viajes, ofreciendo dos enfoques principales:
+
+### 🤖 Planificación con IA
+Nuestro sistema de inteligencia artificial analiza tu destino y la duración de tu viaje para generar automáticamente itinerarios optimizados. La IA considera:
+- Puntos de interés más relevantes
+- Tiempos de traslado óptimos
+- Secuencia lógica de actividades
+- Recomendaciones personalizadas basadas en el destino
+
+### ✏️ Planificación Manual
+Para aquellos que prefieren un control total sobre su itinerario, ofrecemos una interfaz intuitiva que permite:
+- Crear planes día a día
+- Personalizar actividades
+- Organizar tiempos y secuencias
+- Flexibilidad total en la planificación
+
+## 🌟 Características Principales
+
+- **Interfaz Intuitiva**: Diseño moderno y fácil de usar que hace la planificación de viajes una experiencia agradable
+- **Flexibilidad**: Libertad para elegir entre planificación automática o manual
+- **Personalización**: Adaptación completa a las preferencias del viajero
+- **Itinerarios Inteligentes**: Sugerencias basadas en datos reales y experiencias de viaje
+- **Diseño Responsivo**: Experiencia perfecta en cualquier dispositivo
+
+## 💡 Visión
+
+TravelSmart busca transformar la manera en que las personas planifican sus viajes, combinando la eficiencia de la tecnología moderna con la personalización que cada viajero necesita. Nuestro objetivo es hacer que la planificación de viajes sea tan emocionante como el viaje mismo.
+
+---
+
+Desarrollado con ❤️ para viajeros por viajeros
 
 ## Estructura del Proyecto
 
