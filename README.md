@@ -2,6 +2,8 @@
 
 TravelSmart es una plataforma innovadora diseñada para revolucionar la manera en que planificamos nuestros viajes. Combinando la potencia de la inteligencia artificial con la flexibilidad de la planificación manual, TravelSmart ofrece una experiencia única para crear itinerarios de viaje personalizados.
 
+![image](https://github.com/user-attachments/assets/d614d642-1134-4c4b-9c54-867641ee46de)
+
 ## 🎯 Sobre el Proyecto
 
 TravelSmart nace de la necesidad de simplificar la planificación de viajes, ofreciendo dos enfoques principales:
