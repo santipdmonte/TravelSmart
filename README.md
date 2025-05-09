@@ -13,7 +13,7 @@ Nuestro sistema de inteligencia artificial analiza tu destino y la duración de 
 - Puntos de interés más relevantes
 - Tiempos de traslado óptimos
 - Secuencia lógica de actividades
-- Recomendaciones personalizadas basadas en el destino
+- Recomendaciones personalizadas basadas en el destino y en las preferencias del usuario
 
 ### ✏️ Planificación Manual
 Para aquellos que prefieren un control total sobre su itinerario, ofrecemos una interfaz intuitiva que permite:
@@ -25,7 +25,7 @@ Para aquellos que prefieren un control total sobre su itinerario, ofrecemos una 
 ## 🌟 Características Principales
 
 - **Interfaz Intuitiva**: Diseño moderno y fácil de usar que hace la planificación de viajes una experiencia agradable
-- **Flexibilidad**: Libertad para elegir entre planificación automática o manual
+- **Flexibilidad**: Libertad para elegir entre planificación automática, manual o híbrida
 - **Personalización**: Adaptación completa a las preferencias del viajero
 - **Itinerarios Inteligentes**: Sugerencias basadas en datos reales y experiencias de viaje
 - **Diseño Responsivo**: Experiencia perfecta en cualquier dispositivo
