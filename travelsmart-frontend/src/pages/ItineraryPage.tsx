@@ -26,7 +26,7 @@ const ItineraryPage = () => {
       <div className="max-w-[1200px] mx-auto p-4 px-6 md:px-8 pt-20">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Itinerario Actual</h1>
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <TravelPlanDisplay plan={itinerary} />
+          <TravelPlanDisplay plan={itinerary} compact />
         </div>
         <div className="flex gap-4">
           {/* Botones para futuras funcionalidades */}
