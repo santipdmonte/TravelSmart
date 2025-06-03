@@ -1,4 +1,6 @@
-import { useState, FC } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useItineraryContext } from '../context/ItineraryContext';
 import { ViajeState, DiaViajeState } from '../types/travel';
 import Button from '../components/Button';
 import DayForm from '../components/DayForm';
@@ -6,11 +8,7 @@ import TravelPlanDisplay from '../components/TravelPlanDisplay';
 import logoImage from '../assets/logos/logo-v2-sin-bordes.png';
 import Navbar from '../components/Navbar';
 
-interface ManualPlanPageProps {
-  onBack: () => void;
-}
-
-const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
+const ManualPlanPage = () => {
   const [destino, setDestino] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [dias, setDias] = useState<DiaViajeState[]>([
@@ -19,6 +17,8 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
       actividades: []
     }
   ]);
+  const { setItinerary } = useItineraryContext();
+  const navigate = useNavigate();
 
   const handleAddDay = () => {
     const newDay: DiaViajeState = {
@@ -32,16 +32,13 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
     if (dias.length <= 1) {
       return; // Keep at least one day
     }
-    
     const updatedDias = [...dias];
     updatedDias.splice(index, 1);
-    
     // Reorder days
     const reorderedDias = updatedDias.map((dia, idx) => ({
       ...dia,
       posicion_dia: idx + 1
     }));
-    
     setDias(reorderedDias);
   };
 
@@ -73,11 +70,16 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
   // Count total activities across all days
   const totalActivities = dias.reduce((total, dia) => total + dia.actividades.length, 0);
 
+  const handleConfirm = () => {
+    setItinerary(getPlan());
+    navigate('/itinerary');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-[1400px] mx-auto p-4 px-6 md:px-8 pt-20">
-        <Button onClick={onBack} variant="outline" className="mb-4">
+        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
           ← Volver
         </Button>
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Plan de viaje manual</h1>
@@ -93,12 +95,20 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
               </Button>
             </div>
             <TravelPlanDisplay plan={getPlan()} />
+            <div className="mt-6">
+              <Button 
+                variant="primary" 
+                onClick={handleConfirm} 
+                className="w-full"
+              >
+                Confirmar itinerario
+              </Button>
+            </div>
           </>
         ) : (
           <>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Crear plan de viaje manual</h2>
-              
               <div className="mb-4">
                 <label htmlFor="destino" className="block text-gray-700 text-sm font-bold mb-2">
                   Destino
@@ -113,7 +123,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
                   required
                 />
               </div>
-              
               <div className="mb-2">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
@@ -128,7 +137,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
                 </div>
               </div>
             </div>
-            
             <div className="space-y-4">
               {dias.map((dia, index) => (
                 <DayForm
@@ -139,7 +147,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
                 />
               ))}
             </div>
-            
             <div className="mt-4 mb-6">
               <Button 
                 variant="secondary"
@@ -149,7 +156,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
                 Agregar día
               </Button>
             </div>
-            
             <div className="mt-6">
               <Button 
                 variant="primary" 
@@ -159,7 +165,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
               >
                 Confirmar itinerario
               </Button>
-              
               {!isValid && (
                 <p className="text-sm text-red-500 mt-2">
                   Para continuar, asegúrate de ingresar un destino y al menos una actividad por día.
@@ -169,7 +174,6 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
           </>
         )}
       </div>
-      
       <footer className="bg-gray-800 text-white p-4 text-center mt-auto">
         <p className="text-sm">© {new Date().getFullYear()} TravelSmart - Planificación inteligente de viajes</p>
       </footer>

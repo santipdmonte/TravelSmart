@@ -1,4 +1,6 @@
-import { useState, FC } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useItineraryContext } from '../context/ItineraryContext';
 import TravelPlanForm from '../components/TravelPlanForm';
 import TravelPlanDisplay from '../components/TravelPlanDisplay';
 import Button from '../components/Button';
@@ -7,19 +9,16 @@ import { createTravelPlan } from '../services/travelService';
 import logoImage from '../assets/logos/logo-v2-sin-bordes.png';
 import Navbar from '../components/Navbar';
 
-interface AIPlanPageProps {
-  onBack: () => void;
-}
-
-const AIPlanPage: FC<AIPlanPageProps> = ({ onBack }) => {
+const AIPlanPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [travelPlan, setTravelPlan] = useState<ViajeState | null>(null);
+  const { setItinerary } = useItineraryContext();
+  const navigate = useNavigate();
 
   const handleCreatePlan = async (data: ViajeStateInput) => {
     setIsLoading(true);
     setError(null);
-    
     try {
       const plan = await createTravelPlan(data);
       setTravelPlan(plan);
@@ -31,11 +30,18 @@ const AIPlanPage: FC<AIPlanPageProps> = ({ onBack }) => {
     }
   };
 
+  const handleConfirm = () => {
+    if (travelPlan) {
+      setItinerary(travelPlan);
+      navigate('/itinerary');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-[1200px] mx-auto p-4 px-6 md:px-8 pt-20">
-        <Button onClick={onBack} variant="outline" className="mb-4">
+        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
           ← Volver
         </Button>
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Plan de viaje con IA</h1>
@@ -52,6 +58,11 @@ const AIPlanPage: FC<AIPlanPageProps> = ({ onBack }) => {
         {travelPlan && (
           <div className="mt-8">
             <TravelPlanDisplay plan={travelPlan} />
+            <div className="mt-6">
+              <Button variant="primary" onClick={handleConfirm} className="w-full">
+                Confirmar itinerario
+              </Button>
+            </div>
           </div>
         )}
       </div>
