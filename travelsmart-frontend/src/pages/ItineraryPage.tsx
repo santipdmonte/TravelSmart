@@ -28,11 +28,13 @@ const ItineraryPage = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <TravelPlanDisplay plan={itinerary} compact />
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           {/* Botones para futuras funcionalidades */}
-          <Button variant="secondary" disabled>Editar (próximamente)</Button>
+          <Button variant="secondary" disabled>Editar</Button>
           <Button variant="secondary" disabled>Compartir</Button>
           <Button variant="secondary" disabled>Exportar</Button>
+          <Button variant="secondary" disabled>Encontrar Hoteles</Button>
+          <Button variant="secondary" disabled>Encontrar Traslados</Button>
           <Button variant="outline" onClick={clearItinerary}>Borrar itinerario</Button>
         </div>
       </div>
