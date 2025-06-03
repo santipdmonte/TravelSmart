@@ -1,28 +1,10 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import AIPlanPage from './AIPlanPage';
-import ManualPlanPage from './ManualPlanPage';
 import Navbar from '../components/Navbar';
 import heroImage from '../assets/img/hero-image.png';
 
-// Define the possible modes
-type PlanningMode = 'selection' | 'manual' | 'ai';
-
 const HomePage = () => {
-  const [mode, setMode] = useState<PlanningMode>('selection');
-
-  const handleModeSelection = (selectedMode: PlanningMode) => {
-    setMode(selectedMode);
-  };
-
-  // Display the appropriate page based on mode
-  if (mode === 'ai') {
-    return <AIPlanPage onBack={() => setMode('selection')} />;
-  }
-
-  if (mode === 'manual') {
-    return <ManualPlanPage onBack={() => setMode('selection')} />;
-  }
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -59,7 +41,7 @@ const HomePage = () => {
                     Crea tu propio itinerario personalizado día a día con actividades a tu elección.
                   </p>
                   <Button 
-                    onClick={() => handleModeSelection('manual')} 
+                    onClick={() => navigate('/create/manual')} 
                     variant="outline"
                     className="mt-auto bg-white/90 hover:bg-white border-white/80 text-blue-800 self-center w-full sm:w-auto"
                   >
@@ -73,7 +55,7 @@ const HomePage = () => {
                     Deja que nuestra inteligencia artificial genere un itinerario basado en tu destino y duración.
                   </p>
                   <Button 
-                    onClick={() => handleModeSelection('ai')} 
+                    onClick={() => navigate('/create/ai')} 
                     variant="primary"
                     className="mt-auto bg-blue-600 hover:bg-blue-700 self-center w-full sm:w-auto"
                   >
