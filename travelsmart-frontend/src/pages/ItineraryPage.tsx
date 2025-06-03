@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useItineraryContext } from '../context/ItineraryContext';
 import TravelPlanDisplay from '../components/TravelPlanDisplay';
@@ -7,6 +8,11 @@ import Navbar from '../components/Navbar';
 const ItineraryPage = () => {
   const { itinerary, clearItinerary } = useItineraryContext();
   const navigate = useNavigate();
+
+  // Estado local para los datos adicionales
+  const [fechaSalida, setFechaSalida] = useState('');
+  const [personas, setPersonas] = useState(2);
+  const [ninos, setNinos] = useState(0);
 
   if (!itinerary) {
     return (
@@ -25,6 +31,38 @@ const ItineraryPage = () => {
       <Navbar />
       <div className="max-w-[1200px] mx-auto p-4 px-6 md:px-8 pt-20">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Itinerario Actual</h1>
+        {/* Formulario de datos adicionales */}
+        <form className="bg-white rounded-lg shadow p-4 mb-6 flex flex-col md:flex-row gap-4 items-center">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de salida</label>
+            <input
+              type="date"
+              value={fechaSalida}
+              onChange={e => setFechaSalida(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Personas</label>
+            <input
+              type="number"
+              min={1}
+              value={personas}
+              onChange={e => setPersonas(Number(e.target.value))}
+              className="border border-gray-300 rounded px-3 py-2 w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Niños</label>
+            <input
+              type="number"
+              min={0}
+              value={ninos}
+              onChange={e => setNinos(Number(e.target.value))}
+              className="border border-gray-300 rounded px-3 py-2 w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </form>
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <TravelPlanDisplay plan={itinerary} compact />
         </div>
