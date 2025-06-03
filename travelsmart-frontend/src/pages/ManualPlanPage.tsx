@@ -157,7 +157,7 @@ const ManualPlanPage: FC<ManualPlanPageProps> = ({ onBack }) => {
                 className="w-full"
                 disabled={!isValid}
               >
-                Ver plan completo
+                Confirmar itinerario
               </Button>
               
               {!isValid && (
