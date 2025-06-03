@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useItineraryContext } from '../context/ItineraryContext';
 import TravelPlanDisplay from '../components/TravelPlanDisplay';
@@ -6,13 +5,8 @@ import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 
 const ItineraryPage = () => {
-  const { itinerary, clearItinerary } = useItineraryContext();
+  const { itinerary, setItinerary, clearItinerary } = useItineraryContext();
   const navigate = useNavigate();
-
-  // Estado local para los datos adicionales
-  const [fechaSalida, setFechaSalida] = useState('');
-  const [personas, setPersonas] = useState(2);
-  const [ninos, setNinos] = useState(0);
 
   if (!itinerary) {
     return (
@@ -26,6 +20,17 @@ const ItineraryPage = () => {
     );
   }
 
+  // Handlers para actualizar los campos directamente en el contexto
+  const handleFechaSalida = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setItinerary({ ...itinerary, fecha_salida: e.target.value });
+  };
+  const handlePersonas = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setItinerary({ ...itinerary, cantidad_personas: Number(e.target.value) });
+  };
+  const handleNinos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setItinerary({ ...itinerary, cantidad_ninos: Number(e.target.value) });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -37,8 +42,8 @@ const ItineraryPage = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de salida</label>
             <input
               type="date"
-              value={fechaSalida}
-              onChange={e => setFechaSalida(e.target.value)}
+              value={itinerary.fecha_salida || ''}
+              onChange={handleFechaSalida}
               className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -47,8 +52,8 @@ const ItineraryPage = () => {
             <input
               type="number"
               min={1}
-              value={personas}
-              onChange={e => setPersonas(Number(e.target.value))}
+              value={itinerary.cantidad_personas ?? 2}
+              onChange={handlePersonas}
               className="border border-gray-300 rounded px-3 py-2 w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -57,8 +62,8 @@ const ItineraryPage = () => {
             <input
               type="number"
               min={0}
-              value={ninos}
-              onChange={e => setNinos(Number(e.target.value))}
+              value={itinerary.cantidad_ninos ?? 0}
+              onChange={handleNinos}
               className="border border-gray-300 rounded px-3 py-2 w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

@@ -24,4 +24,7 @@ export interface ViajeState {
   destino: string;
   cantidad_dias: number;
   dias_viaje: DiaViajeState[];
+  fecha_salida?: string;
+  cantidad_personas?: number;
+  cantidad_ninos?: number;
 } 
