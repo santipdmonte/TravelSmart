@@ -34,13 +34,12 @@ const AIPlanPage: FC<AIPlanPageProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="max-w-[1400px] mx-auto p-4 px-6 md:px-8 pt-20">
+      <div className="max-w-[1200px] mx-auto p-4 px-6 md:px-8 pt-20">
         <Button onClick={onBack} variant="outline" className="mb-4">
           ← Volver
         </Button>
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Plan de viaje con IA</h1>
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Crear plan de viaje con IA</h2>
           <TravelPlanForm onSubmit={handleCreatePlan} isLoading={isLoading} />
           
           {error && (
