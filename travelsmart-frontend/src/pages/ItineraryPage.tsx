@@ -39,7 +39,8 @@ const ItineraryPage = () => {
     setItinerary({ ...itinerary, fecha_salida: e.target.value });
   };
   const handlePersonas = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setItinerary({ ...itinerary, cantidad_personas: Number(e.target.value) });
+    const value = e.target.value;
+    setItinerary({ ...itinerary, cantidad_personas: value === '' ? undefined : Number(value) });
   };
   const handleNinos = (e: React.ChangeEvent<HTMLInputElement>) => {
     setItinerary({ ...itinerary, cantidad_ninos: Number(e.target.value) });
@@ -66,9 +67,10 @@ const ItineraryPage = () => {
             <input
               type="number"
               min={1}
-              value={itinerary.cantidad_personas ?? 2}
+              value={itinerary.cantidad_personas === undefined ? '' : itinerary.cantidad_personas}
               onChange={handlePersonas}
               className="border border-gray-300 rounded px-3 py-2 w-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="2"
             />
           </div>
           <div>
@@ -93,9 +95,25 @@ const ItineraryPage = () => {
           ) : (
             <ul className="divide-y divide-gray-200">
               {accommodations.map((a, idx) => (
-                <li key={idx} className="py-2 flex flex-col md:flex-row md:items-center md:gap-4">
-                  <span className="font-semibold text-blue-700">{a.ciudad}</span>
-                  <span className="text-gray-700">Días {a.desde_dia} a {a.hasta_dia} ({a.noches} noches)</span>
+                <li key={idx} className="py-2 flex flex-col md:flex-row md:items-center md:gap-4 justify-between">
+                  <div>
+                    <span className="font-semibold text-blue-700">{a.ciudad}</span>
+                    <span className="text-gray-700 ml-2">Días {a.desde_dia} a {a.hasta_dia} ({a.noches} noches)</span>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-2 md:mt-0"
+                    onClick={() => {
+                      if (!itinerary.fecha_salida || !itinerary.cantidad_personas) {
+                        alert('Debes cargar la fecha de inicio del viaje y la cantidad de pasajeros para buscar alojamiento.');
+                        return;
+                      }
+                      navigate(`/accommodation-search?destino=${encodeURIComponent(a.ciudad)}&fecha=${encodeURIComponent(itinerary.fecha_salida || '')}&personas=${itinerary.cantidad_personas}`);
+                    }}
+                  >
+                    Buscar alojamiento
+                  </Button>
                 </li>
               ))}
             </ul>

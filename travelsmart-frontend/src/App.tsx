@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import ManualPlanPage from './pages/ManualPlanPage';
 import AIPlanPage from './pages/AIPlanPage';
 import ItineraryPage from './pages/ItineraryPage';
+import AccommodationSearchPage from './pages/AccommodationSearchPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/create/manual" element={<ManualPlanPage />} />
           <Route path="/create/ai" element={<AIPlanPage />} />
           <Route path="/itinerary" element={<ItineraryPage />} />
+          <Route path="/accommodation-search" element={<AccommodationSearchPage />} />
         </Routes>
       </BrowserRouter>
     </ItineraryProvider>
