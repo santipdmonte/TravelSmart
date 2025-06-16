@@ -1,4 +1,13 @@
-import { ActividadState } from '../types/travel';
+import { ActividadState } from "../types/travel";
+import { FaPlane, FaTrain, FaBus, FaCar, FaShip } from "react-icons/fa";
+
+const iconMap: { [key: string]: JSX.Element } = {
+  Avión: <FaPlane />,
+  Tren: <FaTrain />,
+  Bus: <FaBus />,
+  Auto: <FaCar />,
+  Barco: <FaShip />,
+};
 
 interface ActivityItemProps {
   actividad: ActividadState;
@@ -6,24 +15,22 @@ interface ActivityItemProps {
 
 const ActivityItem = ({ actividad }: ActivityItemProps) => {
   return (
-    <li className="py-4">
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center">
-          <h4 className="text-lg font-semibold text-gray-800">{actividad.nombre}</h4>
+    <div>
+      <h4 className="font-semibold text-travel-text-dark">
+        {actividad.nombre}
+      </h4>
+      <p className="text-sm text-travel-text mt-1">{actividad.descripcion}</p>
+
+      {actividad.transporte && (
+        <div className="mt-2 bg-travel-secondary-light p-2 rounded-md">
+          <p className="text-sm text-travel-primary font-medium">
+            Transporte: {actividad.transporte.tipo} desde{" "}
+            {actividad.transporte.origen} a {actividad.transporte.destino}
+          </p>
         </div>
-        
-        <p className="text-gray-600">{actividad.descripcion}</p>
-        
-        {actividad.transporte && (
-          <div className="mt-2 bg-blue-50 p-3 rounded-md">
-            <p className="text-sm text-blue-700 font-medium">
-              Transporte: {actividad.transporte.tipo} desde {actividad.transporte.origen} a {actividad.transporte.destino}
-            </p>
-          </div>
-        )}
-      </div>
-    </li>
+      )}
+    </div>
   );
 };
 
-export default ActivityItem; 
+export default ActivityItem;
