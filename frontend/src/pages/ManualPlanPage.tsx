@@ -23,11 +23,11 @@ const ManualPlanPage = () => {
     totalActivities,
   } = useManualPlan();
 
-  const { setItinerary } = useItineraryContext();
+  const { dispatch } = useItineraryContext();
   const navigate = useNavigate();
 
   const handleConfirm = () => {
-    setItinerary(getPlan());
+    dispatch({ type: "SET_ITINERARY", payload: getPlan() });
     navigate("/itinerary");
   };
 
