@@ -1,0 +1,16 @@
+# Entorno Virtual
+venv/
+
+# Base de datos local de desarrollo
+db.sqlite3
+
+# Archivo de variables de entorno (¡MUY IMPORTANTE!)
+.env
+
+# Archivos de Python compilados y cachés
+__pycache__/
+*.pyc
+
+# Carpetas de editores de código
+.vscode/
+.idea/
