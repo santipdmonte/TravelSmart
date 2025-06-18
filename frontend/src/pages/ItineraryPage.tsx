@@ -142,7 +142,24 @@ const ItineraryPage = () => {
                     variant="primary"
                     size="sm"
                     onClick={() => {
-                      /* ... tu lógica de navegación ... */
+                      if (
+                        !itinerary.fecha_salida ||
+                        !itinerary.cantidad_personas
+                      ) {
+                        alert(
+                          "Debes cargar la fecha de inicio del viaje y la cantidad de pasajeros para buscar alojamiento."
+                        );
+                        return;
+                      }
+                      navigate(
+                        `/accommodation-search?destino=${encodeURIComponent(
+                          a.ciudad
+                        )}&fecha=${encodeURIComponent(
+                          itinerary.fecha_salida || ""
+                        )}&personas=${itinerary.cantidad_personas}&noches=${
+                          a.noches
+                        }`
+                      );
                     }}
                   >
                     Buscar alojamiento

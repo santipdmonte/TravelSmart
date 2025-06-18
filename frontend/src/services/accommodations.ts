@@ -1,5 +1,6 @@
+import { AccommodationState } from '../types/travel'; 
 // Simulación de API para alojamientos
-export async function getAccommodations(destino: string) {
+export async function getAccommodations(destino: string): Promise<AccommodationState[]> {
   // Simulación: datos hardcodeados del ejemplo travel_destination.txt
   return [
     {

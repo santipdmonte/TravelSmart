@@ -1,26 +1,39 @@
 import React from "react";
 
-interface ButtonProps {
+// Props personalizadas
+type ButtonOwnProps<C extends React.ElementType> = {
   children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "secondary" | "primary" | "outline" | "ghost";
+  variant?:
+    | "secondary"
+    | "primary"
+    | "outline"
+    | "ghost"
+    | "booking"
+    | "airbnb"
+    | "expedia"
+    | "hotels";
   size?: "sm" | "md" | "lg";
   className?: string;
-  disabled?: boolean;
-  type?: "button" | "submit" | "reset";
-}
+  as?: C; // Prop para cambiar la etiqueta
+};
 
-const Button: React.FC<ButtonProps> = ({
+// Tipo final que combina las props con las del elemento HTML
+type ButtonProps<C extends React.ElementType> = ButtonOwnProps<C> &
+  Omit<React.ComponentPropsWithoutRef<C>, keyof ButtonOwnProps<C>>;
+
+const Button = <C extends React.ElementType = "button">({
   children,
-  onClick,
   variant = "primary",
   size = "md",
   className = "",
-  disabled = false,
-  type = "button",
-}) => {
+  as,
+  ...rest // 'rest' contiene todas las demás props (onClick, disabled, type, href, etc.)
+}: ButtonProps<C>) => {
+  // La etiqueta que a renderizar: la que viene en 'as', o 'button' por defecto
+  const Component = as || "button";
+
   const baseClasses =
-    "inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500";
+    "inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantClasses = {
     primary: "bg-blue-500 hover:bg-blue-600 text-white",
@@ -28,6 +41,14 @@ const Button: React.FC<ButtonProps> = ({
     outline:
       "border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700",
     ghost: "bg-transparent hover:bg-gray-100 text-gray-700",
+    booking:
+      "bg-booking hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition",
+    airbnb:
+      "bg-airbnb hover:bg-pink-700 text-white font-semibold py-2 px-4 rounded transition",
+    expedia:
+      "bg-expedia hover:bg-yellow-700 text-white font-semibold py-2 px-4 rounded transition",
+    hotels:
+      "bg-hotels hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition",
   };
 
   const sizeClasses = {
@@ -36,19 +57,14 @@ const Button: React.FC<ButtonProps> = ({
     lg: "px-5 py-2.5 text-lg",
   };
 
-  const disabledClasses = disabled ? "opacity-50 cursor-not-allowed" : "";
-
-  const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`;
+  const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
   return (
-    <button
-      type={type}
-      className={buttonClasses}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    // Renderizar el 'Component' dinámico
+    // y pasarle todas las props restantes con {...rest}
+    <Component className={buttonClasses} {...rest}>
       {children}
-    </button>
+    </Component>
   );
 };
 
