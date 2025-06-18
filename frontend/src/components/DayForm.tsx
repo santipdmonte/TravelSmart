@@ -11,7 +11,10 @@ interface DayFormProps {
 }
 
 const DayForm = ({ day, onUpdate, onRemove }: DayFormProps) => {
-  const [showActivityForm, setShowActivityForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingActivityIndex, setEditingActivityIndex] = useState<
+    number | null
+  >(null);
   const [isExpanded, setIsExpanded] = useState(true);
 
   const handleAddActivity = (activity: ActividadState) => {
@@ -20,7 +23,7 @@ const DayForm = ({ day, onUpdate, onRemove }: DayFormProps) => {
       actividades: [...day.actividades, activity],
     };
     onUpdate(updatedDay);
-    setShowActivityForm(false);
+    setShowAddForm(false);
   };
 
   const handleRemoveActivity = (index: number) => {
@@ -38,25 +41,36 @@ const DayForm = ({ day, onUpdate, onRemove }: DayFormProps) => {
     setIsExpanded(!isExpanded);
   };
 
+  const handleUpdateActivity = (updatedActivity: ActividadState) => {
+    if (editingActivityIndex === null) return; // Chequeo de seguridad
+
+    const updatedActivities = day.actividades.map((activity, index) =>
+      index === editingActivityIndex ? updatedActivity : activity
+    );
+    onUpdate({ ...day, actividades: updatedActivities });
+    setEditingActivityIndex(null); // Salimos del modo edición
+  };
+
   return (
-    <div className="border rounded-md p-4 mb-4 bg-white">
-      <div className="flex justify-between items-center">
+    <div className="border rounded-md bg-white shadow-sm">
+      {/* 3. HEADER RESTAURADO: Ahora es un botón para controlar el acordeón */}
+      <div className="flex justify-between items-center p-4">
         <button
           onClick={toggleExpanded}
-          className="flex items-center space-x-2 text-left focus:outline-none"
+          className="flex items-center gap-3 text-left focus:outline-none w-full"
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? "Colapsar día" : "Expandir día"}
         >
           <h3 className="text-xl font-semibold text-gray-800">
             Día {day.posicion_dia}
           </h3>
-          <span className="text-gray-500 text-sm">
-            ({day.actividades.length}{" "}
-            {day.actividades.length === 1 ? "actividad" : "actividades"})
+          <span className="text-sm bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+            {day.actividades.length}{" "}
+            {day.actividades.length === 1 ? "actividad" : "actividades"}
           </span>
+          {/* Icono de flecha que rota */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className={`h-5 w-5 transform transition-transform ${
+            className={`h-5 w-5 transform transition-transform text-gray-500 ${
               isExpanded ? "rotate-180" : ""
             }`}
             fill="none"
@@ -72,76 +86,63 @@ const DayForm = ({ day, onUpdate, onRemove }: DayFormProps) => {
           </svg>
         </button>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={onRemove}
-          className="text-red-500 border-red-500 hover:bg-red-50"
+          className="text-red-600 hover:bg-red-50 ml-4"
         >
           Eliminar día
         </Button>
       </div>
 
+      {/* 4. CONTENIDO COLAPSABLE: Todo el contenido del día ahora depende de 'isExpanded' */}
       {isExpanded && (
-        <>
-          {day.actividades.length > 0 ? (
-            <div className="mb-4 mt-4">
-              <ul className="space-y-4">
-                {" "}
-                {/* Usamos space-y para un espaciado consistente */}
-                {day.actividades.map((actividad, index) => (
-                  <li
-                    key={index}
-                    className="p-3 bg-gray-50 rounded-lg flex justify-between items-start gap-4 border"
-                  >
-                    <ActivityItem actividad={actividad} />
-                    <Button
-                      variant="ghost" // Un estilo más sutil para el botón de borrar
-                      size="sm"
-                      onClick={() => handleRemoveActivity(index)}
-                      className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-1 h-fit" // Clases para un look más limpio
-                      aria-label="Eliminar actividad"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+        <div className="p-4 border-t border-gray-200">
+          <div className="space-y-3">
+            {day.actividades.length > 0 ? (
+              day.actividades.map((actividad, index) => (
+                <div key={actividad.id}>
+                  {editingActivityIndex === index ? (
+                    <ActivityForm
+                      initialData={actividad}
+                      onSave={handleUpdateActivity}
+                      onCancel={() => setEditingActivityIndex(null)}
+                    />
+                  ) : (
+                    <ActivityItem
+                      actividad={actividad}
+                      onEdit={() => setEditingActivityIndex(index)}
+                      onRemove={() => handleRemoveActivity(index)}
+                    />
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm py-2">
+                No hay actividades para este día. ¡Añade una!
+              </p>
+            )}
+          </div>
+
+          {showAddForm ? (
+            <div className="mt-4">
+              <ActivityForm
+                onSave={handleAddActivity}
+                onCancel={() => setShowAddForm(false)}
+              />
             </div>
           ) : (
-            <p className="text-gray-500 my-4">
-              No hay actividades programadas para este día.
-            </p>
+            <div className="mt-4">
+              <Button
+                variant="secondary"
+                onClick={() => setShowAddForm(true)}
+                className="w-full"
+              >
+                + Agregar Actividad
+              </Button>
+            </div>
           )}
-
-          {showActivityForm ? (
-            <ActivityForm
-              onAddActivity={handleAddActivity}
-              onCancel={() => setShowActivityForm(false)}
-            />
-          ) : (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowActivityForm(true)}
-              className="w-full"
-            >
-              Agregar actividad
-            </Button>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

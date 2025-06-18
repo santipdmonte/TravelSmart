@@ -5,6 +5,7 @@ export interface TransporteState {
 }
 
 export interface ActividadState {
+  id: string;
   nombre: string;
   descripcion: string;
   transporte: TransporteState | null;
