@@ -101,3 +101,110 @@ npm run dev
 - [TypeScript](https://www.typescriptlang.org/) - Superset tipado de JavaScript
 - [Vite](https://vitejs.dev/) - Herramienta de compilación rápida
 - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utility-first
+
+## Esquema base de datos
+
+```mermaid
+erDiagram
+    Users {
+        int id PK
+        string auth0_sub UK "Unique identifier from Auth0"
+        string email UK
+        string name
+        int role_id FK
+    }
+
+    Roles {
+        int id PK
+        string name UK "e.g., 'traveler', 'admin'"
+    }
+
+    Itineraries {
+        int id PK
+        int user_id FK "Nullable"
+        string session_key "Nullable, for anonymous users"
+        string trip_name
+        string general_destination "e.g., 'Italy', 'Southeast Asia'"
+        int total_days
+        date start_date "Nullable"
+        int num_adults "Nullable"
+        int num_children "Nullable"
+        string status "e.g., 'draft', 'confirmed'"
+        string creation_source "e.g., 'manual', 'ai'"
+        string conversation_id "Nullable, for HIL thread_id"
+    }
+
+    ItineraryDestinations {
+        int id PK
+        int itinerary_id FK
+        string destination_name "e.g., 'Rome', 'Florence'"
+        int days_in_destination
+        int order "To sequence destinations within the trip"
+    }
+
+    Days {
+        int id PK
+        int itinerary_destination_id FK
+        int day_number "Day number within that destination"
+        date date
+    }
+
+    Activities {
+        int id PK
+        int day_id FK
+        string name
+        text description
+        time start_time "Nullable, for ordering"
+        int category_id FK "Nullable"
+    }
+
+    ActivityCategories {
+        int id PK
+        string name UK "e.g., 'Gastronomy', 'Museum', 'Adventure'"
+    }
+
+    Transports {
+        int id PK
+        int itinerary_id FK
+        int origin_destination_id FK "FK to ItineraryDestinations"
+        int destination_destination_id FK "FK to ItineraryDestinations"
+        string type "e.g., 'Flight', 'Train'"
+        text description "Nullable"
+    }
+
+    TransportSuggestions {
+        int id PK
+        int transport_id FK
+        string provider_name "e.g., 'Skyscanner', 'Omio', 'Booking.com'"
+        string affiliate_link
+    }
+
+    AccommodationSuggestions {
+        int id PK
+        int itinerary_destination_id FK
+        string suggestion_name "e.g., 'Colosseum Hotel'"
+        string type "e.g., 'Hotel', 'Airbnb', 'Hostel'"
+        string affiliate_link
+        string price_range "e.g., 'low', 'medium', 'high'"
+    }
+
+    UserPreferences {
+        int id PK
+        int user_id FK
+        string interest_type "e.g., 'culture', 'relax'"
+        string budget_level
+    }
+
+    Users ||--o{ Itineraries : "creates"
+    Roles ||--|{ Users : "has a"
+    Itineraries ||--|{ ItineraryDestinations : "contains"
+    Itineraries ||--o{ Transports : "has"
+    ItineraryDestinations ||--|{ Days : "is_composed_of"
+    ItineraryDestinations ||--o{ AccommodationSuggestions : "has"
+    Transports ||--o{ TransportSuggestions : "has"
+    Days ||--|{ Activities : "includes"
+    ActivityCategories ||--o{ Activities : "categorizes"
+    Users ||--o{ UserPreferences : "defines"
+    ItineraryDestinations }|--o{ Transports : "is_origin_of"
+    ItineraryDestinations }|--o{ Transports : "is_destination_of"
+```
