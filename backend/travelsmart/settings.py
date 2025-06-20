@@ -150,3 +150,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_API_IDENTIFIER = os.environ.get('AUTH0_API_IDENTIFIER')
+
+AI_API_URL = os.environ.get('AI_API_URL')
