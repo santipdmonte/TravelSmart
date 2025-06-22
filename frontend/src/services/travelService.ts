@@ -1,35 +1,40 @@
-import { ViajeState, ViajeStateInput } from '../types/travel';
-import { createTravelPlanMock } from './mockTravelService';
+import apiClient from "./apiClient";
+import { Itinerary } from "../types/travel"; // Importamos nuestro nuevo tipo de dato para el itinerario
 
-// API URL should be in an environment variable in a production app
-const API_URL = 'http://localhost:8000'; // Replace with your actual API URL
+// Definimos la estructura del objeto que enviaremos al backend
+interface GeneratePayload {
+  trip_name: string;
+  days: number;
+}
 
-// Set to true to use the mock service, false to use the actual API
-const USE_MOCK = true;
-
-export const createTravelPlan = async (input: ViajeStateInput): Promise<ViajeState> => {
-  // Use mock service for development/testing
-  if (USE_MOCK) {
-    return createTravelPlanMock(input);
-  }
-  
-  // Use actual API
+/**
+ * Llama al endpoint del backend para generar un nuevo itinerario.
+ * @param payload - Un objeto que contiene trip_name y days.
+ * @returns Una promesa que se resuelve con el objeto del itinerario completo.
+ */
+export const generateItinerary = async (
+  payload: GeneratePayload
+): Promise<Itinerary> => {
   try {
-    const response = await fetch(`${API_URL}/create-plan`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    });
+    console.log(
+      "Enviando petición al backend para generar itinerario:",
+      payload
+    );
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`);
-    }
+    // Hacemos la llamada POST a nuestro endpoint de Django usando el cliente de axios
+    const response = await apiClient.post<Itinerary>(
+      "/itineraries/generate/",
+      payload
+    );
 
-    return await response.json();
+    console.log("Backend respondió con el itinerario:", response.data);
+
+    // Devolvemos los datos del itinerario creado que vienen en la respuesta
+    return response.data;
   } catch (error) {
-    console.error('Error creating travel plan:', error);
+    console.error("Error generando el itinerario desde el servicio:", error);
+    // En un futuro, aquí podrías manejar los errores de forma más elegante
+    // para mostrarle un mensaje específico al usuario.
     throw error;
   }
-}; 
+};
