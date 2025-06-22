@@ -68,8 +68,8 @@ def itinerary_generate(request):
     serializer = ItineraryGenerateSerializer(data=request.data)
     if serializer.is_valid():
         # Accedemos a los datos solo DESPUÉS de validar
-        trip_name = serializer.validated_data.get('trip_name')
-        days = serializer.validated_data.get('days')
+        trip_name = serializer.validated_data['trip_name'] # type: ignore
+        days = serializer.validated_data['days'] # type: ignore
         
         session_id = request.session.session_key
         if not session_id:
@@ -77,7 +77,7 @@ def itinerary_generate(request):
             session_id = request.session.session_key
 
         # Llamamos a la función importada desde nuestro servicio de IA
-        ai_response_json = generate_itinerary_from_ai(trip_name)
+        ai_response_json = generate_itinerary_from_ai(trip_name, days)
 
         if not ai_response_json:
             return Response(

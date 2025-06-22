@@ -20,7 +20,7 @@ def generate_itinerary_from_ai(trip_name: str, days: int, other_preferences: dic
         dict: El JSON con el itinerario detallado, o None si hubo un error.
     """
     # 1. Define el endpoint específico de tu API de IA
-    endpoint_url = f"{AI_API_BASE_URL}/itinerario" # <- NECESITAREMOS VERIFICAR ESTA RUTA
+    endpoint_url = f"{AI_API_BASE_URL}/itinerary/generate_itinerary" # <- NECESITAREMOS VERIFICAR ESTA RUTA
 
     # 2. Prepara los datos que le enviarás a la IA en formato JSON
     payload = {
@@ -39,14 +39,24 @@ def generate_itinerary_from_ai(trip_name: str, days: int, other_preferences: dic
 
         # 4. Verifica si la petición fue exitosa (código 2xx)
         response.raise_for_status()
+        
+        print("--- PETICIÓN A LA IA EXITOSA ---")
 
         # 5. Devuelve el JSON de la respuesta
         return response.json()
 
-    except requests.exceptions.RequestException as e:
-        # Maneja errores de conexión, timeout, etc.
-        print(f"Error al conectar con la API de IA: {e}")
+    except requests.exceptions.HTTPError as http_err:
+        # --- NUEVO BLOQUE DE DEBUG PARA ERRORES HTTP (4xx, 5xx) ---
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(f"ERROR HTTP: La API de IA respondió con un error.")
+        print(f"Status Code: {http_err.response.status_code}")
+        print(f"Respuesta del servidor de IA: {http_err.response.text}")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return None
-    except Exception as e:
-        print(f"Ocurrió un error inesperado: {e}")
+    except requests.exceptions.RequestException as e:
+        # Para otros errores como problemas de conexión, timeout, etc.
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print(f"ERROR DE CONEXIÓN: No se pudo conectar con la API de IA.")
+        print(f"Error: {e}")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return None
