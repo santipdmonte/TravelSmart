@@ -60,24 +60,22 @@ def call_ai_to_modify_itinerary(itinerary_json, prompt):
 # --- Vistas de la API para Itinerarios ---
 
 @api_view(['POST'])
-@permission_classes([AllowAny]) # Permitimos que usuarios anónimos generen itinerarios
+@permission_classes([AllowAny])
 def itinerary_generate(request):
     """
     Endpoint para generar un nuevo itinerario usando el servicio de IA.
     """
     serializer = ItineraryGenerateSerializer(data=request.data)
     if serializer.is_valid():
-        # Accedemos a los datos solo DESPUÉS de validar
-        trip_name = serializer.validated_data['trip_name'] # type: ignore
-        days = serializer.validated_data['days'] # type: ignore
+        trip_name = serializer.validated_data['trip_name']
+        days = serializer.validated_data['days']
         
         session_id = request.session.session_key
         if not session_id:
             request.session.create()
             session_id = request.session.session_key
 
-        # Llamamos a la función importada desde nuestro servicio de IA
-        ai_response_json = generate_itinerary_from_ai(trip_name, days)
+        ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
 
         if not ai_response_json:
             return Response(
@@ -90,36 +88,66 @@ def itinerary_generate(request):
             session_id=session_id,
             details_itinerary=ai_response_json
         )
+        
+        # --- INICIO DE LA LÓGICA DE PARSEO FINAL ---
+        for dest_order, dest_data in enumerate(ai_response_json.get('destinos', [])):
+            
+            if not dest_data.get('dias_destino'):
+                continue
 
-        # Llenamos las tablas relacionales a partir del JSON
-        for dest_order, dest_data in enumerate(ai_response_json.get('destinations', [])):
+            raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
+            city_parts = raw_destination_name.split(',')
+            
+            city = city_parts[0].strip()
+            # Si el JSON no especifica un país, usamos el nombre del viaje como país por defecto.
+            country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+
+            # Usamos get_or_create para evitar duplicados en la tabla de Destinos
             destination, _ = Destination.objects.get_or_create(
-                city_name=dest_data.get('destination_city'),
-                country_name=dest_data.get('destination_country')
+                city_name=city,
+                country_name=country
             )
+            
             it_dest = ItineraryDestination.objects.create(
-                itinerary=itinerary, destination=destination,
-                days_in_destination=dest_data.get('days_in_destination', 0),
+                itinerary=itinerary, 
+                destination=destination,
+                days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
                 destination_order=dest_order + 1
             )
-            for day_data in dest_data.get('days', []):
+            
+            for day_data in dest_data.get('dias_destino', []):
                 day = Day.objects.create(
                     itinerary_destination=it_dest,
-                    day_number=day_data.get('day_number'),
-                    date=day_data.get('date')
+                    day_number=day_data.get('posicion_dia'),
+                    date=None
                 )
-                for act_data in day_data.get('activities', []):
-                    Activity.objects.create(
-                        day=day, name=act_data.get('name'),
-                        description=act_data.get('description', ''),
-                        activity_order=act_data.get('order'),
-                        details_activity=act_data.get('details', {})
-                    )
+                
+                for act_order, act_data in enumerate(day_data.get('actividades', [])):
+                    activity_name = ""
+                    activity_description = ""
+                    activity_details = {}
+
+                    if isinstance(act_data, dict):
+                        activity_name = act_data.get('nombre', 'Actividad sin nombre')
+                        activity_description = act_data.get('descripcion', '')
+                        activity_details = act_data.get('details', {})
+                    elif isinstance(act_data, str):
+                        activity_name = act_data
+                        activity_description = ''
+                    
+                    if activity_name:
+                        Activity.objects.create(
+                            day=day, 
+                            name=activity_name,
+                            description=activity_description,
+                            activity_order=int(act_order) + 1,
+                            details_activity=activity_details
+                        )
+        # --- FIN DE LA LÓGICA DE PARSEO FINAL ---
         
         response_serializer = ItineraryDetailSerializer(itinerary)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
-    # Si la validación falla, devolvemos los errores
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

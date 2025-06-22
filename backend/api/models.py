@@ -43,10 +43,16 @@ class ItineraryDestination(models.Model):
     days_in_destination = models.PositiveIntegerField()
     destination_order = models.PositiveIntegerField()
 
+    class Meta:
+        ordering = ['destination_order']
+
 class Day(models.Model):
     itinerary_destination = models.ForeignKey(ItineraryDestination, related_name='days', on_delete=models.CASCADE)
     day_number = models.PositiveIntegerField()
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)  # Cambiar en un futuro, no podrá ser nula la fecha
+
+    class Meta:
+        ordering = ['day_number']
 
 class Activity(models.Model):
     day = models.ForeignKey(Day, related_name='activities', on_delete=models.CASCADE)
@@ -56,3 +62,6 @@ class Activity(models.Model):
     details_activity = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['activity_order']

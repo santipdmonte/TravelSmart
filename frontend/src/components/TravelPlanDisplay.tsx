@@ -7,17 +7,13 @@ interface TravelPlanDisplayProps {
 }
 
 const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
-  // Si no hay plan, no mostramos nada. Es una guarda de seguridad.
   if (!plan) {
     return null;
   }
 
-  // Imprimimos en la consola los datos que recibe el componente para depurar.
-  // Puedes revisar esto en las herramientas de desarrollador (F12)
-  console.log("Datos recibidos por TravelPlanDisplay:", plan);
-
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-6">
+      {/* El encabezado general del viaje se renderiza una sola vez */}
       <div className="border-b border-gray-200 pb-4">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
           {plan.trip_name}
@@ -25,7 +21,7 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
         <p className="text-gray-500">ID del Viaje: {plan.id}</p>
       </div>
 
-      {/* Verificamos que plan.destinations exista y sea un array antes de mapearlo */}
+      {/* El primer bucle recorre los destinos. Se crea una "caja" por cada destino. */}
       {plan.destinations &&
         plan.destinations.map((destination, destIndex) => (
           <div
@@ -40,7 +36,7 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
             </h3>
 
             <div className="mt-4 space-y-4">
-              {/* Hacemos lo mismo para los días */}
+              {/* El segundo bucle anidado recorre los días DE ESE destino */}
               {destination.days &&
                 destination.days.map((day, dayIndex) => (
                   <div
@@ -48,14 +44,18 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
                     className="pl-4 border-l-4 border-blue-300"
                   >
                     <h4 className="text-lg font-medium text-gray-800">
-                      Día {day.day_number}{" "}
-                      <span className="text-sm font-light text-gray-500">
-                        ({day.date})
-                      </span>
+                      Día {day.day_number}
+                      {/* CORRECCIÓN: Mostramos la fecha solo si existe */}
+                      {day.date && (
+                        <span className="text-sm font-light text-gray-500">
+                          {" "}
+                          ({day.date})
+                        </span>
+                      )}
                     </h4>
 
                     <ul className="mt-2 list-none space-y-2 pl-2">
-                      {/* Y para las actividades */}
+                      {/* El tercer bucle recorre las actividades DE ESE día */}
                       {day.activities &&
                         day.activities.map((activity, activityIndex) => (
                           <li
