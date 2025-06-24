@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
+    'apps.itineraries',
+    'apps.users',
+    'apps.travelers',
     'rest_framework',
     'corsheaders',
 ]
@@ -57,7 +59,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-ROOT_URLCONF = 'travelsmart.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -99,7 +101,7 @@ CORS_ALLOWED_ORIGINS = [
 # Configuración de Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'api.authentication.Auth0Authentication', # Nuestra clase de autenticación
+        'apps.users.services.Auth0Authentication', # Nuestra clase de autenticación
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
