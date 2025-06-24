@@ -44,4 +44,3 @@ class ItineraryGenerateSerializer(serializers.Serializer):
     # Este serializer es solo para validar la entrada del endpoint de generación
     trip_name = serializers.CharField(max_length=200, required=True)
     days = serializers.IntegerField(required=True, min_value=1) 
-    # Aquí podrías añadir otros campos que el usuario envía para la generación

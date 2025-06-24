@@ -59,6 +59,98 @@ def call_ai_to_modify_itinerary(itinerary_json, prompt):
 
 # --- Vistas de la API para Itinerarios ---
 
+# @api_view(['POST'])
+# @permission_classes([AllowAny])
+# def itinerary_generate(request):
+#     """
+#     Endpoint para generar un nuevo itinerario usando el servicio de IA.
+#     """
+#     serializer = ItineraryGenerateSerializer(data=request.data)
+    
+#     if serializer.is_valid():
+#         trip_name = serializer.validated_data['trip_name']
+#         days = serializer.validated_data['days']
+        
+#         session_id = request.session.session_key
+#         if not session_id:
+#             request.session.create()
+#             session_id = request.session.session_key
+
+#         ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
+
+#         if not ai_response_json:
+#             return Response(
+#                 {"error": "Failed to generate itinerary from AI service."},
+#                 status=status.HTTP_503_SERVICE_UNAVAILABLE
+#             )
+
+#         itinerary = Itinerary.objects.create(
+#             trip_name=trip_name,
+#             session_id=session_id,
+#             details_itinerary=ai_response_json
+#         )
+        
+#         # --- INICIO DE LA LÓGICA DE PARSEO FINAL ---
+#         for dest_order, dest_data in enumerate(ai_response_json.get('destinos', [])):
+            
+#             if not dest_data.get('dias_destino'):
+#                 continue
+
+#             raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
+#             city_parts = raw_destination_name.split(',')
+            
+#             city = city_parts[0].strip()
+#             # Si el JSON no especifica un país, usamos el nombre del viaje como país por defecto.
+#             country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+
+#             # Usamos get_or_create para evitar duplicados en la tabla de Destinos
+#             destination, _ = Destination.objects.get_or_create(
+#                 city_name=city,
+#                 country_name=country
+#             )
+            
+#             it_dest = ItineraryDestination.objects.create(
+#                 itinerary=itinerary, 
+#                 destination=destination,
+#                 days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
+#                 destination_order=dest_order + 1
+#             )
+            
+#             for day_data in dest_data.get('dias_destino', []):
+#                 day = Day.objects.create(
+#                     itinerary_destination=it_dest,
+#                     day_number=day_data.get('posicion_dia'),
+#                     date=None
+#                 )
+                
+#                 for act_order, act_data in enumerate(day_data.get('actividades', [])):
+#                     activity_name = ""
+#                     activity_description = ""
+#                     activity_details = {}
+
+#                     if isinstance(act_data, dict):
+#                         activity_name = act_data.get('nombre', 'Actividad sin nombre')
+#                         activity_description = act_data.get('descripcion', '')
+#                         activity_details = act_data.get('details', {})
+#                     elif isinstance(act_data, str):
+#                         activity_name = act_data
+#                         activity_description = ''
+                    
+#                     if activity_name:
+#                         Activity.objects.create(
+#                             day=day, 
+#                             name=activity_name,
+#                             description=activity_description,
+#                             activity_order=int(act_order) + 1,
+#                             details_activity=activity_details
+#                         )
+#         # --- FIN DE LA LÓGICA DE PARSEO FINAL ---
+        
+#         response_serializer = ItineraryDetailSerializer(itinerary)
+#         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def itinerary_generate(request):
@@ -66,90 +158,41 @@ def itinerary_generate(request):
     Endpoint para generar un nuevo itinerario usando el servicio de IA.
     """
     serializer = ItineraryGenerateSerializer(data=request.data)
-    if serializer.is_valid():
-        trip_name = serializer.validated_data['trip_name']
-        days = serializer.validated_data['days']
+
+    # Validate the input data
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        session_id = request.session.session_key
-        if not session_id:
-            request.session.create()
-            session_id = request.session.session_key
+    # Get the session ID or create a new session
+    session_id = request.session.session_key
+    if not session_id:
+        request.session.create()
+        session_id = request.session.session_key # Update the session ID
 
-        ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
+    # Get the input data
+    validated_data: dict = serializer.validated_data
+    trip_name = validated_data.get('trip_name')
+    days = validated_data.get('days')
 
-        if not ai_response_json:
-            return Response(
-                {"error": "Failed to generate itinerary from AI service."},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
-            )
+    # Call the AI service
+    ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
 
-        itinerary = Itinerary.objects.create(
-            trip_name=trip_name,
-            session_id=session_id,
-            details_itinerary=ai_response_json
+    if not ai_response_json:
+        return Response(
+            {"error": "Failed to generate itinerary from AI service."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
         )
-        
-        # --- INICIO DE LA LÓGICA DE PARSEO FINAL ---
-        for dest_order, dest_data in enumerate(ai_response_json.get('destinos', [])):
-            
-            if not dest_data.get('dias_destino'):
-                continue
 
-            raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
-            city_parts = raw_destination_name.split(',')
-            
-            city = city_parts[0].strip()
-            # Si el JSON no especifica un país, usamos el nombre del viaje como país por defecto.
-            country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+    # # Create the itinerary
+    # itinerary = Itinerary.objects.create(
+    #     trip_name=trip_name,
+    #     session_id=session_id,
+    #     details_itinerary=ai_response_json
+    # )
 
-            # Usamos get_or_create para evitar duplicados en la tabla de Destinos
-            destination, _ = Destination.objects.get_or_create(
-                city_name=city,
-                country_name=country
-            )
-            
-            it_dest = ItineraryDestination.objects.create(
-                itinerary=itinerary, 
-                destination=destination,
-                days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
-                destination_order=dest_order + 1
-            )
-            
-            for day_data in dest_data.get('dias_destino', []):
-                day = Day.objects.create(
-                    itinerary_destination=it_dest,
-                    day_number=day_data.get('posicion_dia'),
-                    date=None
-                )
-                
-                for act_order, act_data in enumerate(day_data.get('actividades', [])):
-                    activity_name = ""
-                    activity_description = ""
-                    activity_details = {}
-
-                    if isinstance(act_data, dict):
-                        activity_name = act_data.get('nombre', 'Actividad sin nombre')
-                        activity_description = act_data.get('descripcion', '')
-                        activity_details = act_data.get('details', {})
-                    elif isinstance(act_data, str):
-                        activity_name = act_data
-                        activity_description = ''
-                    
-                    if activity_name:
-                        Activity.objects.create(
-                            day=day, 
-                            name=activity_name,
-                            description=activity_description,
-                            activity_order=int(act_order) + 1,
-                            details_activity=activity_details
-                        )
-        # --- FIN DE LA LÓGICA DE PARSEO FINAL ---
-        
-        response_serializer = ItineraryDetailSerializer(itinerary)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    # return Response(ai_response_json, status=status.HTTP_200_OK)
+    return Response(ai_response_json, status=status.HTTP_200_OK)
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['GET', 'DELETE']) 
 @permission_classes([AllowAny])
@@ -229,3 +272,82 @@ def itinerary_modify(request, pk):
     # 6. Devolvemos el itinerario actualizado
     response_serializer = ItineraryDetailSerializer(itinerary)
     return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+
+# --- Vistas de la API para el grafo de IA ---
+
+from .graph.services import (
+    initialize_agent_service,
+    user_response_service,
+    user_HIL_response_service,
+    get_state_service
+)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initialize_agent(request):
+    """
+    Endpoint to initialize the graph.
+    """
+
+    # Get the input data
+    # TODO: Serialize the data
+    thread_id = request.data.get('thread_id')
+    itinerary_state = request.data.get('itinerary_state')
+
+    # Call the AI service
+    graph_response = initialize_agent_service(thread_id=thread_id, itinerary_state=itinerary_state)
+
+    return Response(graph_response, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def user_response(request):
+    """
+    Endpoint to handle user response.
+    """
+
+    # Get the input data
+    # TODO: Serialize the data
+    thread_id = request.data.get('thread_id')
+    user_response_data = request.data.get('user_response')
+
+    # Call the AI service
+    response = user_response_service(thread_id=thread_id, user_response=user_response_data)
+
+    return Response(response, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def HIL_response(request):
+    """
+    Endpoint to handle HIL response.
+    """
+
+    # Get the input data
+    # TODO: Serialize the data
+    thread_id = request.data.get('thread_id')
+    user_HIL_response_data = request.data.get('user_HIL_response')
+
+    # Call the AI service
+    response = user_HIL_response_service(thread_id=thread_id, user_HIL_response=user_HIL_response_data)
+
+    return Response(response, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_state(request):
+    """
+    Endpoint to get the state of the graph.
+    """
+
+    # Get the input data
+    thread_id = request.query_params.get('thread_id')
+
+    # Call the AI service
+    response = get_state_service(thread_id=thread_id)
+
+    return Response(response, status=status.HTTP_200_OK)
