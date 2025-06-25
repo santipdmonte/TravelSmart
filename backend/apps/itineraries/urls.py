@@ -11,3 +11,14 @@ urlpatterns = [
     path('agent/HIL_response/', views.HIL_response, name='agent-hil-response'),
     path('agent/get_state/', views.get_state, name='agent-get-state'),
 ]
+
+# POST itineraries/
+# GET itineraries/
+
+# GET itineraries/<int:pk>/
+# PUT itineraries/<int:pk>
+# DELETE itineraries/<int:pk>
+
+# POST agents/<int:pk>/
+# GET agents/<int:pk>/
+# POST agents/<int:pk>/message/
