@@ -6,36 +6,49 @@ import React, {
   Dispatch,
   useReducer,
 } from "react";
-import { Itinerary, ItineraryAction } from "../types/travel";
+import { ViajeState, ItineraryAction } from "../types/travel";
 
-// El reducer ahora opera sobre el tipo 'Itinerary'
 const itineraryReducer = (
-  state: Itinerary | null,
+  state: ViajeState | null,
   action: ItineraryAction
-): Itinerary | null => {
+): ViajeState | null => {
   switch (action.type) {
     case "SET_ITINERARY":
+      // Reemplaza el estado actual con el nuevo itinerario del payload
       return action.payload;
+
+    case "UPDATE_DETAILS":
+      // Si no hay estado, no hagas nada
+      if (!state) {
+        return state;
+      }
+      // Combina el estado anterior con los nuevos detalles del payload
+      return { ...state, ...action.payload };
+
     case "CLEAR_ITINERARY":
+      // Devuelve null para limpiar el estado
       return null;
+
     default:
+      // Si la acción no es reconocida, devuelve el estado sin cambios
       return state;
   }
 };
 
 interface ItineraryContextType {
-  itinerary: Itinerary | null;
-  dispatch: Dispatch<ItineraryAction>;
+  itinerary: ViajeState | null;
+  dispatch: Dispatch<ItineraryAction>; // Expondremos dispatch en lugar de las funciones set
 }
 
+// Creamos el contexto
 const ItineraryContext = createContext<ItineraryContextType | undefined>(
   undefined
 );
 
 const ITINERARY_KEY = "travelsmart_itinerary";
 
-// La función que obtiene datos de localStorage ahora espera un objeto 'Itinerary'
-const getInitialState = (): Itinerary | null => {
+// Función para obtener el estado inicial desde localStorage
+const getInitialState = (): ViajeState | null => {
   try {
     const stored = localStorage.getItem(ITINERARY_KEY);
     return stored ? JSON.parse(stored) : null;
@@ -46,8 +59,11 @@ const getInitialState = (): Itinerary | null => {
 };
 
 export const ItineraryProvider = ({ children }: { children: ReactNode }) => {
+  // Usamos useReducer en lugar de useState
+  // El primer argumento es el reducer, el segundo es el estado inicial
   const [itinerary, dispatch] = useReducer(itineraryReducer, getInitialState());
 
+  // Este useEffect se ejecuta CADA VEZ que el estado 'itinerary' cambia
   useEffect(() => {
     try {
       if (itinerary) {
@@ -67,6 +83,7 @@ export const ItineraryProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// El custom hook ahora devuelve el estado y la función dispatch
 export const useItineraryContext = () => {
   const context = useContext(ItineraryContext);
   if (!context) {
