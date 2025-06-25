@@ -63,7 +63,7 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
                             className="text-gray-700 bg-white p-2 rounded shadow-sm"
                           >
                             <strong className="font-semibold text-gray-900">
-                              {activity.name}:
+                              {activity.name}.
                             </strong>{" "}
                             {activity.description}
                           </li>
