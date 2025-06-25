@@ -4,60 +4,16 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.utils import timezone
 
-
 from .models import Itinerary, Destination, ItineraryDestination, Day, Activity
 from .serializers import ItineraryDetailSerializer, ItineraryGenerateSerializer
-from .ai_service import generate_itinerary_from_ai
+from .services import (
+    generate_itinerary_service,
+    initialize_agent_service,
+    user_response_service,
+    user_HIL_response_service,
+    get_state_service
+)
 
-# --- Endpoint de prueba de Autenticación ---
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated]) # Aseguramos que solo usuarios autenticados entren
-def private_endpoint(request):
-    """
-    Endpoint privado para verificar que la autenticación con Auth0 funciona.
-    """
-    # El payload del token está en request.auth gracias a nuestra clase de autenticación
-    auth0_user_id = request.auth.get('sub') 
-    message = f"Hola usuario {auth0_user_id}! Este es un mensaje privado desde el backend de Django."
-    return Response({'message': message})
-
-
-# --- Lógica de IA (Mockup) ---
-
-
-# def call_ai_to_generate_itinerary(trip_name):
-    print(f"Llamando a la IA para generar el viaje: {trip_name}")
-    # En un futuro, aquí llamarías a tu servicio de IA.
-    # Por ahora, devolvemos un JSON de ejemplo bien estructurado.
-    return {
-        "destinations": [
-            {
-                "destination_city": "Roma",
-                "destination_country": "Italia",
-                "days_in_destination": 1,
-                "days": [
-                    {
-                        "day_number": 1, "date": "2025-10-10",
-                        "activities": [
-                            {"name": "Visitar el Coliseo", "description": "Antiguo anfiteatro romano.", "order": 1, "details": {"cost": 20}},
-                            {"name": "Paseo por el Foro Romano", "description": "Corazón de la antigua Roma.", "order": 2, "details": {"cost": 15}}
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-
-def call_ai_to_modify_itinerary(itinerary_json, prompt):
-    print(f"Llamando a la IA para modificar el itinerario con el prompt: '{prompt}'")
-    # En un futuro, la IA modificaría el JSON que le pasas.
-    # Por ahora, para simular un cambio, simplemente cambiamos un nombre.
-    new_json = itinerary_json.copy()
-    new_json['destinations'][0]['days'][0]['activities'][0]['name'] = "Visita MODIFICADA al Coliseo"
-    return new_json
-
-# --- Vistas de la API para Itinerarios ---
 
 # @api_view(['POST'])
 # @permission_classes([AllowAny])
@@ -276,7 +232,7 @@ def itinerary_modify(request, pk):
 
 # --- Vistas de la API para el grafo de IA ---
 
-from .graph.services import (
+from .services import (
     initialize_agent_service,
     user_response_service,
     user_HIL_response_service,
