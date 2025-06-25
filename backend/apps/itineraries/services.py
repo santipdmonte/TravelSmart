@@ -1,3 +1,4 @@
+import json
 from sqlalchemy import null
 from .graph.itinerary_graph import itinerary_graph
 from .graph.itinerary_agent import itinerary_agent
@@ -16,48 +17,6 @@ def generate_itinerary_service(input_state: ViajeStateInput):
         print(f"Error generating itinerary: {e}")
         raise e
 
-
-def call_ai_to_modify_itinerary(thread_id: str):
-    """
-    Simula la obtención del estado final del agente de IA, devolviendo un 
-    diccionario con el formato que la IA proporcionaría.
-    """
-    print(f"Obteniendo estado final del agente para el thread_id: {thread_id}")
-    
-    final_itinerary_json = {
-        "nombre_viaje": "Viaje MODIFICADO a Madrid",
-        "cantidad_dias": 5,
-        "destino_general": "Madrid, España",
-        "destinos": [
-            {
-                "nombre_destino": "Madrid",
-                "cantidad_dias_en_destino": 5,
-                "dias_destino": [
-                    {
-                        "posicion_dia": 1,
-                        "actividades": "MODIFICADO: Visita al Palacio Real y Jardines de Sabatini."
-                    },
-                    {
-                        "posicion_dia": 2,
-                        "actividades": "MODIFICADO: Tarde de arte en el Museo Reina Sofía."
-                    },
-                    {
-                        "posicion_dia": 3,
-                        "actividades": "MODIFICADO: Excursión de un día a Segovia."
-                    },
-                    {
-                        "posicion_dia": 4,
-                        "actividades": "MODIFICADO: Paseo y compras por la calle Serrano."
-                    },
-                    {
-                        "posicion_dia": 5,
-                        "actividades": "MODIFICADO: Desayuno con churros y despedida."
-                    }
-                ]
-            }
-        ]
-    }
-    return final_itinerary_json
 
 def initialize_agent_service(thread_id: str, itinerary_state: ViajeState):
 
@@ -116,115 +75,87 @@ def initialize_agent_service(thread_id: str, itinerary_state: ViajeState):
 
 
 def user_response_service(thread_id: str, user_response: str):
-
+    """
+    Procesa la respuesta del usuario, interpreta el estado del agente 
+    y devuelve un diccionario simple y serializable.
+    """
     config: RunnableConfig = {
         "configurable": {
             "thread_id": thread_id
         }
     }
 
-    response = itinerary_agent.invoke({"messages": user_response}, config=config)
+    itinerary_agent.invoke({"messages": user_response}, config=config)
 
-    # Get the raw state from the agent
     raw_state = itinerary_agent.get_state(config)
-
-    print("--------------------------------")
-    print(raw_state)
-    print("--------------------------------")
     
-    # Check if agent is in HIL mode
     is_hil_mode, hil_message, state_values = detect_hil_mode(raw_state)
     
     if is_hil_mode:
-        # HIL mode detected - extract state from values
-        state_info = state_values if state_values else {}
+        print(f"Modo HIL detectado. Mensaje: {hil_message}")
+        
+        # --- CORRECCIÓN ---
+        # Comprobamos si state_values tiene un valor antes de intentar usarlo.
+        itinerary_preview = None
+        if state_values:
+            itinerary_preview = state_values.get("itinerary")
+        
         return {
             "mode": "hil",
-            "hil_message": hil_message,
-            "state": {
-                "itinerary": state_info.get("itinerary", ""),
-                "user_name": state_info.get("user_name", ""),
-                "user_id": state_info.get("user_id", ""),
-                "llm_input_messages": state_info.get("llm_input_messages", [])
-            },
-            "raw_state": raw_state  # Keep for debugging if needed
+            "chatbot_response": hil_message,
+            "itinerary_preview": itinerary_preview
         }
     else:
-        # Normal mode - extract the required information from the complex response structure
-        # The raw_state is an array where the first element contains the state info
-        state_info = raw_state[0] if len(raw_state) > 0 else {}
-        
-        # Extract the chatbot message content from the messages
+        # El agente simplemente respondió con un mensaje de chat normal.
+        state_info = raw_state.values if raw_state else {}
         chatbot_message = extract_chatbot_message(state_info)
-        
-        # Return the structured response
+        print(f"Modo Normal detectado. Mensaje: {chatbot_message}")
         return {
             "mode": "normal",
-            "state": {
-                "itinerary": state_info.get("itinerary", ""),
-                "user_name": state_info.get("user_name", ""),
-                "user_id": state_info.get("user_id", ""),
-                "llm_input_messages": state_info.get("llm_input_messages", [])
-            },
             "chatbot_response": chatbot_message,
-            "raw_state": raw_state  # Keep for debugging if needed
+            "itinerary_preview": state_info.get("itinerary")
         }
 
 def user_HIL_response_service(thread_id: str, user_HIL_response: str):
+    """
+    Procesa la respuesta HIL, reanuda el agente y devuelve el nuevo estado del itinerario,
+    SIN GUARDAR en la base de datos.
+    """
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
+    
+    # Reanudamos el agente con la confirmación del usuario.
+    # El agente ahora ejecutará la herramienta, pero solo actualizará su estado interno.
+    itinerary_agent.invoke(Command(resume=user_HIL_response), config=config)
+    
+    # Obtenemos el estado final del agente, que ahora contiene el itinerario modificado.
+    final_state = itinerary_agent.get_state(config)
 
-    config: RunnableConfig = {
-        "configurable": {
-            "thread_id": thread_id
-        }
+    # --- INICIO DEBUG ---
+    # print("--- ESTADO FINAL DEL AGENTE (después de HIL) ---")
+    # print(final_state)
+    # print("-----------------------------------------------")
+    # --- FIN DEBUG ---
+    
+    itinerary_preview = None
+    if final_state and final_state.values:
+        # --- LÓGICA DE EXTRACCIÓN MEJORADA ---
+        # El itinerario modificado está en los argumentos de la última llamada a la herramienta.
+        last_message = final_state.values.get('messages', [])[-1]
+        if last_message.tool_calls:
+            # Extraemos los argumentos de la primera llamada a herramienta
+            tool_args_str = last_message.tool_calls[0].get('args', {}).get('new_itinerary')
+            if tool_args_str:
+                itinerary_preview = json.loads(tool_args_str) if isinstance(tool_args_str, str) else tool_args_str
+    
+    # Si no encontramos una vista previa en la llamada a la herramienta, usamos el estado principal como fallback.
+    if not itinerary_preview and final_state and final_state.values:
+        itinerary_preview = final_state.values.get("itinerary")
+
+    return {
+        "mode": "normal",
+        "chatbot_response": "¡Perfecto! He actualizado el borrador de tu itinerario. ¿Quieres hacer algún otro cambio?",
+        "itinerary_preview": itinerary_preview # Devolvemos el borrador actualizado
     }
-
-    response = itinerary_agent.invoke(Command(resume={"messages": user_HIL_response}), config=config)
-
-    # Get the raw state from the agent
-    raw_state = itinerary_agent.get_state(config)
-    
-    print("--------------------------------")
-    print("HIL Response:")
-    print(raw_state)
-    print("--------------------------------")
-    
-    # Check if agent is in HIL mode again (could be chained HIL requests)
-    is_hil_mode, hil_message, state_values = detect_hil_mode(raw_state)
-    
-    if is_hil_mode:
-        # HIL mode detected - extract state from values
-        state_info = state_values if state_values else {}
-        return {
-            "mode": "hil",
-            "hil_message": hil_message,
-            "state": {
-                "itinerary": state_info.get("itinerary", ""),
-                "user_name": state_info.get("user_name", ""),
-                "user_id": state_info.get("user_id", ""),
-                "llm_input_messages": state_info.get("llm_input_messages", [])
-            },
-            "raw_state": raw_state  # Keep for debugging if needed
-        }
-    else:
-        # Normal mode - extract the required information from the complex response structure
-        # The raw_state is an array where the first element contains the state info
-        state_info = raw_state[0] if len(raw_state) > 0 else {}
-        
-        # Extract the chatbot message content from the messages
-        chatbot_message = extract_chatbot_message(state_info)
-        
-        # Return the structured response
-        return {
-            "mode": "normal",
-            "state": {
-                "itinerary": state_info.get("itinerary", ""),
-                "user_name": state_info.get("user_name", ""),
-                "user_id": state_info.get("user_id", ""),
-                "llm_input_messages": state_info.get("llm_input_messages", [])
-            },
-            "chatbot_response": chatbot_message,
-            "raw_state": raw_state  # Keep for debugging if needed
-        }
 
 def get_state_service(thread_id: str):
 

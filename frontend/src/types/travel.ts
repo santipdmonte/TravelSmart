@@ -1,3 +1,4 @@
+/*
 export interface TransporteState {
   origen: string;
   destino: string;
@@ -44,17 +45,17 @@ export interface TransportationState {
   tipo: string;
   descripcion: string;
 }
-
+*/
 export interface Activity {
   name: string;
   description: string;
   activity_order: number;
-  details_activity: unknown; // El JSONField lo recibimos como un objeto genérico
+  details_activity: unknown;
 }
 
 export interface Day {
   day_number: number;
-  date: string; // Formato "YYYY-MM-DD"
+  date: string | null; // La fecha puede ser nula
   activities: Activity[];
 }
 
@@ -66,19 +67,21 @@ export interface ItineraryDestination {
   days: Day[];
 }
 
-// Este es el objeto principal que manejará nuestro Context y estado
 export interface Itinerary {
   id: number;
   trip_name: string;
   visibility: "private" | "unlisted" | "public";
   status: "draft" | "confirmed";
-  created_at: string; // Formato ISO datetime
-  updated_at: string; // Formato ISO datetime
-  details_itinerary: unknown; // El JSONField completo
+  created_at: string;
+  updated_at: string;
+  details_itinerary: unknown;
   destinations: ItineraryDestination[];
+  // Añadimos los campos que el usuario puede completar
+  start_date?: string;
+  num_adults?: number;
 }
 
-// Actualizamos las acciones del Reducer para que usen el nuevo tipo
+// Acción para nuestro Context, ahora usando el tipo correcto
 export type ItineraryAction =
   | { type: "SET_ITINERARY"; payload: Itinerary }
   | { type: "CLEAR_ITINERARY" };
