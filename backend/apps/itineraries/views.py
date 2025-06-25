@@ -1,3 +1,5 @@
+import json
+from pydantic.json import pydantic_encoder
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +9,7 @@ from django.utils import timezone
 from .models import Itinerary, Destination, ItineraryDestination, Day, Activity
 from .serializers import ItineraryDetailSerializer, ItineraryGenerateSerializer
 from .services import (
+    call_ai_to_modify_itinerary,
     generate_itinerary_service,
     initialize_agent_service,
     user_response_service,
@@ -14,98 +17,8 @@ from .services import (
     get_state_service
 )
 
-
-# @api_view(['POST'])
-# @permission_classes([AllowAny])
-# def itinerary_generate(request):
-#     """
-#     Endpoint para generar un nuevo itinerario usando el servicio de IA.
-#     """
-#     serializer = ItineraryGenerateSerializer(data=request.data)
-    
-#     if serializer.is_valid():
-#         trip_name = serializer.validated_data['trip_name']
-#         days = serializer.validated_data['days']
-        
-#         session_id = request.session.session_key
-#         if not session_id:
-#             request.session.create()
-#             session_id = request.session.session_key
-
-#         ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
-
-#         if not ai_response_json:
-#             return Response(
-#                 {"error": "Failed to generate itinerary from AI service."},
-#                 status=status.HTTP_503_SERVICE_UNAVAILABLE
-#             )
-
-#         itinerary = Itinerary.objects.create(
-#             trip_name=trip_name,
-#             session_id=session_id,
-#             details_itinerary=ai_response_json
-#         )
-        
-#         # --- INICIO DE LA LÓGICA DE PARSEO FINAL ---
-#         for dest_order, dest_data in enumerate(ai_response_json.get('destinos', [])):
-            
-#             if not dest_data.get('dias_destino'):
-#                 continue
-
-#             raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
-#             city_parts = raw_destination_name.split(',')
-            
-#             city = city_parts[0].strip()
-#             # Si el JSON no especifica un país, usamos el nombre del viaje como país por defecto.
-#             country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
-
-#             # Usamos get_or_create para evitar duplicados en la tabla de Destinos
-#             destination, _ = Destination.objects.get_or_create(
-#                 city_name=city,
-#                 country_name=country
-#             )
-            
-#             it_dest = ItineraryDestination.objects.create(
-#                 itinerary=itinerary, 
-#                 destination=destination,
-#                 days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
-#                 destination_order=dest_order + 1
-#             )
-            
-#             for day_data in dest_data.get('dias_destino', []):
-#                 day = Day.objects.create(
-#                     itinerary_destination=it_dest,
-#                     day_number=day_data.get('posicion_dia'),
-#                     date=None
-#                 )
-                
-#                 for act_order, act_data in enumerate(day_data.get('actividades', [])):
-#                     activity_name = ""
-#                     activity_description = ""
-#                     activity_details = {}
-
-#                     if isinstance(act_data, dict):
-#                         activity_name = act_data.get('nombre', 'Actividad sin nombre')
-#                         activity_description = act_data.get('descripcion', '')
-#                         activity_details = act_data.get('details', {})
-#                     elif isinstance(act_data, str):
-#                         activity_name = act_data
-#                         activity_description = ''
-                    
-#                     if activity_name:
-#                         Activity.objects.create(
-#                             day=day, 
-#                             name=activity_name,
-#                             description=activity_description,
-#                             activity_order=int(act_order) + 1,
-#                             details_activity=activity_details
-#                         )
-#         # --- FIN DE LA LÓGICA DE PARSEO FINAL ---
-        
-#         response_serializer = ItineraryDetailSerializer(itinerary)
-#         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-    
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# Importamos el Pydantic model que el servicio espera
+from .graph.state import ViajeStateInput
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -114,41 +27,113 @@ def itinerary_generate(request):
     Endpoint para generar un nuevo itinerario usando el servicio de IA.
     """
     serializer = ItineraryGenerateSerializer(data=request.data)
-
-    # Validate the input data
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    # Get the session ID or create a new session
+    
+    validated_data = serializer.validated_data
+    trip_name = validated_data['trip_name']
+    days = validated_data['days']
+    
     session_id = request.session.session_key
     if not session_id:
         request.session.create()
-        session_id = request.session.session_key # Update the session ID
+        session_id = request.session.session_key
 
-    # Get the input data
-    validated_data: dict = serializer.validated_data
-    trip_name = validated_data.get('trip_name')
-    days = validated_data.get('days')
+    try:
+        input_state = ViajeStateInput(nombre_viaje=trip_name, cantidad_dias=days)
+    except Exception as e:
+        return Response({"error": f"Invalid input data for Pydantic model: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Call the AI service
-    ai_response_json = generate_itinerary_from_ai(trip_name=trip_name, days=days)
+    # La IA devuelve un objeto híbrido (dict-like con objetos Pydantic dentro)
+    ai_response_object = generate_itinerary_service(input_state)
 
-    if not ai_response_json:
-        return Response(
-            {"error": "Failed to generate itinerary from AI service."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE
+    if not ai_response_object:
+        return Response({"error": "Failed to generate itinerary from AI service."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Convertimos el objeto complejo a un string JSON usando el codificador de Pydantic.
+    json_string = json.dumps(ai_response_object, default=pydantic_encoder)
+    # Convertimos ese string de vuelta a un diccionario de Python puro.
+    ai_response_dict = json.loads(json_string)
+
+    # Ahora 'ai_response_dict' es un diccionario 100% seguro para Django y la base de datos.
+    itinerary = Itinerary.objects.create(
+        trip_name=trip_name,
+        session_id=session_id,
+        details_itinerary=ai_response_dict
+    )
+
+    # Y también usamos el diccionario para el parsing de las tablas relacionales
+    for dest_order, dest_data in enumerate(ai_response_dict.get('destinos', [])):
+        if not dest_data.get('dias_destino'):
+            continue
+
+        raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
+        city_parts = raw_destination_name.split(',')
+        
+        city = city_parts[0].strip()
+        country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+
+        destination, _ = Destination.objects.get_or_create(
+            city_name=city,
+            country_name=country
         )
+        
+        it_dest = ItineraryDestination.objects.create(
+            itinerary=itinerary, 
+            destination=destination,
+            days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
+            destination_order=dest_order + 1
+        )
+        
+        for day_data in dest_data.get('dias_destino', []):
+            day = Day.objects.create(
+                itinerary_destination=it_dest,
+                day_number=day_data.get('posicion_dia'),
+                date=None
+            )
+            
+            activities_data = day_data.get('actividades', [])
+            activity_list = []
 
-    # # Create the itinerary
-    # itinerary = Itinerary.objects.create(
-    #     trip_name=trip_name,
-    #     session_id=session_id,
-    #     details_itinerary=ai_response_json
-    # )
+            if isinstance(activities_data, str):
+                # Si la IA devuelve un solo texto, lo separamos por frases (puntos).
+                # Filtramos las cadenas vacías que puedan resultar del split.
+                activity_list = [act.strip() for act in activities_data.split('.') if act.strip()]
+            elif isinstance(activities_data, list):
+                # Si devuelve una lista (como en el caso ideal), la usamos directamente.
+                activity_list = activities_data
 
-    # return Response(ai_response_json, status=status.HTTP_200_OK)
-    return Response(ai_response_json, status=status.HTTP_200_OK)
+            for act_order, act_data in enumerate(activity_list):
+                activity_name = ""
+                activity_description = ""
+
+                if isinstance(activities_data, list) and len(activities_data) > 0:
+                # Comprobamos el primer elemento para ver si es un objeto o un texto
+                    first_item = activities_data[0]
+                    if isinstance(first_item, dict) and 'nombre' in first_item:
+                        # CASO 1: La IA devuelve una lista de objetos (el caso ideal)
+                        long_activity_string = first_item.get('nombre', '')
+                        # Dividimos el string largo por comas
+                        activity_list = [act.strip() for act in long_activity_string.split(',') if act.strip()]
+                    else:
+                        # CASO 2: La IA devuelve una lista de strings
+                        activity_list = activities_data
+            
+                for act_order, activity_name in enumerate(activity_list):
+                    # Ahora 'activity_name' siempre es un string individual
+                    if activity_name:
+                        Activity.objects.create(
+                            day=day, 
+                            name=activity_name,
+                            description='', # La descripción está vacía en este formato
+                            activity_order=act_order + 1,
+                            details_activity={}
+                        )
     
+    # Usamos .refresh_from_db() para asegurarnos de que el serializer obtenga las relaciones anidadas
+    itinerary.refresh_from_db()
+    response_serializer = ItineraryDetailSerializer(itinerary)
+    return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['GET', 'DELETE']) 
 @permission_classes([AllowAny])
@@ -172,13 +157,12 @@ def itinerary_detail(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny]) # Cambiar a IsAuthenticated cuando se implemente la lógica de usuarios
+@permission_classes([AllowAny])
 def itinerary_modify(request, pk):
     """
     Endpoint para modificar un itinerario existente usando la estrategia híbrida.
     """
     try:
-        # Obtenemos el itinerario que no esté marcado como borrado
         itinerary = Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
     except Itinerary.DoesNotExist:
         return Response({"error": "Itinerary not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -194,38 +178,80 @@ def itinerary_modify(request, pk):
     new_itinerary_json = call_ai_to_modify_itinerary(current_itinerary_json, prompt)
 
     # 3. "Brute-force update": Borramos los detalles antiguos del itinerario
-    itinerary.destinations.all().delete() # Esto borra en cascada los Days y Activities
+    #    Usamos related_name='destinations' que definimos en el modelo Itinerary
+    itinerary.destinations.all().delete() 
 
     # 4. Llenamos las tablas relacionales con la nueva respuesta de la IA
-    for dest_order, dest_data in enumerate(new_itinerary_json.get('destinations', [])):
+    #    (Usando la misma lógica de parseo corregida que en 'generate')
+    for dest_order, dest_data in enumerate(new_itinerary_json.get('destinos', [])):
+        if not dest_data.get('dias_destino'):
+            continue
+
+        raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
+        city_parts = raw_destination_name.split(',')
+        city = city_parts[0].strip()
+        country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+
         destination, _ = Destination.objects.get_or_create(
-            city_name=dest_data.get('destination_city'),
-            country_name=dest_data.get('destination_country')
+            city_name=city, country_name=country
         )
+        
         it_dest = ItineraryDestination.objects.create(
-            itinerary=itinerary, destination=destination,
-            days_in_destination=dest_data.get('days_in_destination', 0),
+            itinerary=itinerary, 
+            destination=destination,
+            days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
             destination_order=dest_order + 1
         )
-        for day_data in dest_data.get('days', []):
+        for day_data in dest_data.get('dias_destino', []):
             day = Day.objects.create(
                 itinerary_destination=it_dest,
-                day_number=day_data.get('day_number'),
-                date=day_data.get('date')
+                day_number=day_data.get('posicion_dia'),
+                date=None
             )
-            for act_data in day_data.get('activities', []):
-                Activity.objects.create(
-                    day=day, name=act_data.get('name'),
-                    description=act_data.get('description', ''),
-                    activity_order=act_data.get('order'),
-                    details_activity=act_data.get('details', {})
-                )
+            activities_data = day_data.get('actividades', [])
+            activity_list = []
+
+            if isinstance(activities_data, str):
+                # Si la IA devuelve un solo texto, lo separamos por frases (puntos).
+                # Filtramos las cadenas vacías que puedan resultar del split.
+                activity_list = [act.strip() for act in activities_data.split('.') if act.strip()]
+            elif isinstance(activities_data, list):
+                # Si devuelve una lista (como en el caso ideal), la usamos directamente.
+                activity_list = activities_data
+
+            for act_order, act_data in enumerate(activity_list):
+                activity_name = ""
+                activity_description = ""
+
+                if isinstance(activities_data, list) and len(activities_data) > 0:
+                # Comprobamos el primer elemento para ver si es un objeto o un texto
+                    first_item = activities_data[0]
+                    if isinstance(first_item, dict) and 'nombre' in first_item:
+                        # CASO 1: La IA devuelve una lista de objetos (el caso ideal)
+                        long_activity_string = first_item.get('nombre', '')
+                        # Dividimos el string largo por comas
+                        activity_list = [act.strip() for act in long_activity_string.split(',') if act.strip()]
+                    else:
+                        # CASO 2: La IA devuelve una lista de strings
+                        activity_list = activities_data
+            
+                for act_order, activity_name in enumerate(activity_list):
+                    # Ahora 'activity_name' siempre es un string individual
+                    if activity_name:
+                        Activity.objects.create(
+                            day=day, 
+                            name=activity_name,
+                            description='', # La descripción está vacía en este formato
+                            activity_order=act_order + 1,
+                            details_activity={}
+                        )
     
-    # 5. Actualizamos el campo JSON y la fecha de modificación en el itinerario principal
+    # 5. Actualizamos el campo JSON y la fecha en el itinerario principal
     itinerary.details_itinerary = new_itinerary_json
     itinerary.save() # Esto actualiza el campo `updated_at`
-
+    
     # 6. Devolvemos el itinerario actualizado
+    itinerary.refresh_from_db()
     response_serializer = ItineraryDetailSerializer(itinerary)
     return Response(response_serializer.data, status=status.HTTP_200_OK)
 

@@ -15,6 +15,24 @@ def generate_itinerary_service(input_state: ViajeStateInput):
         print(f"Error generating itinerary: {e}")
         raise e
 
+def call_ai_to_modify_itinerary(current_itinerary_json: dict, prompt: str):
+    """
+    Simula una llamada a la IA para modificar un itinerario existente.
+    En el futuro, esto podría invocar a tu 'itinerary_agent'.
+    """
+    print("--- SIMULANDO MODIFICACIÓN DE IA ---")
+    print(f"Itinerario actual: {current_itinerary_json.get('trip_name')}")
+    print(f"Prompt del usuario: {prompt}")
+
+    # Para esta simulación, simplemente devolvemos el mismo itinerario
+    # pero con un pequeño cambio para que podamos ver la actualización.
+    modified_itinerary = current_itinerary_json.copy()
+    
+    # Hacemos un cambio visible para la prueba
+    if modified_itinerary.get('destinos'):
+        modified_itinerary['destinos'][0]['nombre_destino'] = "Destino Modificado por IA"
+
+    return modified_itinerary
 
 def initialize_agent_service(thread_id: str, itinerary_state: ViajeState):
 
