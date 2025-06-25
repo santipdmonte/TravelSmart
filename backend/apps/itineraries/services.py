@@ -1,3 +1,4 @@
+from sqlalchemy import null
 from .graph.itinerary_graph import itinerary_graph
 from .graph.itinerary_agent import itinerary_agent
 from langgraph.types import Command
@@ -15,24 +16,48 @@ def generate_itinerary_service(input_state: ViajeStateInput):
         print(f"Error generating itinerary: {e}")
         raise e
 
-def call_ai_to_modify_itinerary(current_itinerary_json: dict, prompt: str):
-    """
-    Simula una llamada a la IA para modificar un itinerario existente.
-    En el futuro, esto podría invocar a tu 'itinerary_agent'.
-    """
-    print("--- SIMULANDO MODIFICACIÓN DE IA ---")
-    print(f"Itinerario actual: {current_itinerary_json.get('trip_name')}")
-    print(f"Prompt del usuario: {prompt}")
 
-    # Para esta simulación, simplemente devolvemos el mismo itinerario
-    # pero con un pequeño cambio para que podamos ver la actualización.
-    modified_itinerary = current_itinerary_json.copy()
+def call_ai_to_modify_itinerary(thread_id: str):
+    """
+    Simula la obtención del estado final del agente de IA, devolviendo un 
+    diccionario con el formato que la IA proporcionaría.
+    """
+    print(f"Obteniendo estado final del agente para el thread_id: {thread_id}")
     
-    # Hacemos un cambio visible para la prueba
-    if modified_itinerary.get('destinos'):
-        modified_itinerary['destinos'][0]['nombre_destino'] = "Destino Modificado por IA"
-
-    return modified_itinerary
+    final_itinerary_json = {
+        "nombre_viaje": "Viaje MODIFICADO a Madrid",
+        "cantidad_dias": 5,
+        "destino_general": "Madrid, España",
+        "destinos": [
+            {
+                "nombre_destino": "Madrid",
+                "cantidad_dias_en_destino": 5,
+                "dias_destino": [
+                    {
+                        "posicion_dia": 1,
+                        "actividades": "MODIFICADO: Visita al Palacio Real y Jardines de Sabatini."
+                    },
+                    {
+                        "posicion_dia": 2,
+                        "actividades": "MODIFICADO: Tarde de arte en el Museo Reina Sofía."
+                    },
+                    {
+                        "posicion_dia": 3,
+                        "actividades": "MODIFICADO: Excursión de un día a Segovia."
+                    },
+                    {
+                        "posicion_dia": 4,
+                        "actividades": "MODIFICADO: Paseo y compras por la calle Serrano."
+                    },
+                    {
+                        "posicion_dia": 5,
+                        "actividades": "MODIFICADO: Desayuno con churros y despedida."
+                    }
+                ]
+            }
+        ]
+    }
+    return final_itinerary_json
 
 def initialize_agent_service(thread_id: str, itinerary_state: ViajeState):
 

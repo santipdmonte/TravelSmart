@@ -167,21 +167,19 @@ def itinerary_modify(request, pk):
     except Itinerary.DoesNotExist:
         return Response({"error": "Itinerary not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    prompt = request.data.get('prompt')
-    if not prompt:
-        return Response({"error": "A 'prompt' for modification is required."}, status=status.HTTP_400_BAD_REQUEST)
+   # El 'thread_id' debería ser el mismo que el 'pk' del itinerario
+    thread_id = str(pk)
+    
+    # Obtenemos el estado final del agente (simulado por ahora)
+    new_itinerary_json = call_ai_to_modify_itinerary(thread_id=thread_id)
+    
+    if not new_itinerary_json:
+        return Response({"error": "Could not get final state from AI agent."}, status=500)
 
-    # 1. Tomamos el JSON guardado en la base de datos
-    current_itinerary_json = itinerary.details_itinerary
+    # "Brute-force update": Borramos los detalles antiguos del itinerario
+    itinerary.destinations.all().delete()
 
-    # 2. Llamamos a la IA con el JSON actual y el prompt
-    new_itinerary_json = call_ai_to_modify_itinerary(current_itinerary_json, prompt)
-
-    # 3. "Brute-force update": Borramos los detalles antiguos del itinerario
-    #    Usamos related_name='destinations' que definimos en el modelo Itinerary
-    itinerary.destinations.all().delete() 
-
-    # 4. Llenamos las tablas relacionales con la nueva respuesta de la IA
+    # Llenamos las tablas relacionales con la nueva respuesta de la IA
     #    (Usando la misma lógica de parseo corregida que en 'generate')
     for dest_order, dest_data in enumerate(new_itinerary_json.get('destinos', [])):
         if not dest_data.get('dias_destino'):
@@ -246,11 +244,12 @@ def itinerary_modify(request, pk):
                             details_activity={}
                         )
     
-    # 5. Actualizamos el campo JSON y la fecha en el itinerario principal
+    # 4. Actualizamos el campo JSON y la fecha en el itinerario principal
     itinerary.details_itinerary = new_itinerary_json
-    itinerary.save() # Esto actualiza el campo `updated_at`
+    itinerary.trip_name = new_itinerary_json.get('nombre_viaje', itinerary.trip_name)
+    itinerary.save()
     
-    # 6. Devolvemos el itinerario actualizado
+    # 5. Devolvemos el itinerario actualizado
     itinerary.refresh_from_db()
     response_serializer = ItineraryDetailSerializer(itinerary)
     return Response(response_serializer.data, status=status.HTTP_200_OK)
