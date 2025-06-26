@@ -253,14 +253,17 @@ class ItineraryDetailView(APIView):
 class AgentView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, config_id):
-        thread_id = request.data.get('thread_id')
+    def post(self, request, pk, thread_id):
         itinerary_state = request.data.get('itinerary_state')
+        # TODO: Search the itinerary state in the database
+        # TODO: Validate the structure of the itinerary state
+        # itinerary = Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
+        # itinerary_state = itinerary.details_itinerary
+
         response = initialize_agent_service(thread_id=thread_id, itinerary_state=itinerary_state)
         return Response(response)
 
-    def get(self, request, config_id):
-        thread_id = request.query_params.get('thread_id')
+    def get(self, request, thread_id):
         response = get_state_service(thread_id=thread_id)
         return Response(response)
 
@@ -268,8 +271,7 @@ class AgentView(APIView):
 class AgentMessageView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, config_id):
-        thread_id = request.data.get('thread_id')
+    def post(self, request, thread_id):
         user_response_data = request.data.get('user_response')
         user_hil_response_data = request.data.get('user_HIL_response')
 
