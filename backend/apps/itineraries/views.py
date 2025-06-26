@@ -58,6 +58,8 @@ class ItineraryView(APIView):
         # Convertimos ese string de vuelta a un diccionario de Python puro.
         ai_response_dict = json.loads(json_string)
 
+        print(f"ai_response_dict: {ai_response_dict}")
+
         # Ahora 'ai_response_dict' es un diccionario 100% seguro para Django y la base de datos.
         itinerary = Itinerary.objects.create(
             trip_name=trip_name,
@@ -250,25 +252,19 @@ class ItineraryDetailView(APIView):
 
 # --- Vistas de la API para el grafo de IA ---
 
-class AgentView(APIView):
+class AgentInitializeView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, pk, thread_id):
-        itinerary_state = request.data.get('itinerary_state')
-        # TODO: Search the itinerary state in the database
-        # TODO: Validate the structure of the itinerary state
-        # itinerary = Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
-        # itinerary_state = itinerary.details_itinerary
+
+        itinerary = Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
+        itinerary_state = itinerary.details_itinerary
 
         response = initialize_agent_service(thread_id=thread_id, itinerary_state=itinerary_state)
         return Response(response)
 
-    def get(self, request, thread_id):
-        response = get_state_service(thread_id=thread_id)
-        return Response(response)
 
-
-class AgentMessageView(APIView):
+class AgentView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, thread_id):
@@ -283,4 +279,8 @@ class AgentMessageView(APIView):
         else:
             return Response({"error": "No response provided"}, status=400)
 
+        return Response(response)
+
+    def get(self, request, thread_id):
+        response = get_state_service(thread_id=thread_id)
         return Response(response)
