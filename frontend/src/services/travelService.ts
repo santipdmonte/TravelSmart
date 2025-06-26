@@ -101,8 +101,8 @@ export const applyAgentChanges = async (itineraryToSave: Itinerary): Promise<Iti
         itinerary_final_state: itineraryToSave.details_itinerary
     };
     
-    const response = await apiClient.post<Itinerary>(
-      `/itineraries/${itineraryToSave.id}/modify/`,
+    const response = await apiClient.put<Itinerary>(
+      `/itineraries/${itineraryToSave.id}/`,
       payload
     );
     return response.data;
