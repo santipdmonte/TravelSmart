@@ -1,24 +1,14 @@
 from django.urls import path
-from . import views
+from .views import (
+    ItineraryView,
+    ItineraryDetailView,
+    AgentInitializeView,
+    AgentView,
+)
 
-# /api/itineraries/
 urlpatterns = [
-    path('itineraries/generate/', views.itinerary_generate, name='itinerary-generate'),
-    path('itineraries/<int:pk>/', views.itinerary_detail, name='itinerary-detail'),
-    path('itineraries/<int:pk>/modify/', views.itinerary_modify, name='itinerary-modify'),
-    path('agent/initialize/', views.initialize_agent, name='agent-initialize'),
-    path('agent/user_response/', views.user_response, name='agent-user-response'),
-    path('agent/HIL_response/', views.HIL_response, name='agent-hil-response'),
-    path('agent/get_state/', views.get_state, name='agent-get-state'),
+    path('itineraries/', ItineraryView.as_view(), name='itinerary'),
+    path('itineraries/<int:pk>/', ItineraryDetailView.as_view(), name='itinerary-detail'),
+    path('itineraries/<int:pk>/agents/<int:thread_id>/', AgentInitializeView.as_view(), name='agent'),
+    path('agents/<int:thread_id>/', AgentView.as_view(), name='agent-message'),
 ]
-
-# POST itineraries/
-# GET itineraries/
-
-# GET itineraries/<int:pk>/
-# PUT itineraries/<int:pk>
-# DELETE itineraries/<int:pk>
-
-# POST agents/<int:pk>/
-# GET agents/<int:pk>/
-# POST agents/<int:pk>/message/
