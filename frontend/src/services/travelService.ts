@@ -23,7 +23,7 @@ export const generateItinerary = async (
 
     // Hacemos la llamada POST a nuestro endpoint de Django usando el cliente de axios
     const response = await apiClient.post<Itinerary>(
-      "/itineraries/generate/",
+      "/itineraries/",
       payload
     );
 
@@ -46,11 +46,7 @@ export const generateItinerary = async (
  */
 export const initializeAgent = async (itinerary: Itinerary): Promise<any> => {
   try {
-    const payload = {
-      thread_id: String(itinerary.id), // Usamos el ID del itinerario como ID de la conversación
-      itinerary_state: itinerary.details_itinerary, // Enviamos el estado JSON actual
-    };
-    const response = await apiClient.post("/agent/initialize/", payload);
+    const response = await apiClient.post(`/itineraries/${itinerary.id}/agents/${itinerary.id}/`);
     return response.data;
   } catch (error) {
     console.error("Error initializing agent:", error);
