@@ -23,7 +23,7 @@ export const generateItinerary = async (
 
     // Hacemos la llamada POST a nuestro endpoint de Django usando el cliente de axios
     const response = await apiClient.post<Itinerary>(
-      "/itineraries/generate/",
+      "/itineraries/",
       payload
     );
 
@@ -46,11 +46,7 @@ export const generateItinerary = async (
  */
 export const initializeAgent = async (itinerary: Itinerary): Promise<any> => {
   try {
-    const payload = {
-      thread_id: String(itinerary.id), // Usamos el ID del itinerario como ID de la conversación
-      itinerary_state: itinerary.details_itinerary, // Enviamos el estado JSON actual
-    };
-    const response = await apiClient.post("/agent/initialize/", payload);
+    const response = await apiClient.post(`/itineraries/${itinerary.id}/agents/${itinerary.id}/`);
     return response.data;
   } catch (error) {
     console.error("Error initializing agent:", error);
@@ -67,10 +63,9 @@ export const sendUserResponse = async (
 ): Promise<any> => {
   try {
     const payload = {
-      thread_id: threadId,
       user_response: userMessage,
     };
-    const response = await apiClient.post("/agent/user_response/", payload);
+    const response = await apiClient.post(`/agents/${threadId}/`, payload);
     return response.data;
   } catch (error) {
     console.error("Error sending user response:", error);
@@ -84,11 +79,10 @@ export const sendHILResponse = async (
 ): Promise<any> => {
   try {
     const payload = {
-      thread_id: threadId,
       user_HIL_response: userMessage,
     };
     // Asegúrate de que apunta al endpoint correcto
-    const response = await apiClient.post("/agent/HIL_response/", payload);
+    const response = await apiClient.post(`/agents/${threadId}/`, payload);
     return response.data;
   } catch (error) {
     console.error("Error sending HIL response:", error);
@@ -107,8 +101,8 @@ export const applyAgentChanges = async (itineraryToSave: Itinerary): Promise<Iti
         itinerary_final_state: itineraryToSave.details_itinerary
     };
     
-    const response = await apiClient.post<Itinerary>(
-      `/itineraries/${itineraryToSave.id}/modify/`,
+    const response = await apiClient.put<Itinerary>(
+      `/itineraries/${itineraryToSave.id}/`,
       payload
     );
     return response.data;
