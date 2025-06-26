@@ -63,10 +63,9 @@ export const sendUserResponse = async (
 ): Promise<any> => {
   try {
     const payload = {
-      thread_id: threadId,
       user_response: userMessage,
     };
-    const response = await apiClient.post("/agent/user_response/", payload);
+    const response = await apiClient.post(`/agents/${threadId}/`, payload);
     return response.data;
   } catch (error) {
     console.error("Error sending user response:", error);
@@ -80,11 +79,10 @@ export const sendHILResponse = async (
 ): Promise<any> => {
   try {
     const payload = {
-      thread_id: threadId,
       user_HIL_response: userMessage,
     };
     // Asegúrate de que apunta al endpoint correcto
-    const response = await apiClient.post("/agent/HIL_response/", payload);
+    const response = await apiClient.post(`/agents/${threadId}/`, payload);
     return response.data;
   } catch (error) {
     console.error("Error sending HIL response:", error);
