@@ -46,3 +46,18 @@ def detect_hil_mode(raw_state):
         print(f"Error detecting HIL mode: {e}")
     
     return is_hil_mode, hil_message, None
+
+def state_to_json(state):
+    """Convert the state to a JSON string"""
+    return json.dumps(state, default=pydantic_encoder)
+
+def state_to_dict(state):
+    """Convert the state to a dictionary"""
+    return json.loads(state_to_json(state))
+
+
+def process_state(state):
+    """Process the state to a JSON string"""
+    state_json = state_to_json(state)
+    state_dict = state_to_dict(state)
+    return state_json, state_dict

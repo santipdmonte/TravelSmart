@@ -168,7 +168,10 @@ def get_state_service(thread_id: str):
         }
     }
 
-    return itinerary_agent.get_state(config)    
+    state = itinerary_agent.get_state(config)
+    state_dict = state_to_dict(state)
+
+    return state_dict
 
 def save_itinerary_changes(itinerary_id: str, changes: dict):
     """
