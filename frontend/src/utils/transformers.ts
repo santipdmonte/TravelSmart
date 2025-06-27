@@ -5,17 +5,16 @@ import {
   Activity,
 } from "../types/travel";
 
-// Esta función convierte la respuesta del agente (con claves en español)
-// al formato 'Itinerary' que usan tus componentes de React.
 export const transformAgentResponseToItinerary = (
   agentData: any,
   originalItinerary: Itinerary
 ): Itinerary => {
+  // Esta validación inicial está bien.
   if (!agentData || !agentData.destinos) {
-    // Si no hay datos válidos, devolvemos el original para no romper la UI
     return originalItinerary;
   }
 
+  // Esta parte de transformar los destinos y días también está bien.
   const transformedDestinations: ItineraryDestination[] =
     agentData.destinos.map((dest: any, index: number) => {
       const transformedDays: Day[] = dest.dias_destino.map((day: any) => {
@@ -50,26 +49,35 @@ export const transformAgentResponseToItinerary = (
 
         return {
           day_number: day.posicion_dia,
-          date: null, // La fecha no la manejamos por ahora
+          date: null,
           activities: transformedActivities,
         };
       });
 
       return {
         destination_name: dest.nombre_destino,
-        country_name: originalItinerary.trip_name, // Usamos el nombre del viaje como país
+        country_name: agentData.destino_general || originalItinerary.trip_name,
         days_in_destination: dest.cantidad_dias_en_destino,
         destination_order: index + 1,
         days: transformedDays,
       };
     });
 
-  // Devolvemos un nuevo objeto Itinerary completo, manteniendo los datos originales
-  // que no cambian y actualizando los que sí.
-  return {
-    ...originalItinerary,
-    trip_name: agentData.nombre_viaje || originalItinerary.trip_name,
-    details_itinerary: agentData, // Guardamos el JSON crudo
-    destinations: transformedDestinations,
+  // 👇 --- EL CAMBIO CLAVE ESTÁ AQUÍ --- 👇
+  // En lugar de esparcir el objeto antiguo, construimos uno nuevo y limpio.
+  const newItinerary: Itinerary = {
+    // 1. Conservamos solo los datos de identidad del itinerario original.
+    id: originalItinerary.id,
+    visibility: originalItinerary.visibility,
+    status: originalItinerary.status,
+    created_at: originalItinerary.created_at,
+    updated_at: new Date().toISOString(), // Actualizamos la fecha de modificación
+
+    // 2. Usamos TODOS los datos nuevos que vienen de la respuesta del agente.
+    trip_name: agentData.nombre_viaje || "Itinerario modificado",
+    details_itinerary: agentData, // El nuevo JSON crudo
+    destinations: transformedDestinations, // La nueva lista de destinos
   };
+
+  return newItinerary;
 };

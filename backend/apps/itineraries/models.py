@@ -10,6 +10,11 @@ class Destination(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
+    # class Meta:
+    #     # Esto le dice a la base de datos que la combinación de estas
+    #     # dos columnas debe ser única en toda la tabla.
+    #     unique_together = ('city_name', 'country_name')
+
     def __str__(self):
         return f"{self.city_name}, {self.country_name}"
 

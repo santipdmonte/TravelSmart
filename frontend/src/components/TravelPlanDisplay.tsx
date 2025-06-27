@@ -21,11 +21,12 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
         <p className="text-gray-500">ID del Viaje: {plan.id}</p>
       </div>
 
-      {/* El primer bucle recorre los destinos. Se crea una "caja" por cada destino. */}
+      {/* El primer bucle recorre los destinos. */}
       {plan.destinations &&
         plan.destinations.map((destination, destIndex) => (
           <div
-            key={destIndex}
+            // Key única y estable para destinos
+            key={`dest-${destination.destination_name}-${destIndex}`}
             className="p-4 border border-gray-200 rounded-lg bg-gray-50"
           >
             <h3 className="text-xl font-semibold text-blue-700">
@@ -38,14 +39,14 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
             <div className="mt-4 space-y-4">
               {/* El segundo bucle anidado recorre los días DE ESE destino */}
               {destination.days &&
-                destination.days.map((day, dayIndex) => (
+                destination.days.map((day) => (
                   <div
-                    key={dayIndex}
+                    // Key única y estable para días
+                    key={`day-${destination.destination_name}-${day.day_number}`}
                     className="pl-4 border-l-4 border-blue-300"
                   >
                     <h4 className="text-lg font-medium text-gray-800">
                       Día {day.day_number}
-                      {/* CORRECCIÓN: Mostramos la fecha solo si existe */}
                       {day.date && (
                         <span className="text-sm font-light text-gray-500">
                           {" "}
@@ -59,7 +60,8 @@ const TravelPlanDisplay = ({ plan }: TravelPlanDisplayProps) => {
                       {day.activities &&
                         day.activities.map((activity, activityIndex) => (
                           <li
-                            key={activityIndex}
+                            // Key única y estable para actividades
+                            key={`act-${day.day_number}-${activityIndex}`}
                             className="text-gray-700 bg-white p-2 rounded shadow-sm"
                           >
                             <strong className="font-semibold text-gray-900">

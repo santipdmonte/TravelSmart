@@ -1,4 +1,5 @@
 import json
+from pydantic.json import pydantic_encoder
 from sqlalchemy import null
 from .graph.itinerary_graph import itinerary_graph
 from .graph.itinerary_agent import itinerary_agent
@@ -6,6 +7,7 @@ from langgraph.types import Command
 from .graph.state import ViajeStateInput, ViajeState
 from .graph.utils import extract_chatbot_message, detect_hil_mode
 from langchain_core.runnables import RunnableConfig
+from .models import Itinerary, Destination, ItineraryDestination, Day, Activity
 
 
 def generate_itinerary_service(input_state: ViajeStateInput):
@@ -118,43 +120,44 @@ def user_response_service(thread_id: str, user_response: str):
 
 def user_HIL_response_service(thread_id: str, user_HIL_response: str):
     """
-    Procesa la respuesta HIL, reanuda el agente y devuelve el nuevo estado del itinerario,
-    SIN GUARDAR en la base de datos.
+    Procesa la respuesta HIL, reanuda el agente y extrae el itinerario modificado
+    de la llamada a la herramienta para la vista previa.
     """
     config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
     
-    # Reanudamos el agente con la confirmación del usuario.
-    # El agente ahora ejecutará la herramienta, pero solo actualizará su estado interno.
+    # Reanudamos el agente. Con la herramienta corregida, ya no debería fallar.
     itinerary_agent.invoke(Command(resume=user_HIL_response), config=config)
     
-    # Obtenemos el estado final del agente, que ahora contiene el itinerario modificado.
     final_state = itinerary_agent.get_state(config)
-
-    # --- INICIO DEBUG ---
-    # print("--- ESTADO FINAL DEL AGENTE (después de HIL) ---")
-    # print(final_state)
-    # print("-----------------------------------------------")
-    # --- FIN DEBUG ---
     
     itinerary_preview = None
     if final_state and final_state.values:
-        # --- LÓGICA DE EXTRACCIÓN MEJORADA ---
-        # El itinerario modificado está en los argumentos de la última llamada a la herramienta.
-        last_message = final_state.values.get('messages', [])[-1]
-        if last_message.tool_calls:
-            # Extraemos los argumentos de la primera llamada a herramienta
-            tool_args_str = last_message.tool_calls[0].get('args', {}).get('new_itinerary')
-            if tool_args_str:
-                itinerary_preview = json.loads(tool_args_str) if isinstance(tool_args_str, str) else tool_args_str
+        # LÓGICA DE EXTRACCIÓN MEJORADA: Buscamos hacia atrás
+        messages = final_state.values.get('messages', [])
+        # Recorremos los mensajes desde el más reciente al más antiguo
+        for message in reversed(messages):
+            if message.tool_calls:
+                # Encontramos el último AIMessage que llamó a una herramienta
+                tool_args = message.tool_calls[0].get('args', {})
+                itinerary_data = tool_args.get('new_itinerary')
+                
+                if isinstance(itinerary_data, str):
+                    itinerary_preview = json.loads(itinerary_data)
+                elif isinstance(itinerary_data, dict):
+                    itinerary_preview = itinerary_data
+                
+                # Una vez que lo encontramos, rompemos el bucle
+                if itinerary_preview:
+                    break
     
-    # Si no encontramos una vista previa en la llamada a la herramienta, usamos el estado principal como fallback.
+    # Si por alguna razón no lo encontramos, usamos el estado principal como fallback.
     if not itinerary_preview and final_state and final_state.values:
         itinerary_preview = final_state.values.get("itinerary")
 
     return {
         "mode": "normal",
-        "chatbot_response": "¡Perfecto! He actualizado el borrador de tu itinerario. ¿Quieres hacer algún otro cambio?",
-        "itinerary_preview": itinerary_preview # Devolvemos el borrador actualizado
+        "chatbot_response": "¡Perfecto! He aplicado los cambios a tu borrador de itinerario. ¿Quieres hacer algún otro cambio?",
+        "itinerary_preview": itinerary_preview
     }
 
 def get_state_service(thread_id: str):
@@ -172,3 +175,87 @@ def save_itinerary_changes(itinerary_id: str, changes: dict):
     Save the changes to the itinerary.
     """
     pass
+
+def create_itinerary_from_ia(trip_name: str, days: int, session_id: str):
+    """
+    Función de servicio completa:
+    1. Llama a la IA para generar un itinerario.
+    2. Parsea la respuesta.
+    3. Guarda todo en la base de datos.
+    4. Devuelve el objeto Itinerary creado.
+    """
+    try:
+        input_state = ViajeStateInput(nombre_viaje=trip_name, cantidad_dias=days)
+    except Exception as e:
+        print(f"Error creando el Pydantic input: {e}")
+        raise ValueError("Invalid input data for AI service.")
+
+    # 1. Llamar a la IA
+    ai_response_object = itinerary_graph.invoke(input_state)
+    if not ai_response_object:
+        raise Exception("AI service did not return a response.")
+
+    # Convertimos a un diccionario limpio
+    json_string = json.dumps(ai_response_object, default=pydantic_encoder)
+    ai_response_dict = json.loads(json_string)
+
+    # 2. Guardar el itinerario principal
+    itinerary = Itinerary.objects.create(
+        trip_name=trip_name,
+        session_id=session_id,
+        details_itinerary=ai_response_dict
+    )
+
+    # 3. Parsear y guardar los detalles relacionales
+    for dest_order, dest_data in enumerate(ai_response_dict.get('destinos', [])):
+        if not dest_data.get('dias_destino'):
+            continue
+
+        raw_destination_name = dest_data.get('nombre_destino', 'Destino Desconocido')
+        city_parts = raw_destination_name.split(',')
+        city = city_parts[0].strip()
+        country = city_parts[1].strip() if len(city_parts) > 1 else itinerary.trip_name
+
+        destination, _ = Destination.objects.get_or_create(
+            city_name=city, country_name=country
+        )
+        
+        it_dest = ItineraryDestination.objects.create(
+            itinerary=itinerary, 
+            destination=destination,
+            days_in_destination=dest_data.get('cantidad_dias_en_destino', 0),
+            destination_order=dest_order + 1
+        )
+        
+        for day_data in dest_data.get('dias_destino', []):
+            day = Day.objects.create(
+                itinerary_destination=it_dest,
+                day_number=day_data.get('posicion_dia'),
+                date=None
+            )
+            
+            activities_data = day_data.get('actividades', [])
+            activity_list = []
+            if isinstance(activities_data, str):
+                activity_list = [act.strip() for act in activities_data.split('.') if act.strip()]
+            elif isinstance(activities_data, list):
+                activity_list = activities_data
+            
+            for act_order, act_data in enumerate(activity_list):
+                activity_name = ""
+                if isinstance(act_data, dict):
+                    activity_name = act_data.get('nombre', '')
+                elif isinstance(act_data, str):
+                    activity_name = act_data
+                
+                if activity_name:
+                    Activity.objects.create(
+                        day=day, 
+                        name=activity_name,
+                        description='',
+                        activity_order=act_order + 1
+                    )
+    
+    itinerary.refresh_from_db()
+
+    return itinerary
