@@ -80,8 +80,8 @@ const AIPlanPage = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userInput.trim() || !threadId || isLoading || !previewItinerary)
-      return;
+    // Esta parte inicial está perfecta, no cambia.
+    if (!userInput.trim() || !threadId || isLoading) return;
 
     const currentInput = userInput;
     const newUserMessage: Message = { author: "user", content: currentInput };
@@ -106,12 +106,23 @@ const AIPlanPage = () => {
       setIsInHILMode(aiResponse.mode === "hil");
 
       if (aiResponse.itinerary_preview) {
-        // Usamos nuestra función transformadora para actualizar el estado
-        const updatedPreview = transformAgentResponseToItinerary(
-          aiResponse.itinerary_preview,
-          previewItinerary
-        );
-        setPreviewItinerary(updatedPreview);
+        // Usamos la forma funcional de setPreviewItinerary para evitar el "stale state"
+        setPreviewItinerary((currentItinerary) => {
+          // React nos garantiza que `currentItinerary` es la versión más fresca del estado.
+          if (!currentItinerary) {
+            // Si por alguna razón no hay itinerario, no hacemos nada.
+            return null;
+          }
+
+          const newItinerary = transformAgentResponseToItinerary(
+            aiResponse.itinerary_preview,
+            currentItinerary
+          );
+
+          console.log("ITINERARIO NUEVO (del transformer):", newItinerary);
+
+          return newItinerary;
+        });
       }
     } catch (error) {
       console.error("Error en handleSendMessage:", error);
@@ -153,6 +164,8 @@ const AIPlanPage = () => {
       });
   };
 
+  console.log("ITINERARIO ACTUAL (en render):", previewItinerary);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -174,7 +187,10 @@ const AIPlanPage = () => {
             // --- VISTA DE PREVISUALIZACIÓN Y EDICIÓN ---
             <div>
               <h1 className="text-3xl font-bold mb-4">Vista Previa del Plan</h1>
-              <TravelPlanDisplay plan={previewItinerary} />
+              <TravelPlanDisplay
+                key={JSON.stringify(previewItinerary)}
+                plan={previewItinerary}
+              />
 
               <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-4">

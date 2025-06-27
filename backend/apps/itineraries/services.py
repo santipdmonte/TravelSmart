@@ -120,43 +120,44 @@ def user_response_service(thread_id: str, user_response: str):
 
 def user_HIL_response_service(thread_id: str, user_HIL_response: str):
     """
-    Procesa la respuesta HIL, reanuda el agente y devuelve el nuevo estado del itinerario,
-    SIN GUARDAR en la base de datos.
+    Procesa la respuesta HIL, reanuda el agente y extrae el itinerario modificado
+    de la llamada a la herramienta para la vista previa.
     """
     config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
     
-    # Reanudamos el agente con la confirmación del usuario.
-    # El agente ahora ejecutará la herramienta, pero solo actualizará su estado interno.
+    # Reanudamos el agente. Con la herramienta corregida, ya no debería fallar.
     itinerary_agent.invoke(Command(resume=user_HIL_response), config=config)
     
-    # Obtenemos el estado final del agente, que ahora contiene el itinerario modificado.
     final_state = itinerary_agent.get_state(config)
-
-    # --- INICIO DEBUG ---
-    # print("--- ESTADO FINAL DEL AGENTE (después de HIL) ---")
-    # print(final_state)
-    # print("-----------------------------------------------")
-    # --- FIN DEBUG ---
     
     itinerary_preview = None
     if final_state and final_state.values:
-        # --- LÓGICA DE EXTRACCIÓN MEJORADA ---
-        # El itinerario modificado está en los argumentos de la última llamada a la herramienta.
-        last_message = final_state.values.get('messages', [])[-1]
-        if last_message.tool_calls:
-            # Extraemos los argumentos de la primera llamada a herramienta
-            tool_args_str = last_message.tool_calls[0].get('args', {}).get('new_itinerary')
-            if tool_args_str:
-                itinerary_preview = json.loads(tool_args_str) if isinstance(tool_args_str, str) else tool_args_str
+        # LÓGICA DE EXTRACCIÓN MEJORADA: Buscamos hacia atrás
+        messages = final_state.values.get('messages', [])
+        # Recorremos los mensajes desde el más reciente al más antiguo
+        for message in reversed(messages):
+            if message.tool_calls:
+                # Encontramos el último AIMessage que llamó a una herramienta
+                tool_args = message.tool_calls[0].get('args', {})
+                itinerary_data = tool_args.get('new_itinerary')
+                
+                if isinstance(itinerary_data, str):
+                    itinerary_preview = json.loads(itinerary_data)
+                elif isinstance(itinerary_data, dict):
+                    itinerary_preview = itinerary_data
+                
+                # Una vez que lo encontramos, rompemos el bucle
+                if itinerary_preview:
+                    break
     
-    # Si no encontramos una vista previa en la llamada a la herramienta, usamos el estado principal como fallback.
+    # Si por alguna razón no lo encontramos, usamos el estado principal como fallback.
     if not itinerary_preview and final_state and final_state.values:
         itinerary_preview = final_state.values.get("itinerary")
 
     return {
         "mode": "normal",
-        "chatbot_response": "¡Perfecto! He actualizado el borrador de tu itinerario. ¿Quieres hacer algún otro cambio?",
-        "itinerary_preview": itinerary_preview # Devolvemos el borrador actualizado
+        "chatbot_response": "¡Perfecto! He aplicado los cambios a tu borrador de itinerario. ¿Quieres hacer algún otro cambio?",
+        "itinerary_preview": itinerary_preview
     }
 
 def get_state_service(thread_id: str):

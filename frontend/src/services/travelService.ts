@@ -22,10 +22,7 @@ export const generateItinerary = async (
     );
 
     // Hacemos la llamada POST a nuestro endpoint de Django usando el cliente de axios
-    const response = await apiClient.post<Itinerary>(
-      "/itineraries/",
-      payload
-    );
+    const response = await apiClient.post<Itinerary>("/itineraries/", payload);
 
     console.log("Backend respondió con el itinerario:", response.data);
 
@@ -46,7 +43,9 @@ export const generateItinerary = async (
  */
 export const initializeAgent = async (itinerary: Itinerary): Promise<any> => {
   try {
-    const response = await apiClient.post(`/itineraries/${itinerary.id}/agents/${itinerary.id}/`);
+    const response = await apiClient.post(
+      `/itineraries/${itinerary.id}/agents/${itinerary.id}/`
+    );
     return response.data;
   } catch (error) {
     console.error("Error initializing agent:", error);
@@ -93,14 +92,21 @@ export const sendHILResponse = async (
 /**
  * Llama al endpoint que aplica los cambios del agente en la base de datos.
  */
-export const applyAgentChanges = async (itineraryToSave: Itinerary): Promise<Itinerary> => {
+export const applyAgentChanges = async (
+  itineraryToSave: Itinerary
+): Promise<Itinerary> => {
   try {
-    // Ahora enviamos el objeto del itinerario en el cuerpo de la petición.
-    // Usamos el 'details_itinerary' que contiene el JSON crudo que el backend espera.
     const payload = {
-        itinerary_final_state: itineraryToSave.details_itinerary
+      itinerary_final_state: itineraryToSave.details_itinerary,
     };
-    
+
+    // --- NUEVA LÍNEA DE DEPURACIÓN ---
+    console.log("--- ENVIANDO A /modify/ ---");
+    console.log("ID del Itinerario:", itineraryToSave.id);
+    console.log("Payload a enviar:", JSON.stringify(payload, null, 2));
+    console.log("----------------------------");
+    // --- FIN DE LA DEPURACIÓN ---
+
     const response = await apiClient.put<Itinerary>(
       `/itineraries/${itineraryToSave.id}/`,
       payload

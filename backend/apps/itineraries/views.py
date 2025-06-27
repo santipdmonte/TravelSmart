@@ -2,7 +2,7 @@ import json
 from pydantic.json import pydantic_encoder
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
@@ -23,83 +23,92 @@ from .services import (
 from .graph.state import ViajeStateInput
 
 
-class ItineraryView(APIView):
+class ItineraryCreateView(generics.CreateAPIView):
+    """
+    Maneja la creación (POST) de un nuevo Itinerario.
+    Usa un serializer para la entrada y otro para la salida.
+    """
+    serializer_class = ItineraryGenerateSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        """
-        Endpoint para generar un nuevo itinerario.
-        Ahora solo valida y llama a la capa de servicio.
-        """
-        serializer = ItineraryGenerateSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        validated_data = serializer.validated_data
-        trip_name = validated_data['trip_name']
-        days = validated_data['days']
-        
+    def create(self, request, *args, **kwargs):
+        # 1. Validamos la data de entrada con el serializer de generación
+        input_serializer = self.get_serializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        validated_data = input_serializer.validated_data
+
+        # 2. Obtenemos el session_id
         session_id = request.session.session_key
         if not session_id:
             request.session.create()
             session_id = request.session.session_key
-
+        
+        # 3. Llamamos a nuestro servicio para crear el objeto en la base de datos
         try:
-            # Llamamos a nuestro único servicio que hace todo el trabajo
             itinerary = create_itinerary_from_ia(
-                trip_name=trip_name,
-                days=days,
+                trip_name=validated_data['trip_name'],
+                days=validated_data['days'],
                 session_id=session_id
             )
-            
-            # Serializamos la respuesta y la devolvemos
-            response_serializer = ItineraryDetailSerializer(itinerary)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
         except Exception as e:
-            # Capturamos cualquier error que el servicio pueda lanzar
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        # 4. Para la RESPUESTA, usamos el serializer de DETALLE, que sí sabe
+        #    cómo mostrar un objeto Itinerary completo.
+        output_serializer = ItineraryDetailSerializer(itinerary)
+        
+        # 5. Devolvemos la respuesta formateada correctamente
+        headers = self.get_success_headers(output_serializer.data)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-class ItineraryDetailView(APIView):
+
+class ItineraryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Maneja GET (obtener), PUT/PATCH (actualizar), y DELETE (borrado lógico)
+    para un Itinerario específico, de forma automática.
+    """
+    queryset = Itinerary.objects.filter(deleted_at__isnull=True)
+    serializer_class = ItineraryDetailSerializer
     permission_classes = [AllowAny]
 
-    def get_object(self, pk):
-        try:
-            return Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
-        except Itinerary.DoesNotExist:
-            return None
-
-    def get(self, request, pk):
-        itinerary = self.get_object(pk)
-        if not itinerary:
-            return Response({"error": "Not found"}, status=404)
-        serializer = ItineraryDetailSerializer(itinerary)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
+    def perform_destroy(self, instance):
         """
-        Recibe el estado final de un itinerario desde el frontend (después de la
-        edición con el agente) y lo persiste en la base de datos, reemplazando
-        la versión anterior.
+        Sobrescribe el método de borrado para implementar el 'soft delete'.
         """
-        try:
-            itinerary = Itinerary.objects.get(pk=pk, deleted_at__isnull=True)
-        except Itinerary.DoesNotExist:
-            return Response({"error": "Itinerary not found"}, status=status.HTTP_404_NOT_FOUND)
+        instance.deleted_at = timezone.now()
+        instance.save()
 
-        # 1. Obtenemos el JSON del itinerario final desde el body de la petición
+class ItineraryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Maneja GET, PUT/PATCH, y DELETE para un Itinerario.
+    El método 'update' ha sido sobrescrito para nuestra lógica custom.
+    """
+    queryset = Itinerary.objects.filter(deleted_at__isnull=True)
+    serializer_class = ItineraryDetailSerializer
+    permission_classes = [AllowAny]
+
+    def perform_destroy(self, instance):
+        instance.deleted_at = timezone.now()
+        instance.save()
+
+    def update(self, request, *args, **kwargs):
+        """
+        Sobrescribimos el método 'update' completo para manejar nuestra lógica
+        personalizada sin pasar por la validación automática del serializer.
+        """
+        # Obtenemos la instancia del itinerario que se va a modificar
+        itinerary = self.get_object() 
+        
+        # Obtenemos el JSON del itinerario final desde el body de la petición
         final_itinerary_json = request.data.get('itinerary_final_state')
         
         if not final_itinerary_json:
             return Response({"error": "No final itinerary state provided in request body."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. "Brute-force update": Borramos los detalles relacionales antiguos del itinerario
-        #    Esto asegura una actualización limpia.
+        # "Brute-force update": Borramos los detalles relacionales antiguos
         itinerary.destinations.all().delete()
 
-        # 3. Llenamos las tablas con los datos del nuevo JSON
-        #    (Usando la misma lógica de parseo robusta que ya funciona en 'generate')
+        # Llenamos las tablas con los datos del nuevo JSON (lógica que ya funciona)
         for dest_order, dest_data in enumerate(final_itinerary_json.get('destinos', [])):
             if not dest_data.get('dias_destino'):
                 continue
@@ -111,7 +120,7 @@ class ItineraryDetailView(APIView):
 
             destination, _ = Destination.objects.get_or_create(
                 city_name=city,
-                country_name=country
+                defaults={'country_name': country}
             )
             
             it_dest = ItineraryDestination.objects.create(
@@ -137,10 +146,8 @@ class ItineraryDetailView(APIView):
                 
                 for act_order, act_data in enumerate(activity_list):
                     activity_name = ""
-                    activity_description = ""
                     if isinstance(act_data, dict):
                         activity_name = act_data.get('nombre', '')
-                        activity_description = act_data.get('descripcion', '')
                     elif isinstance(act_data, str):
                         activity_name = act_data
                     
@@ -148,27 +155,24 @@ class ItineraryDetailView(APIView):
                         Activity.objects.create(
                             day=day, 
                             name=activity_name,
-                            description=activity_description,
+                            description='',
                             activity_order=act_order + 1
                         )
-        
-        # 4. Actualizamos el itinerario principal con los nuevos datos
+
+        # Actualizamos el itinerario principal
         itinerary.details_itinerary = final_itinerary_json
         itinerary.trip_name = final_itinerary_json.get('nombre_viaje', itinerary.trip_name)
         itinerary.save()
         
-        # 5. Devolvemos el itinerario actualizado desde la base de datos
-        itinerary.refresh_from_db()
-        response_serializer = ItineraryDetailSerializer(itinerary)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
+        # Devolvemos el itinerario actualizado usando el serializer
+        serializer = self.get_serializer(itinerary)
+        return Response(serializer.data)
 
-    def delete(self, request, pk):
-        itinerary = self.get_object(pk)
-        if not itinerary:
-            return Response({"error": "Not found"}, status=404)
-        itinerary.deleted_at = timezone.now()
+        # Guardamos el JSON crudo y actualizamos el nombre
+        itinerary.details_itinerary = final_itinerary_json
+        itinerary.trip_name = final_itinerary_json.get('nombre_viaje', itinerary.trip_name)
         itinerary.save()
-        return Response(status=204)
+
 
 # --- Vistas de la API para el grafo de IA ---
 
