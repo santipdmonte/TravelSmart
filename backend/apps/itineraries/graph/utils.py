@@ -1,3 +1,6 @@
+import json
+from pydantic.json import pydantic_encoder
+
 def extract_chatbot_message(state_info):
     """Helper function to extract chatbot message from state info"""
     chatbot_message = ""
@@ -19,33 +22,47 @@ def extract_chatbot_message(state_info):
     return chatbot_message
 
 def detect_hil_mode(raw_state):
-    """Detect if the agent is waiting for Human in the Loop response"""
-    hil_message = ""
-    is_hil_mode = False
-    
-    try:
-        # Check if this is a StateSnapshot format
-        if hasattr(raw_state, 'tasks') and raw_state.tasks:
-            for task in raw_state.tasks:
-                if hasattr(task, 'interrupts') and task.interrupts:
-                    for interrupt in task.interrupts:
-                        if hasattr(interrupt, 'value') and interrupt.value:
-                            hil_message = interrupt.value
-                            is_hil_mode = True
-                            break
-                    if is_hil_mode:
-                        break
-        
-        # Alternative: Check in the raw_state if it's a different format
-        elif hasattr(raw_state, 'values'):
-            state_values = raw_state.values
-            # Extract state info for other purposes
-            return is_hil_mode, hil_message, state_values
-            
-    except Exception as e:
-        print(f"Error detecting HIL mode: {e}")
-    
-    return is_hil_mode, hil_message, None
+    """
+    Valida si el estado del agente indica que está esperando una respuesta
+    de tipo Humano-en-el-Bucle (HIL).
+
+    La principal señal es la presencia de una estructura específica en el último
+    elemento de la lista de estado, que representa la salida pendiente. Esta
+    estructura es una lista que contiene un diccionario con la clave "resumable"
+    y su valor establecido en True.
+
+    Args:
+        state (list): El objeto de estado del agente, que es una lista de
+                      componentes que representan la conversación y el flujo
+                      de ejecución.
+
+    Returns:
+        bool: True si el estado indica que se espera una respuesta HIL,
+              False en caso contrario.
+    """
+    state = raw_state[0]
+
+    # 1. Validación básica: Asegurarse de que el estado es una lista y no está vacía.
+    if not isinstance(state, list) or not state:
+        return False
+
+    # 2. El indicador HIL se encuentra en el último elemento de la lista de estado.
+    last_element = state[-1]
+
+    # 3. Comprobar si el último elemento sigue la estructura esperada para un prompt HIL:
+    #    Debe ser una lista que contenga al menos un diccionario.
+    if not isinstance(last_element, list) or not last_element:
+        return False
+
+    # 4. Los datos reales del prompt HIL suelen ser el primer diccionario en esta lista.
+    hil_prompt_data = last_element[0]
+
+    # 5. La comprobación definitiva: este objeto debe ser un diccionario
+    #    y contener la clave "resumable" con el valor True.
+    if isinstance(hil_prompt_data, dict) and hil_prompt_data.get("resumable") is True:
+        return True
+
+    return False
 
 def state_to_json(state):
     """Convert the state to a JSON string"""
