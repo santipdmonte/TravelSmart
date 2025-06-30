@@ -5,7 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
-
+from langchain_core.runnables import RunnableConfig
+from .graph.itinerary_agent import itinerary_agent
+from .graph.utils import detect_hil_mode
 from django.utils import timezone
 
 from .models import Itinerary, Destination, ItineraryDestination, Day, Activity
@@ -14,7 +16,6 @@ from .services import (
     generate_itinerary_service,
     initialize_agent_service,
     user_response_service,
-    user_HIL_response_service,
     get_state_service,
     create_itinerary_from_ia
 )
@@ -193,18 +194,16 @@ class AgentView(APIView):
 
     def post(self, request, thread_id):
         user_response_data = request.data.get('user_response')
-        user_hil_response_data = request.data.get('user_HIL_response')
 
-        # Combina user_response o hil_response según cuál venga
-        if user_response_data:
-            response = user_response_service(thread_id=thread_id, user_response=user_response_data)
-        elif user_hil_response_data:
-            response = user_HIL_response_service(thread_id=thread_id, user_HIL_response=user_hil_response_data)
-        else:
+        # Validación mejorada de user_response_data
+        if not user_response_data:
             return Response({"error": "No response provided"}, status=400)
+
+        response = user_response_service(thread_id=thread_id, user_response=user_response_data)
 
         return Response(response)
 
     def get(self, request, thread_id):
         response = get_state_service(thread_id=thread_id)
+
         return Response(response)
