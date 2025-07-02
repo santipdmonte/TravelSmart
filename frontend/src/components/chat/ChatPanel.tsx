@@ -16,22 +16,23 @@ export default function ChatPanel() {
       {/* Mobile overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={closeChat} />
       
-      {/* Chat panel - Fixed positioned on all screen sizes */}
+      {/* Chat panel - Fixed positioned with card styling */}
       <div className={`
         fixed
-        inset-y-0 right-0 
+        inset-0 lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto
         w-full lg:w-1/3
+        lg:max-w-md
         bg-white
-        border-l border-gray-200
+        lg:rounded-lg
+        lg:shadow-lg
         z-50
         flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        h-screen
         overscroll-contain
       `}>
         {/* Header - Fixed */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 lg:rounded-t-lg">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <h3 className="font-semibold text-gray-900">AI Assistant</h3>
@@ -53,7 +54,7 @@ export default function ChatPanel() {
         </div>
 
         {/* Input - Fixed at bottom */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 lg:rounded-b-lg">
           <MessageInput />
         </div>
       </div>
