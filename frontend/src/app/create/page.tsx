@@ -11,19 +11,27 @@ export default function CreateItineraryPage() {
   const { loading, error } = useItinerary();
   const { createItinerary, clearError } = useItineraryActions();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    trip_name: string;
+    duration_days: number | '';
+  }>({
     trip_name: '',
-    duration_days: 1,
+    duration_days: 7,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.trip_name.trim()) {
+    if (!formData.trip_name.trim() || formData.duration_days === '' || formData.duration_days < 1) {
       return;
     }
 
-    const itinerary = await createItinerary(formData);
+    const requestData = {
+      trip_name: formData.trip_name,
+      duration_days: typeof formData.duration_days === 'number' ? formData.duration_days : parseInt(formData.duration_days) || 1
+    };
+
+    const itinerary = await createItinerary(requestData);
     
     if (itinerary) {
       router.push(`/itinerary/${itinerary.itinerary_id}`);
@@ -34,7 +42,7 @@ export default function CreateItineraryPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'duration_days' ? parseInt(value) || 1 : value,
+      [name]: name === 'duration_days' ? (value === '' ? '' : parseInt(value) || 1) : value,
     }));
     
     if (error) {
@@ -91,7 +99,7 @@ export default function CreateItineraryPage() {
                   type="number"
                   id="duration_days"
                   name="duration_days"
-                  value={formData.duration_days}
+                  value={formData.duration_days === '' ? '' : formData.duration_days}
                   onChange={handleInputChange}
                   min="1"
                   max="30"
