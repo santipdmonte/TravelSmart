@@ -3,6 +3,7 @@
       "name": "TravelSmart",
       "version": "1.0",
       "theme": "Modern Travel & Exploration",
+      "mobile_first": true,
       
       "colorPalette": {
         "primary": {
