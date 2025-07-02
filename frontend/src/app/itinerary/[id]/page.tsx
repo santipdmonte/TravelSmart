@@ -13,8 +13,8 @@ export default function ItineraryDetailsPage() {
   const params = useParams();
   const { currentItinerary, loading, error } = useItinerary();
   const { fetchItinerary } = useItineraryActions();
-  const { isOpen: isChatOpen } = useChat();
-  const { openChat } = useChatActions();
+  const { isOpen: isChatOpen, threadId } = useChat();
+  const { openChat, closeChat } = useChatActions();
 
   const itineraryId = params.id as string;
 
@@ -23,6 +23,22 @@ export default function ItineraryDetailsPage() {
       fetchItinerary(itineraryId);
     }
   }, [itineraryId, fetchItinerary]);
+
+  // Close chat if it's open for a different itinerary
+  useEffect(() => {
+    if (isChatOpen && threadId && threadId !== itineraryId) {
+      closeChat();
+    }
+  }, [itineraryId, isChatOpen, threadId, closeChat]);
+
+  // Cleanup: Close chat when leaving the page
+  useEffect(() => {
+    return () => {
+      if (isChatOpen) {
+        closeChat();
+      }
+    };
+  }, [isChatOpen, closeChat]);
 
   const handleEditWithAI = async () => {
     if (itineraryId) {
