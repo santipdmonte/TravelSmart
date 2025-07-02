@@ -1,4 +1,4 @@
-import { Itinerary, GenerateItineraryRequest, ApiResponse } from '@/types/itinerary';
+import { Itinerary, ItineraryBase, GenerateItineraryRequest, ApiResponse } from '@/types/itinerary';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 
@@ -63,7 +63,7 @@ export async function getItinerary(
 }
 
 // Get all itineraries for current session
-export async function getSessionItineraries(): Promise<ApiResponse<Itinerary[]>> {
+export async function getSessionItineraries(): Promise<ApiResponse<ItineraryBase[]>> {
   const sessionId = getSessionId();
-  return apiRequest<Itinerary[]>(`/api/itineraries/session/${sessionId}`);
+  return apiRequest<ItineraryBase[]>(`/api/itineraries/session/${sessionId}`);
 } 

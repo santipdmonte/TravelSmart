@@ -109,7 +109,7 @@ export default function ItinerariesPage() {
                   <div className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 h-full">
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                        {itinerary.details_itinerary.nombre_viaje}
+                        {itinerary.trip_name}
                       </h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         itinerary.status === 'published' 
@@ -121,34 +121,27 @@ export default function ItinerariesPage() {
                     </div>
                     
                     <p className="text-gray-600 mb-4">
-                      {itinerary.details_itinerary.destino_general}
+                      {itinerary.destination || itinerary.trip_name}
                     </p>
                     
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span>{itinerary.details_itinerary.cantidad_dias} days</span>
-                      <span>{itinerary.details_itinerary.destinos.length} destinations</span>
+                      <span>{itinerary.duration_days} days</span>
+                      <span>{itinerary.trip_type || 'Travel'}</span>
                     </div>
                     
                     <div className="text-xs text-gray-400">
                       Created {new Date(itinerary.created_at).toLocaleDateString()}
                     </div>
                     
-                    {/* Preview of destinations */}
+                    {/* Status indicator */}
                     <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex flex-wrap gap-1">
-                        {itinerary.details_itinerary.destinos.slice(0, 3).map((dest, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs"
-                          >
-                            {dest.nombre_destino}
-                          </span>
-                        ))}
-                        {itinerary.details_itinerary.destinos.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-50 text-gray-500 rounded text-xs">
-                            +{itinerary.details_itinerary.destinos.length - 3} more
-                          </span>
-                        )}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">
+                          {itinerary.visibility === 'private' ? '🔒 Private' : '🌍 Public'}
+                        </span>
+                        <span className="text-indigo-600 font-medium">
+                          View Details →
+                        </span>
                       </div>
                     </div>
                   </div>
