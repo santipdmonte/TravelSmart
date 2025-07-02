@@ -5,6 +5,7 @@ import { AgentState, Message, HILResponse } from '@/types/agent';
 
 interface ChatState {
   isOpen: boolean;
+  initializing: boolean;
   messages: Message[];
   loading: boolean;
   error: string | null;
@@ -16,6 +17,7 @@ interface ChatState {
 type ChatAction =
   | { type: 'OPEN_CHAT' }
   | { type: 'CLOSE_CHAT' }
+  | { type: 'SET_INITIALIZING'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_AGENT_STATE'; payload: AgentState }
@@ -26,6 +28,7 @@ type ChatAction =
 
 const initialState: ChatState = {
   isOpen: false,
+  initializing: false,
   messages: [],
   loading: false,
   error: null,
@@ -40,16 +43,19 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, isOpen: true };
     case 'CLOSE_CHAT':
       return { ...state, isOpen: false };
+    case 'SET_INITIALIZING':
+      return { ...state, initializing: action.payload };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_ERROR':
-      return { ...state, error: action.payload, loading: false };
+      return { ...state, error: action.payload, loading: false, initializing: false };
     case 'SET_AGENT_STATE':
       return {
         ...state,
         messages: action.payload.messages,
         currentItinerary: action.payload.itinerary,
         loading: false,
+        initializing: false,
         error: null,
       };
     case 'SET_HIL_STATE':

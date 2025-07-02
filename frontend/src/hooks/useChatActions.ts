@@ -10,8 +10,15 @@ export function useChatActions() {
   const { fetchItinerary } = useItineraryActions();
 
   const openChat = useCallback(async (itineraryId: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
+    // Open chat immediately and show initializing state
+    dispatch({ type: 'OPEN_CHAT' });
+    dispatch({ type: 'SET_INITIALIZING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
+    
+    // Clear any existing state if switching to a different itinerary
+    dispatch({ type: 'CLEAR_CHAT' });
+    dispatch({ type: 'OPEN_CHAT' });
+    dispatch({ type: 'SET_INITIALIZING', payload: true });
     dispatch({ type: 'SET_THREAD_ID', payload: itineraryId });
 
     try {
@@ -35,7 +42,6 @@ export function useChatActions() {
         }
       }
 
-      dispatch({ type: 'OPEN_CHAT' });
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to open chat';

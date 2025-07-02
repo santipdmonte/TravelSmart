@@ -15,7 +15,7 @@ export default function ItineraryDetailsPage() {
   const { currentItinerary, loading, error } = useItinerary();
   const { fetchItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
-  const { closeChat } = useChatActions();
+  const { clearChat } = useChatActions();
 
   const itineraryId = params.id as string;
 
@@ -28,18 +28,18 @@ export default function ItineraryDetailsPage() {
   // Close chat if it's open for a different itinerary
   useEffect(() => {
     if (isChatOpen && threadId && threadId !== itineraryId) {
-      closeChat();
+      clearChat();
     }
-  }, [itineraryId, isChatOpen, threadId, closeChat]);
+  }, [itineraryId, isChatOpen, threadId, clearChat]);
 
-  // Cleanup: Close chat when leaving the page
+  // Cleanup: Clear chat state when leaving the page
   useEffect(() => {
     return () => {
       if (isChatOpen) {
-        closeChat();
+        clearChat();
       }
     };
-  }, [isChatOpen, closeChat]);
+  }, [isChatOpen, clearChat]);
 
   if (loading) {
     return (

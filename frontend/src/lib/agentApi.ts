@@ -1,4 +1,4 @@
-import { AgentState, AgentResponse, SendMessageRequest, ApiResponse, HILResponse } from '@/types/agent';
+import { AgentState, AgentResponse, ApiResponse, HILResponse } from '@/types/agent';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 
@@ -30,10 +30,22 @@ export function parseHILResponse(response: AgentResponse): HILResponse {
         
         if (hilData && Array.isArray(hilData) && hilData.length > 0) {
           const hilEntry = hilData[0];
-          if (hilEntry && hilEntry[4] && hilEntry[4][0] && hilEntry[4][0].value) {
+          // Type guard for hilEntry structure
+          if (hilEntry && 
+              typeof hilEntry === 'object' && 
+              hilEntry !== null &&
+              '4' in hilEntry &&
+              Array.isArray((hilEntry as Record<string, unknown>)[4]) &&
+              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] &&
+              typeof ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] === 'object' &&
+              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] !== null &&
+              'value' in (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>)) {
+            
+            const value = (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>).value;
+            
             return {
               isHIL: true,
-              confirmationMessage: hilEntry[4][0].value,
+              confirmationMessage: typeof value === 'string' ? value : 'Confirm changes?',
               proposedChanges: toolCall.args.new_itinerary,
               summary: toolCall.args.new_itinerary_modifications_summary
             };
@@ -43,7 +55,7 @@ export function parseHILResponse(response: AgentResponse): HILResponse {
         // Fallback: if we have tool calls but no HIL structure, still might be HIL
         return {
           isHIL: true,
-          confirmationMessage: `¿Confirmas estos cambios? ${toolCall.args.new_itinerary_modifications_summary}`,
+          confirmationMessage: `¿Confirmas estos cambios? ${toolCall.args.new_itinerary_modifications_summary || ''}`,
           proposedChanges: toolCall.args.new_itinerary,
           summary: toolCall.args.new_itinerary_modifications_summary
         };

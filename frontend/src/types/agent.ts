@@ -4,11 +4,11 @@ export interface Message {
   id: string;
   name?: string | null;
   example?: boolean;
-  additional_kwargs?: Record<string, any>;
-  response_metadata?: Record<string, any>;
+  additional_kwargs?: Record<string, unknown>;
+  response_metadata?: Record<string, unknown>;
   tool_calls?: ToolCall[];
-  invalid_tool_calls?: any[];
-  usage_metadata?: Record<string, any>;
+  invalid_tool_calls?: unknown[];
+  usage_metadata?: Record<string, unknown>;
 }
 
 export interface ToolCall {
@@ -16,7 +16,7 @@ export interface ToolCall {
   type: string;
   name: string;
   args: {
-    new_itinerary?: any;
+    new_itinerary?: unknown;
     new_itinerary_modifications_summary?: string;
   };
 }
@@ -24,7 +24,7 @@ export interface ToolCall {
 export interface HILResponse {
   isHIL: boolean;
   confirmationMessage?: string;
-  proposedChanges?: any;
+  proposedChanges?: unknown;
   summary?: string;
 }
 
@@ -49,7 +49,7 @@ export interface AgentState {
 
 export interface AgentResponse {
   0: AgentState;
-  1: any[];
+  1: unknown[];
   2: {
     configurable: {
       thread_id: string;
@@ -65,7 +65,7 @@ export interface AgentResponse {
       };
     };
     step: number;
-    parents: Record<string, any>;
+    parents: Record<string, unknown>;
     thread_id: string;
   };
   4: string; // timestamp
@@ -76,7 +76,7 @@ export interface AgentResponse {
       checkpoint_id: string;
     };
   };
-  6: any[];
+  6: unknown[];
 }
 
 export interface SendMessageRequest {
