@@ -67,7 +67,7 @@ export default function CreateItineraryPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Trip Name */}
               <div>
-                <label htmlFor="trip_name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="trip_name" className="block text-sm font-medium text-gray-800 mb-2">
                   Trip Destination
                 </label>
                 <input
@@ -77,14 +77,14 @@ export default function CreateItineraryPage() {
                   value={formData.trip_name}
                   onChange={handleInputChange}
                   placeholder="e.g., Europe, Japan, New York"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg text-gray-800 placeholder-gray-500"
                   required
                 />
               </div>
 
               {/* Duration */}
               <div>
-                <label htmlFor="duration_days" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="duration_days" className="block text-sm font-medium text-gray-800 mb-2">
                   Trip Duration (days)
                 </label>
                 <input
@@ -95,7 +95,7 @@ export default function CreateItineraryPage() {
                   onChange={handleInputChange}
                   min="1"
                   max="30"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg text-gray-800"
                   required
                 />
               </div>

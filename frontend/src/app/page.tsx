@@ -6,10 +6,10 @@ export default function LandingPage() {
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <header className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="text-indigo-600">TravelSmart</span>
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-4">
+            Welcome to <span className="text-indigo-700">TravelSmart</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             Create personalized travel itineraries with AI assistance. 
             Plan your perfect trip in minutes.
           </p>
@@ -40,8 +40,8 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
               <span className="text-indigo-600 text-2xl">🤖</span>
             </div>
-            <h3 className="text-xl font-semibold mb-2">AI-Powered</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">AI-Powered</h3>
+            <p className="text-gray-700">
               Our AI creates personalized itineraries based on your preferences
             </p>
           </div>
@@ -50,8 +50,8 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
               <span className="text-indigo-600 text-2xl">⚡</span>
             </div>
-            <h3 className="text-xl font-semibold mb-2">Quick & Easy</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Quick & Easy</h3>
+            <p className="text-gray-700">
               Generate complete itineraries in minutes, not hours
             </p>
           </div>
@@ -60,8 +60,8 @@ export default function LandingPage() {
             <div className="w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
               <span className="text-indigo-600 text-2xl">🗺️</span>
             </div>
-            <h3 className="text-xl font-semibold mb-2">Detailed Plans</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">Detailed Plans</h3>
+            <p className="text-gray-700">
               Get day-by-day activities and destination recommendations
             </p>
           </div>
