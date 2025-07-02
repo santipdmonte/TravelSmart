@@ -10,10 +10,10 @@ export default function MessageList() {
   const { messages, loading, error, hilState } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive, loading state changes, or HIL state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, hilState]);
+  }, [messages, hilState, loading]);
 
   return (
     <div className="h-full overflow-y-auto overscroll-contain p-4 space-y-4">

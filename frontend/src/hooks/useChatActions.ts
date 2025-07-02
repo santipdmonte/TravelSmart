@@ -45,7 +45,6 @@ export function useChatActions() {
   }, [dispatch]);
 
   const sendMessage = useCallback(async (itineraryId: string, message: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear any pending HIL state
 
@@ -58,9 +57,13 @@ export function useChatActions() {
       };
       dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
 
+      // Set loading state AFTER adding user message
+      dispatch({ type: 'SET_LOADING', payload: true });
+
       const response = await sendAgentMessage(itineraryId, message);
       
       if (response.error) {
+        dispatch({ type: 'SET_LOADING', payload: false });
         dispatch({ type: 'SET_ERROR', payload: response.error });
         return false;
       }
@@ -68,7 +71,7 @@ export function useChatActions() {
       if (response.data) {
         const { agentState, hilResponse } = response.data;
         
-        // Update with complete agent state (includes AI response)
+        // Update with complete agent state (includes AI response) - this will set loading to false
         dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
         
         // Handle HIL response
@@ -86,9 +89,11 @@ export function useChatActions() {
         return true;
       }
 
+      dispatch({ type: 'SET_LOADING', payload: false });
       return false;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+      dispatch({ type: 'SET_LOADING', payload: false });
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return false;
     }
