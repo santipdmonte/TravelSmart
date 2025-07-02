@@ -11,6 +11,9 @@ export default function CreateItineraryPage() {
   const { loading, error } = useItinerary();
   const { createItinerary, clearError } = useItineraryActions();
   
+  // Local loading state for immediate UI feedback
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState<{
     trip_name: string;
     duration_days: number | '';
@@ -26,15 +29,25 @@ export default function CreateItineraryPage() {
       return;
     }
 
-    const requestData = {
-      trip_name: formData.trip_name,
-      duration_days: typeof formData.duration_days === 'number' ? formData.duration_days : parseInt(formData.duration_days) || 1
-    };
+    // Set local loading state immediately for UI feedback
+    setIsSubmitting(true);
 
-    const itinerary = await createItinerary(requestData);
-    
-    if (itinerary) {
-      router.push(`/itinerary/${itinerary.itinerary_id}`);
+    try {
+      const requestData = {
+        trip_name: formData.trip_name,
+        duration_days: typeof formData.duration_days === 'number' ? formData.duration_days : parseInt(formData.duration_days) || 1
+      };
+
+      const itinerary = await createItinerary(requestData);
+      
+      if (itinerary) {
+        router.push(`/itinerary/${itinerary.itinerary_id}`);
+      }
+    } catch (error) {
+      console.error('Error creating itinerary:', error);
+    } finally {
+      // Reset local loading state
+      setIsSubmitting(false);
     }
   };
 
@@ -49,6 +62,9 @@ export default function CreateItineraryPage() {
       clearError();
     }
   };
+
+  // Use local loading state OR global loading state
+  const isLoading = isSubmitting || loading;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -87,6 +103,7 @@ export default function CreateItineraryPage() {
                   placeholder="e.g., Europe, Japan, New York"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg text-gray-800 placeholder-gray-500"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -105,6 +122,7 @@ export default function CreateItineraryPage() {
                   max="30"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg text-gray-800"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -118,10 +136,10 @@ export default function CreateItineraryPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || !formData.trip_name.trim()}
+                disabled={isLoading || !formData.trip_name.trim() || formData.duration_days === '' || formData.duration_days < 1}
                 className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? (
+                {isLoading ? (
                   <span className="flex items-center justify-center">
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
