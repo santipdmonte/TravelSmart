@@ -65,5 +65,5 @@ export async function getItinerary(
 // Get all itineraries for current session
 export async function getSessionItineraries(): Promise<ApiResponse<Itinerary[]>> {
   const sessionId = getSessionId();
-  return apiRequest<Itinerary[]>(`/api/itineraries/${sessionId}`);
+  return apiRequest<Itinerary[]>(`/api/itineraries/session/${sessionId}`);
 } 
