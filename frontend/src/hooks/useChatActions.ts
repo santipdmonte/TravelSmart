@@ -106,8 +106,21 @@ export function useChatActions() {
   }, [dispatch, fetchItinerary]);
 
   const confirmChanges = useCallback(async (itineraryId: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
+    
+    // Add feedback message immediately when user clicks confirm
+    const successMessage = {
+      content: "✅ Changes confirmed successfully! Your itinerary has been updated.",
+      type: 'ai' as const,
+      id: crypto.randomUUID(),
+    };
+    dispatch({ type: 'ADD_MESSAGE', payload: successMessage });
+    
+    // Clear HIL state immediately to remove the confirmation UI
+    dispatch({ type: 'SET_HIL_STATE', payload: null });
+    
+    // Set loading state to show AI thinking
+    dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
       const response = await sendAgentMessage(itineraryId, 's');
@@ -120,9 +133,8 @@ export function useChatActions() {
       if (response.data) {
         const { agentState } = response.data;
         
-        // Update with complete agent state
+        // Update with complete agent state (this will show the agent's response)
         dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-        dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear HIL state
         
         // Refresh the itinerary since changes were confirmed
         await fetchItinerary(itineraryId);
@@ -139,8 +151,21 @@ export function useChatActions() {
   }, [dispatch, fetchItinerary]);
 
   const cancelChanges = useCallback(async (itineraryId: string) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
+    
+    // Add feedback message immediately when user clicks cancel
+    const cancelMessage = {
+      content: "❌ Changes cancelled. Your itinerary remains unchanged.",
+      type: 'ai' as const,
+      id: crypto.randomUUID(),
+    };
+    dispatch({ type: 'ADD_MESSAGE', payload: cancelMessage });
+    
+    // Clear HIL state immediately to remove the confirmation UI
+    dispatch({ type: 'SET_HIL_STATE', payload: null });
+    
+    // Set loading state to show AI thinking
+    dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
       const response = await sendAgentMessage(itineraryId, 'El usuario no acepto los cambios sugeridos');
@@ -153,9 +178,8 @@ export function useChatActions() {
       if (response.data) {
         const { agentState } = response.data;
         
-        // Update with complete agent state
+        // Update with complete agent state (this will show the agent's response)
         dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-        dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear HIL state
         
         return true;
       }
