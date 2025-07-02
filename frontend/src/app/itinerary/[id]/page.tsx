@@ -51,7 +51,7 @@ export default function ItineraryDetailsPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your itinerary...</p>
+          <p className="text-gray-700">Loading your itinerary...</p>
         </div>
       </div>
     );
@@ -63,7 +63,7 @@ export default function ItineraryDetailsPage() {
         <div className="text-center">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Error</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <p className="text-gray-700 mb-6">{error}</p>
             <Link
               href="/itineraries"
               className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -82,7 +82,7 @@ export default function ItineraryDetailsPage() {
         <div className="text-center">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Itinerary Not Found</h2>
-            <p className="text-gray-600 mb-6">The itinerary you&apos;re looking for doesn&apos;t exist.</p>
+            <p className="text-gray-700 mb-6">The itinerary you&apos;re looking for doesn&apos;t exist.</p>
             <Link
               href="/itineraries"
               className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -119,10 +119,10 @@ export default function ItineraryDetailsPage() {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {details_itinerary.nombre_viaje}
                 </h1>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-700 mb-4">
                   {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} days
                 </p>
-                <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                   <span>Status: {currentItinerary.status}</span>
                   <span>•</span>
                   <span>Created: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
@@ -151,7 +151,7 @@ export default function ItineraryDetailsPage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {destination.nombre_destino}
                 </h2>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-700 mb-6">
                   {destination.cantidad_dias_en_destino} days in this destination
                 </p>
 

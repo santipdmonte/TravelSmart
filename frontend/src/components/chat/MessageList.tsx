@@ -37,7 +37,7 @@ export default function MessageList() {
           <div className="bg-gray-100 rounded-lg px-4 py-2 rounded-bl-none">
             <div className="flex items-center space-x-2">
               <LoadingSpinner size="sm" />
-              <span className="text-sm text-gray-600">AI is thinking...</span>
+              <span className="text-sm text-gray-700">AI is thinking...</span>
             </div>
           </div>
         </div>
