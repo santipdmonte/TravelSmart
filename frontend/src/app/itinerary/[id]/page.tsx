@@ -82,9 +82,9 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Main Content Area */}
-      <div className={`flex-1 ${isChatOpen ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
+      <div className={`transition-all duration-300 ${isChatOpen ? 'lg:mr-[33.333333%]' : ''}`}>
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -176,7 +176,7 @@ export default function ItineraryDetailsPage() {
         </div>
       </div>
 
-      {/* Chat Panel */}
+      {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
     </div>
   );

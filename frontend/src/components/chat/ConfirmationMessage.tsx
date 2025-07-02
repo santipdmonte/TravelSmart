@@ -20,7 +20,7 @@ export default function ConfirmationMessage() {
   };
 
   return (
-    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mx-4 mb-4">
+    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
       {/* AI Icon and Label */}
       <div className="flex items-center mb-3">
         <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2">
