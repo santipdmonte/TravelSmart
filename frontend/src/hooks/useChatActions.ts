@@ -1,0 +1,109 @@
+'use client';
+
+import { useCallback } from 'react';
+import { useChat } from '@/contexts/AgentContext';
+import { useItineraryActions } from '@/hooks/useItineraryActions';
+import { initializeAgent, sendAgentMessage, getAgentState } from '@/lib/agentApi';
+
+export function useChatActions() {
+  const { dispatch } = useChat();
+  const { fetchItinerary } = useItineraryActions();
+
+  const openChat = useCallback(async (itineraryId: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    dispatch({ type: 'SET_THREAD_ID', payload: itineraryId });
+
+    try {
+      // Try to get existing agent state first
+      const existingState = await getAgentState(itineraryId);
+      
+      if (existingState.data && existingState.data.messages.length > 0) {
+        // Use existing chat history
+        dispatch({ type: 'SET_AGENT_STATE', payload: existingState.data });
+      } else {
+        // Initialize new agent
+        const response = await initializeAgent(itineraryId);
+        
+        if (response.error) {
+          dispatch({ type: 'SET_ERROR', payload: response.error });
+          return false;
+        }
+
+        if (response.data) {
+          dispatch({ type: 'SET_AGENT_STATE', payload: response.data });
+        }
+      }
+
+      dispatch({ type: 'OPEN_CHAT' });
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to open chat';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return false;
+    }
+  }, [dispatch]);
+
+  const sendMessage = useCallback(async (itineraryId: string, message: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
+    try {
+      // Add user message to UI immediately
+      const userMessage = {
+        content: message,
+        type: 'human' as const,
+        id: crypto.randomUUID(),
+      };
+      dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+
+      const response = await sendAgentMessage(itineraryId, message);
+      
+      if (response.error) {
+        dispatch({ type: 'SET_ERROR', payload: response.error });
+        return false;
+      }
+
+      if (response.data) {
+        // Update with complete agent state (includes AI response)
+        dispatch({ type: 'SET_AGENT_STATE', payload: response.data });
+        
+        // Check if the itinerary was updated and refresh it
+        // We'll compare the agent's itinerary with the current one
+        const currentAgentItinerary = response.data.itinerary;
+        if (currentAgentItinerary) {
+          // Refetch the full itinerary to get the latest version
+          await fetchItinerary(itineraryId);
+        }
+        
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return false;
+    }
+  }, [dispatch, fetchItinerary]);
+
+  const closeChat = useCallback(() => {
+    dispatch({ type: 'CLOSE_CHAT' });
+  }, [dispatch]);
+
+  const clearChat = useCallback(() => {
+    dispatch({ type: 'CLEAR_CHAT' });
+  }, [dispatch]);
+
+  const clearError = useCallback(() => {
+    dispatch({ type: 'SET_ERROR', payload: null });
+  }, [dispatch]);
+
+  return {
+    openChat,
+    sendMessage,
+    closeChat,
+    clearChat,
+    clearError,
+  };
+} 
