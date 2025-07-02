@@ -1,0 +1,284 @@
+{
+    "designSystem": {
+      "name": "TravelSmart",
+      "version": "1.0",
+      "theme": "Modern Travel & Exploration",
+      "mobile_first": true,
+      
+      "colorPalette": {
+        "primary": {
+          "purple": "#6366F1",
+          "purpleLight": "#8B5CF6",
+          "purpleDark": "#4F46E5"
+        },
+        "secondary": {
+          "orange": "#FB923C",
+          "coral": "#F97316",
+          "peach": "#FDBA74"
+        },
+        "neutrals": {
+          "white": "#FFFFFF",
+          "lightGray": "#F8FAFC",
+          "mediumGray": "#64748B",
+          "darkGray": "#334155",
+          "background": "#FDF2F8"
+        },
+        "gradients": {
+          "purpleGradient": "linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)",
+          "mountainGradient": "linear-gradient(180deg, #E0E7FF 0%, #C7D2FE 50%, #A5B4FC 100%)",
+          "skyGradient": "linear-gradient(180deg, #DBEAFE 0%, #BFDBFE 100%)"
+        }
+      },
+  
+      "typography": {
+        "fontFamily": "system-ui, -apple-system, sans-serif",
+        "scales": {
+          "h1": {
+            "fontSize": "28px",
+            "fontWeight": "700",
+            "lineHeight": "1.2",
+            "letterSpacing": "-0.02em"
+          },
+          "h2": {
+            "fontSize": "22px",
+            "fontWeight": "600",
+            "lineHeight": "1.3"
+          },
+          "h3": {
+            "fontSize": "18px",
+            "fontWeight": "600",
+            "lineHeight": "1.4"
+          },
+          "body": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "1.5"
+          },
+          "caption": {
+            "fontSize": "14px",
+            "fontWeight": "500",
+            "lineHeight": "1.4"
+          },
+          "small": {
+            "fontSize": "12px",
+            "fontWeight": "400",
+            "lineHeight": "1.3"
+          }
+        }
+      },
+  
+      "spacing": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "32px",
+        "2xl": "48px",
+        "3xl": "64px"
+      },
+  
+      "borderRadius": {
+        "sm": "8px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "20px",
+        "2xl": "24px",
+        "full": "50%"
+      },
+  
+      "shadows": {
+        "sm": "0 2px 4px rgba(0, 0, 0, 0.05)",
+        "md": "0 4px 12px rgba(0, 0, 0, 0.1)",
+        "lg": "0 8px 24px rgba(0, 0, 0, 0.12)",
+        "colored": "0 8px 32px rgba(99, 102, 241, 0.2)"
+      },
+  
+      "components": {
+        "card": {
+          "primary": {
+            "background": "gradient or solid color",
+            "borderRadius": "lg",
+            "padding": "lg",
+            "shadow": "md",
+            "aspectRatio": "3:4",
+            "textColor": "white",
+            "overlay": "subtle dark gradient for text readability"
+          },
+          "secondary": {
+            "background": "white",
+            "borderRadius": "md",
+            "padding": "md",
+            "shadow": "sm",
+            "border": "1px solid #E2E8F0"
+          }
+        },
+  
+        "button": {
+          "primary": {
+            "background": "purpleGradient",
+            "color": "white",
+            "padding": "12px 24px",
+            "borderRadius": "xl",
+            "fontWeight": "600",
+            "shadow": "colored",
+            "hoverScale": "1.02"
+          },
+          "secondary": {
+            "background": "orange",
+            "color": "white",
+            "padding": "12px 24px",
+            "borderRadius": "xl",
+            "fontWeight": "600"
+          },
+          "ghost": {
+            "background": "transparent",
+            "color": "mediumGray",
+            "padding": "8px 16px",
+            "borderRadius": "md"
+          }
+        },
+  
+        "input": {
+          "base": {
+            "background": "white",
+            "border": "1px solid #E2E8F0",
+            "borderRadius": "md",
+            "padding": "12px 16px",
+            "fontSize": "16px",
+            "focusBorderColor": "purple"
+          }
+        },
+  
+        "navigation": {
+          "tabBar": {
+            "background": "white",
+            "height": "80px",
+            "borderRadius": "xl",
+            "shadow": "lg",
+            "iconSize": "24px",
+            "activeColor": "purple",
+            "inactiveColor": "mediumGray"
+          }
+        },
+  
+        "avatar": {
+          "size": "40px",
+          "borderRadius": "full",
+          "border": "2px solid white",
+          "shadow": "sm"
+        },
+  
+        "badge": {
+          "background": "rgba(255, 255, 255, 0.2)",
+          "backdropFilter": "blur(8px)",
+          "borderRadius": "full",
+          "padding": "4px 12px",
+          "fontSize": "12px",
+          "fontWeight": "500"
+        }
+      },
+  
+      "layoutPatterns": {
+        "onboarding": {
+          "structure": "Full-screen cards with illustration, title, subtitle, and CTA",
+          "navigation": "Dots indicator at bottom",
+          "spacing": "Generous whitespace, center-aligned content"
+        },
+  
+        "authentication": {
+          "structure": "Centered form with background illustration",
+          "inputSpacing": "md",
+          "buttonFullWidth": true,
+          "socialLoginSpacing": "lg"
+        },
+  
+        "gridLayout": {
+          "columns": 2,
+          "gap": "md",
+          "itemAspectRatio": "1:1 or 3:4",
+          "responsiveBreakpoints": true
+        },
+  
+        "listLayout": {
+          "itemSpacing": "sm",
+          "horizontalPadding": "md",
+          "dividers": "subtle gray lines or spacing only"
+        },
+  
+        "detailView": {
+          "heroImage": "Full-width, aspect ratio 16:9",
+          "contentPadding": "lg",
+          "sectionSpacing": "xl",
+          "bottomCTAArea": "Fixed bottom with primary action"
+        }
+      },
+  
+      "illustrations": {
+        "style": "Flat design with subtle gradients",
+        "elements": [
+          "Mountains with layered silhouettes",
+          "Stylized vehicles (buses, cars)",
+          "Geometric buildings and landmarks",
+          "Nature elements (trees, clouds)",
+          "Abstract shapes for decoration"
+        ],
+        "colorScheme": [
+          "Purple and blue gradients for backgrounds",
+          "Orange and coral for accent elements",
+          "Muted pastels for supporting elements"
+        ]
+      },
+  
+      "iconography": {
+        "style": "Outline style, consistent stroke width",
+        "categories": [
+          "Navigation (arrow, chevron)",
+          "Actions (heart, share, bookmark)",
+          "Categories (mountain, beach, city)",
+          "Interface (search, filter, menu)"
+        ],
+        "size": "24px default, 20px small, 32px large"
+      },
+  
+      "interactionPatterns": {
+        "cardHover": {
+          "transform": "translateY(-4px)",
+          "shadow": "increase shadow depth",
+          "transition": "0.2s ease-out"
+        },
+        "buttonPress": {
+          "transform": "scale(0.98)",
+          "transition": "0.1s ease-in-out"
+        },
+        "pageTransition": {
+          "type": "slide",
+          "duration": "300ms",
+          "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+        }
+      },
+  
+      "responsiveBreakpoints": {
+        "mobile": "320px - 768px",
+        "tablet": "768px - 1024px", 
+        "desktop": "1024px+"
+      },
+  
+      "designPrinciples": {
+        "hierarchy": "Clear visual hierarchy with size, color, and spacing",
+        "consistency": "Consistent spacing, colors, and component usage",
+        "accessibility": "High contrast ratios, readable font sizes",
+        "usability": "Touch-friendly targets (44px minimum), clear navigation",
+        "delight": "Subtle animations, gradients, and illustrations for engagement"
+      },
+  
+      "componentStates": {
+        "default": "Base appearance",
+        "hover": "Subtle elevation or color change",
+        "active": "Pressed state with slight scale reduction",
+        "disabled": "Reduced opacity (0.5) and no interaction",
+        "loading": "Shimmer effect or spinner",
+        "error": "Red border or background tint",
+        "success": "Green accent or checkmark"
+      }
+    }
+  }
