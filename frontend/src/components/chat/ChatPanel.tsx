@@ -28,6 +28,7 @@ export default function ChatPanel() {
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
         h-screen
+        overscroll-contain
       `}>
         {/* Header - Fixed */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
@@ -47,7 +48,7 @@ export default function ChatPanel() {
         </div>
 
         {/* Messages - Scrollable */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overscroll-contain">
           <MessageList />
         </div>
 
