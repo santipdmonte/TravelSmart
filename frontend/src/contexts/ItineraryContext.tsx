@@ -31,7 +31,12 @@ function itineraryReducer(state: ItineraryState, action: ItineraryAction): Itine
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_ERROR':
-      return { ...state, error: action.payload, loading: false };
+      // Only set loading to false if we're setting an actual error (not clearing)
+      return { 
+        ...state, 
+        error: action.payload, 
+        loading: action.payload ? false : state.loading 
+      };
     case 'SET_ITINERARIES':
       return { ...state, itineraries: action.payload, loading: false, error: null };
     case 'SET_CURRENT_ITINERARY':
