@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { AgentState, Message } from '@/types/agent';
+import { AgentState, Message, HILResponse } from '@/types/agent';
 
 interface ChatState {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface ChatState {
   error: string | null;
   currentItinerary: AgentState['itinerary'] | null;
   threadId: string | null;
+  hilState: HILResponse | null;
 }
 
 type ChatAction =
@@ -18,6 +19,7 @@ type ChatAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_AGENT_STATE'; payload: AgentState }
+  | { type: 'SET_HIL_STATE'; payload: HILResponse | null }
   | { type: 'SET_THREAD_ID'; payload: string }
   | { type: 'ADD_MESSAGE'; payload: Message }
   | { type: 'CLEAR_CHAT' };
@@ -29,6 +31,7 @@ const initialState: ChatState = {
   error: null,
   currentItinerary: null,
   threadId: null,
+  hilState: null,
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -49,6 +52,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         loading: false,
         error: null,
       };
+    case 'SET_HIL_STATE':
+      return { ...state, hilState: action.payload };
     case 'SET_THREAD_ID':
       return { ...state, threadId: action.payload };
     case 'ADD_MESSAGE':

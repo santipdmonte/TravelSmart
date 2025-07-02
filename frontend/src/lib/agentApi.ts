@@ -1,4 +1,4 @@
-import { AgentState, AgentResponse, SendMessageRequest, ApiResponse } from '@/types/agent';
+import { AgentState, AgentResponse, SendMessageRequest, ApiResponse, HILResponse } from '@/types/agent';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 
@@ -12,6 +12,49 @@ function getSessionId(): string {
     localStorage.setItem('session_id', sessionId);
   }
   return sessionId;
+}
+
+// Parse HIL response from agent response
+export function parseHILResponse(response: AgentResponse): HILResponse {
+  try {
+    // Check if there are tool calls in the latest AI message
+    const agentState = response[0];
+    const lastMessage = agentState.messages[agentState.messages.length - 1];
+    
+    if (lastMessage?.type === 'ai' && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+      const toolCall = lastMessage.tool_calls.find(tc => tc.name === 'apply_itinerary_modifications');
+      
+      if (toolCall) {
+        // Check for HIL confirmation message in the complex response structure
+        const hilData = response[6]; // Array containing HIL information
+        
+        if (hilData && Array.isArray(hilData) && hilData.length > 0) {
+          const hilEntry = hilData[0];
+          if (hilEntry && hilEntry[4] && hilEntry[4][0] && hilEntry[4][0].value) {
+            return {
+              isHIL: true,
+              confirmationMessage: hilEntry[4][0].value,
+              proposedChanges: toolCall.args.new_itinerary,
+              summary: toolCall.args.new_itinerary_modifications_summary
+            };
+          }
+        }
+        
+        // Fallback: if we have tool calls but no HIL structure, still might be HIL
+        return {
+          isHIL: true,
+          confirmationMessage: `¿Confirmas estos cambios? ${toolCall.args.new_itinerary_modifications_summary}`,
+          proposedChanges: toolCall.args.new_itinerary,
+          summary: toolCall.args.new_itinerary_modifications_summary
+        };
+      }
+    }
+    
+    return { isHIL: false };
+  } catch (error) {
+    console.error('Error parsing HIL response:', error);
+    return { isHIL: false };
+  }
 }
 
 // Base fetch wrapper with session ID header
@@ -70,7 +113,7 @@ export async function initializeAgent(
 export async function sendAgentMessage(
   itineraryId: string,
   message: string
-): Promise<ApiResponse<AgentState>> {
+): Promise<ApiResponse<{ agentState: AgentState; hilResponse: HILResponse }>> {
   // Encode the message as a query parameter
   const encodedMessage = encodeURIComponent(message);
   const response = await agentApiRequest<AgentResponse>(`/api/itineraries/${itineraryId}/agent/${itineraryId}/messages?message=${encodedMessage}`, {
@@ -81,10 +124,17 @@ export async function sendAgentMessage(
     return { error: response.error };
   }
 
-  // Extract the AgentState from the response array structure
+  // Extract the AgentState and HIL information from the response array structure
   if (response.data) {
     const agentState = response.data[0]; // First element is the AgentState
-    return { data: agentState };
+    const hilResponse = parseHILResponse(response.data);
+    
+    return { 
+      data: { 
+        agentState, 
+        hilResponse 
+      } 
+    };
   }
 
   return { error: 'Invalid response format' };

@@ -47,6 +47,7 @@ export function useChatActions() {
   const sendMessage = useCallback(async (itineraryId: string, message: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
+    dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear any pending HIL state
 
     try {
       // Add user message to UI immediately
@@ -65,15 +66,21 @@ export function useChatActions() {
       }
 
       if (response.data) {
-        // Update with complete agent state (includes AI response)
-        dispatch({ type: 'SET_AGENT_STATE', payload: response.data });
+        const { agentState, hilResponse } = response.data;
         
-        // Check if the itinerary was updated and refresh it
-        // We'll compare the agent's itinerary with the current one
-        const currentAgentItinerary = response.data.itinerary;
-        if (currentAgentItinerary) {
-          // Refetch the full itinerary to get the latest version
-          await fetchItinerary(itineraryId);
+        // Update with complete agent state (includes AI response)
+        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+        
+        // Handle HIL response
+        if (hilResponse.isHIL) {
+          dispatch({ type: 'SET_HIL_STATE', payload: hilResponse });
+        } else {
+          // Check if the itinerary was updated and refresh it
+          const currentAgentItinerary = agentState.itinerary;
+          if (currentAgentItinerary) {
+            // Refetch the full itinerary to get the latest version
+            await fetchItinerary(itineraryId);
+          }
         }
         
         return true;
@@ -86,6 +93,69 @@ export function useChatActions() {
       return false;
     }
   }, [dispatch, fetchItinerary]);
+
+  const confirmChanges = useCallback(async (itineraryId: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
+    try {
+      const response = await sendAgentMessage(itineraryId, 's');
+      
+      if (response.error) {
+        dispatch({ type: 'SET_ERROR', payload: response.error });
+        return false;
+      }
+
+      if (response.data) {
+        const { agentState } = response.data;
+        
+        // Update with complete agent state
+        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+        dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear HIL state
+        
+        // Refresh the itinerary since changes were confirmed
+        await fetchItinerary(itineraryId);
+        
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to confirm changes';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return false;
+    }
+  }, [dispatch, fetchItinerary]);
+
+  const cancelChanges = useCallback(async (itineraryId: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
+    try {
+      const response = await sendAgentMessage(itineraryId, 'El usuario no acepto los cambios sugeridos');
+      
+      if (response.error) {
+        dispatch({ type: 'SET_ERROR', payload: response.error });
+        return false;
+      }
+
+      if (response.data) {
+        const { agentState } = response.data;
+        
+        // Update with complete agent state
+        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+        dispatch({ type: 'SET_HIL_STATE', payload: null }); // Clear HIL state
+        
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel changes';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return false;
+    }
+  }, [dispatch]);
 
   const closeChat = useCallback(() => {
     dispatch({ type: 'CLOSE_CHAT' });
@@ -102,6 +172,8 @@ export function useChatActions() {
   return {
     openChat,
     sendMessage,
+    confirmChanges,
+    cancelChanges,
     closeChat,
     clearChat,
     clearError,

@@ -6,9 +6,26 @@ export interface Message {
   example?: boolean;
   additional_kwargs?: Record<string, any>;
   response_metadata?: Record<string, any>;
-  tool_calls?: any[];
+  tool_calls?: ToolCall[];
   invalid_tool_calls?: any[];
   usage_metadata?: Record<string, any>;
+}
+
+export interface ToolCall {
+  id: string;
+  type: string;
+  name: string;
+  args: {
+    new_itinerary?: any;
+    new_itinerary_modifications_summary?: string;
+  };
+}
+
+export interface HILResponse {
+  isHIL: boolean;
+  confirmationMessage?: string;
+  proposedChanges?: any;
+  summary?: string;
 }
 
 export interface AgentState {

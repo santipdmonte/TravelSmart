@@ -3,16 +3,17 @@
 import { useEffect, useRef } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import Message from './Message';
+import ConfirmationMessage from './ConfirmationMessage';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function MessageList() {
-  const { messages, loading, error } = useChat();
+  const { messages, loading, error, hilState } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, hilState]);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -24,6 +25,11 @@ export default function MessageList() {
         messages.map((message) => (
           <Message key={message.id} message={message} />
         ))
+      )}
+      
+      {/* HIL Confirmation Message */}
+      {hilState?.isHIL && (
+        <ConfirmationMessage />
       )}
       
       {loading && (
