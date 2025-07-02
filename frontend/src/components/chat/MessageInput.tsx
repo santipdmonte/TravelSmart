@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
+import { Button } from '@/components/ui/button';
 
 export default function MessageInput() {
   const { loading, threadId } = useChat();
@@ -50,10 +51,11 @@ export default function MessageInput() {
             target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
           }}
         />
-        <button
+        <Button
           type="submit"
           disabled={!message.trim() || loading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          size="sm"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
         >
           {loading ? (
             <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -65,7 +67,7 @@ export default function MessageInput() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           )}
-        </button>
+        </Button>
       </form>
     </div>
   );

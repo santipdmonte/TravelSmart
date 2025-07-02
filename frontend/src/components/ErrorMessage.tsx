@@ -1,3 +1,5 @@
+import { Button } from './ui/button';
+
 interface ErrorMessageProps {
   message: string;
   onRetry?: () => void;
@@ -16,12 +18,14 @@ export default function ErrorMessage({ message, onRetry, className = '' }: Error
         <div className="ml-3 flex-1">
           <p className="text-sm text-red-800">{message}</p>
           {onRetry && (
-            <button
+            <Button
               onClick={onRetry}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+              variant="link"
+              size="sm"
+              className="mt-2 text-red-600 hover:text-red-800 p-0 h-auto"
             >
               Try again
-            </button>
+            </Button>
           )}
         </div>
       </div>

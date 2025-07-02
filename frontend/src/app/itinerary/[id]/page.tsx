@@ -8,7 +8,7 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
-import { FloatingEditButton } from '@/components';
+import { FloatingEditButton, Button } from '@/components';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -59,12 +59,11 @@ export default function ItineraryDetailsPage() {
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Error</h2>
             <p className="text-gray-700 mb-6">{error}</p>
-            <Link
-              href="/itineraries"
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Back to Itineraries
-            </Link>
+            <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+              <Link href="/itineraries">
+                Back to Itineraries
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -78,12 +77,11 @@ export default function ItineraryDetailsPage() {
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Itinerary Not Found</h2>
             <p className="text-gray-700 mb-6">The itinerary you&apos;re looking for doesn&apos;t exist.</p>
-            <Link
-              href="/itineraries"
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Back to Itineraries
-            </Link>
+            <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+              <Link href="/itineraries">
+                Back to Itineraries
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -164,12 +162,11 @@ export default function ItineraryDetailsPage() {
 
           {/* Actions */}
           <div className="mt-8 text-center">
-            <Link
-              href="/create"
-              className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              Create Another Itinerary
-            </Link>
+            <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+              <Link href="/create">
+                Create Another Itinerary
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

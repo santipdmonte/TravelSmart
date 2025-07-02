@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components";
 
 export default function LandingPage() {
   return (
@@ -17,20 +18,18 @@ export default function LandingPage() {
 
         {/* Main CTA Section */}
         <div className="text-center mb-16">
-          <Link
-            href="/create"
-            className="inline-block bg-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            Create Your Itinerary
-          </Link>
+          <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105 px-8 py-4 text-lg">
+            <Link href="/create">
+              Create Your Itinerary
+            </Link>
+          </Button>
           
           <div className="mt-8">
-            <Link
-              href="/itineraries"
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
-            >
-              View Your Itineraries →
-            </Link>
+            <Button asChild variant="link" className="text-indigo-600 hover:text-indigo-800">
+              <Link href="/itineraries">
+                View Your Itineraries →
+              </Link>
+            </Button>
           </div>
         </div>
 

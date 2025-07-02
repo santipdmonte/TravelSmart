@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useItinerary } from '@/contexts/ItineraryContext';
+import { Button } from '@/components';
 
 export default function CreateItineraryPage() {
   const router = useRouter();
@@ -134,10 +135,11 @@ export default function CreateItineraryPage() {
               )}
 
               {/* Submit Button */}
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading || !formData.trip_name.trim() || formData.duration_days === '' || formData.duration_days < 1}
-                className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 py-3"
+                size="lg"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center">
@@ -150,7 +152,7 @@ export default function CreateItineraryPage() {
                 ) : (
                   'Generate Itinerary'
                 )}
-              </button>
+              </Button>
             </form>
 
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">

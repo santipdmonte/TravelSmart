@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
+import { Button } from '@/components';
 
 export default function ItinerariesPage() {
   const { itineraries, loading, error } = useItinerary();
@@ -41,12 +42,12 @@ export default function ItinerariesPage() {
             <div className="bg-white rounded-lg shadow-lg p-8 text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Itineraries</h2>
               <p className="text-gray-600 mb-6">{error}</p>
-              <button
+              <Button
                 onClick={() => fetchAllItineraries()}
-                className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-700"
               >
                 Try Again
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -75,12 +76,11 @@ export default function ItinerariesPage() {
                 {itineraries.length} {itineraries.length === 1 ? 'itinerary' : 'itineraries'} created
               </p>
             </div>
-            <Link
-              href="/create"
-              className="mt-4 md:mt-0 bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-            >
-              Create New Itinerary
-            </Link>
+            <Button asChild className="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700">
+              <Link href="/create">
+                Create New Itinerary
+              </Link>
+            </Button>
           </div>
 
           {/* Itineraries Grid */}
@@ -91,12 +91,11 @@ export default function ItinerariesPage() {
               <p className="text-gray-600 mb-8">
                 Start planning your next adventure by creating your first itinerary.
               </p>
-              <Link
-                href="/create"
-                className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Create Your First Itinerary
-              </Link>
+              <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+                <Link href="/create">
+                  Create Your First Itinerary
+                </Link>
+              </Button>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
