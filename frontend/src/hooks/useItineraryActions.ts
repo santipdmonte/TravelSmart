@@ -10,7 +10,6 @@ export function useItineraryActions() {
 
   const createItinerary = useCallback(async (request: GenerateItineraryRequest) => {
     dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       const response = await generateItinerary(request);
@@ -26,6 +25,8 @@ export function useItineraryActions() {
         return response.data;
       }
 
+      // If no data and no error, still need to stop loading
+      dispatch({ type: 'SET_LOADING', payload: false });
       return null;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create itinerary';
@@ -36,7 +37,6 @@ export function useItineraryActions() {
 
   const fetchItinerary = useCallback(async (itineraryId: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       const response = await getItinerary(itineraryId);
@@ -51,6 +51,8 @@ export function useItineraryActions() {
         return response.data;
       }
 
+      // If no data and no error, still need to stop loading
+      dispatch({ type: 'SET_LOADING', payload: false });
       return null;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itinerary';
@@ -61,7 +63,6 @@ export function useItineraryActions() {
 
   const fetchAllItineraries = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       const response = await getSessionItineraries();
@@ -76,6 +77,8 @@ export function useItineraryActions() {
         return response.data;
       }
 
+      // If no data and no error, still need to stop loading
+      dispatch({ type: 'SET_LOADING', payload: false });
       return [];
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itineraries';

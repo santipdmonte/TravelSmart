@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
+import { Button, Textarea } from '@/components';
 
 export default function MessageInput() {
   const { loading, threadId } = useChat();
   const { sendMessage } = useChatActions();
   const [message, setMessage] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,31 +31,37 @@ export default function MessageInput() {
     }
   };
 
+  // Auto-resize functionality
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [message]);
+
   return (
     <div className="border-t border-gray-200 p-4">
       <form onSubmit={handleSubmit} className="flex space-x-2">
-        <textarea
+        <Textarea
+          ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type your message here..."
-          className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 disabled:bg-gray-50 disabled:text-gray-500"
-          rows={1}
+          className="flex-1 resize-none rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-opacity-20 disabled:bg-gray-50 disabled:text-gray-500 min-h-[38px] max-h-[120px]"
           disabled={loading}
-          style={{
-            minHeight: '38px',
-            maxHeight: '120px',
-          }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = 'auto';
-            target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
-          }}
+          onInput={adjustHeight}
         />
-        <button
+        <Button
           type="submit"
           disabled={!message.trim() || loading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          size="sm"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 self-end"
         >
           {loading ? (
             <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -65,7 +73,7 @@ export default function MessageInput() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           )}
-        </button>
+        </Button>
       </form>
     </div>
   );

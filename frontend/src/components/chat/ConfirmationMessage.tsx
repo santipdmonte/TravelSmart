@@ -2,6 +2,7 @@
 
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
+import { Button } from '@/components/ui/button';
 
 export default function ConfirmationMessage() {
   const { hilState, threadId, loading } = useChat();
@@ -48,10 +49,10 @@ export default function ConfirmationMessage() {
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-2">
-        <button
+        <Button
           onClick={handleConfirm}
           disabled={loading}
-          className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
         >
           {loading ? (
             <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -64,12 +65,13 @@ export default function ConfirmationMessage() {
             </svg>
           )}
           Confirm Changes
-        </button>
+        </Button>
         
-        <button
+        <Button
           onClick={handleCancel}
           disabled={loading}
-          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+          variant="destructive"
+          className="flex-1"
         >
           {loading ? (
             <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -82,7 +84,7 @@ export default function ConfirmationMessage() {
             </svg>
           )}
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );
