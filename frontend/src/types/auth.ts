@@ -53,6 +53,12 @@ export interface RegisterRequest {
   password: string;
 }
 
+// Simplified registration form data (username will be auto-generated)
+export interface RegisterFormData {
+  email: string;
+  password: string;
+}
+
 // Authentication response interfaces
 export interface AuthResponse {
   user: User;
