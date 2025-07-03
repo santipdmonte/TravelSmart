@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircle, Mail } from 'lucide-react';
 import {
   Dialog,
@@ -23,6 +23,11 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
+
+  // Sync activeTab with defaultTab when it changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   const handleLoginSuccess = () => {
     // Close modal on successful login
