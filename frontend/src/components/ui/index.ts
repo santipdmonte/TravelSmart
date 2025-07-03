@@ -11,4 +11,5 @@ export {
   FormMessage,
   FormField,
   useFormField,
-} from './form'; 
+} from './form';
+export { Alert, AlertTitle, AlertDescription } from './alert'; 
