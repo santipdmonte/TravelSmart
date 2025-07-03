@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle, X, Mail } from 'lucide-react';
+import { CheckCircle, Mail } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -44,16 +44,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 top-0 h-6 w-6"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
+        <DialogHeader>
         </DialogHeader>
 
         {showRegistrationSuccess ? (
