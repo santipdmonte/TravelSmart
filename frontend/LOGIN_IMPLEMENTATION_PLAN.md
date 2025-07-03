@@ -273,53 +273,82 @@ This document outlines the complete implementation plan for adding user authenti
 
 ---
 
-## Phase 5: Pages & Routes
+## Phase 5: Pages & Routes ✅ COMPLETED
 
-### 5.1 Create Login Page
-- [ ] **File**: `frontend/src/app/login/page.tsx`
-- [ ] **Purpose**: Dedicated login page
-- [ ] **Dependencies**: `LoginForm`, `useAuth`
-- [ ] **Estimated Time**: 45 minutes
+### 5.1 Create Login Page ✅
+- [x] **File**: `frontend/src/app/login/page.tsx`
+- [x] **Purpose**: Dedicated login page
+- [x] **Dependencies**: `LoginForm`, `useAuth`
+- [x] **Estimated Time**: 45 minutes
 
 **Features:**
 - Redirect if already authenticated
 - Link to register page
 - Breadcrumb navigation
 
-### 5.2 Create Register Page
-- [ ] **File**: `frontend/src/app/register/page.tsx`
-- [ ] **Purpose**: Dedicated registration page
-- [ ] **Dependencies**: `RegisterForm`, `useAuth`
-- [ ] **Estimated Time**: 45 minutes
+### 5.2 Create Register Page ✅
+- [x] **File**: `frontend/src/app/register/page.tsx`
+- [x] **Purpose**: Dedicated registration page
+- [x] **Dependencies**: `RegisterForm`, `useAuth`
+- [x] **Estimated Time**: 45 minutes
 
 **Features:**
 - Redirect if already authenticated
 - Link to login page
 - Breadcrumb navigation
 
-### 5.3 Create Email Verification Page
-- [ ] **File**: `frontend/src/app/verify-email/page.tsx`
-- [ ] **Purpose**: Handle email verification links
-- [ ] **Dependencies**: `useAuth`, URL parameters
-- [ ] **Estimated Time**: 1 hour
+### 5.3 Create Email Verification Components ✅
+- [x] **File**: `frontend/src/components/auth/EmailVerificationBanner.tsx`
+- [x] **Purpose**: Inline verification prompt for unverified users
+- [x] **Dependencies**: `useAuth`
+- [x] **Estimated Time**: 45 minutes
 
 **Features:**
-- Auto-verify on page load
-- Success/error states
-- Resend verification option
-- Redirect after success
+- Show warning banner for unverified email
+- Resend verification button
+- Dismissible (but reappears on page reload)
 
-### 5.4 Create Profile Page (Basic)
-- [ ] **File**: `frontend/src/app/profile/page.tsx`
-- [ ] **Purpose**: Basic user profile display
-- [ ] **Dependencies**: `useAuth`, protected route
-- [ ] **Estimated Time**: 1 hour
+### 5.4 Create Profile Page (Essential Fields Only) ✅
+- [x] **File**: `frontend/src/app/profile/page.tsx`
+- [x] **Purpose**: Basic user profile display and editing
+- [x] **Dependencies**: `useAuth`, protected route
+- [x] **Estimated Time**: 2 hours
+
+**Essential Fields to Include:**
+- Display name, first name, last name
+- Email (read-only with verification status)
+- Username
+- Bio
+- Basic account info (role, subscription type, email verification status)
+- Trip statistics (total trips created/completed)
 
 **Features:**
 - Display user information
-- Basic edit capabilities (future)
-- Trip statistics
-- Account settings link (future)
+- Basic edit form for essential fields
+- Save changes functionality
+- Loading and error states
+
+### 5.5 Create Settings Page (Placeholder) ✅
+- [x] **File**: `frontend/src/app/settings/page.tsx`
+- [x] **Purpose**: Placeholder for future settings
+- [x] **Dependencies**: `useAuth`, protected route
+- [x] **Estimated Time**: 30 minutes
+
+**Current Features:**
+- Basic layout with coming soon message
+- Link back to profile
+
+### 5.6 Add Profile Update API Function ✅
+- [x] **File**: `frontend/src/lib/authApi.ts` (MODIFIED)
+- [x] **Purpose**: Add updateUserProfile function
+- [x] **Dependencies**: Authenticated request wrapper
+- [x] **Estimated Time**: 15 minutes
+
+### 5.7 Update Validation Schemas ✅
+- [x] **File**: `frontend/src/lib/validationSchemas.ts` (MODIFIED)
+- [x] **Purpose**: Add profile update validation
+- [x] **Dependencies**: zod library
+- [x] **Estimated Time**: 15 minutes
 
 ---
 
@@ -336,7 +365,13 @@ This document outlines the complete implementation plan for adding user authenti
 - Loading states
 - Preserve intended destination
 
-### 6.2 Update Landing Page
+### 6.2 Update Existing Pages with Email Verification
+- [ ] **Files**: Various pages (MODIFY)
+- [ ] **Purpose**: Add email verification banner to relevant pages
+- [ ] **Dependencies**: `EmailVerificationBanner`
+- [ ] **Estimated Time**: 30 minutes
+
+### 6.3 Update Landing Page
 - [ ] **File**: `frontend/src/app/page.tsx` (MODIFY)
 - [ ] **Purpose**: Show different content based on auth status
 - [ ] **Dependencies**: `useAuth`, `Navigation`
@@ -347,7 +382,7 @@ This document outlines the complete implementation plan for adding user authenti
 - Different CTAs based on auth status
 - Show recent itineraries for authenticated users
 
-### 6.3 Update Itinerary Context
+### 6.4 Update Itinerary Context
 - [ ] **File**: `frontend/src/contexts/ItineraryContext.tsx` (MODIFY)
 - [ ] **Purpose**: Add user awareness to itinerary state
 - [ ] **Dependencies**: `AuthContext`
@@ -403,10 +438,10 @@ This document outlines the complete implementation plan for adding user authenti
 - [ ] **Estimated Time**: 1 hour
 
 ### 8.2 Add Form Validation Schemas
-- [ ] **File**: `frontend/src/lib/validationSchemas.ts`
-- [ ] **Purpose**: Centralized validation with zod
+- [ ] **File**: `frontend/src/lib/validationSchemas.ts` (MODIFY)
+- [ ] **Purpose**: Add profile update validation schemas
 - [ ] **Dependencies**: zod library
-- [ ] **Estimated Time**: 45 minutes
+- [ ] **Estimated Time**: 30 minutes
 
 ### 8.3 Add Toast Notifications
 - [ ] **Command**: `npx shadcn@latest add toast`
@@ -422,13 +457,52 @@ This document outlines the complete implementation plan for adding user authenti
 
 ---
 
+## Future TODO List (Deferred Features)
+
+### Advanced Profile Management
+- [ ] **Travel Preferences**: dietary_restrictions, accessibility_needs, travel_style, etc.
+- [ ] **Location Settings**: country, city, timezone
+- [ ] **Travel Details**: countries_visited, languages_spoken, travel_experience_level
+- [ ] **System Preferences**: preferred_currency, measurement_system, preferred_language
+- [ ] **Travel Interests**: travel_interests array management
+- [ ] **Advanced Profile**: date_of_birth, phone_number, bio expansion
+
+### Password Management
+- [ ] **Change Password**: In-app password change functionality
+- [ ] **Forgot Password**: Password reset via email (backend endpoint exists)
+- [ ] **Password Strength**: Real-time password strength indicator
+
+### Email Verification Enhancement
+- [ ] **Dedicated Verification Page**: `/verify-email?token=...` route
+- [ ] **Email Verification Status**: More detailed verification flow
+- [ ] **Resend Verification**: Enhanced resend functionality
+
+### Advanced Settings
+- [ ] **Account Settings**: Account deletion, data export
+- [ ] **Privacy Settings**: Public profile toggle, data sharing preferences
+- [ ] **Notification Settings**: Email preferences, push notifications
+- [ ] **Subscription Management**: Upgrade/downgrade subscription type
+
+### Security Features
+- [ ] **Two-Factor Authentication**: 2FA setup and management
+- [ ] **Login History**: Recent login sessions and device management
+- [ ] **Security Logs**: Account activity monitoring
+
+### Social Features
+- [ ] **Social Login**: Google, Facebook, Apple sign-in
+- [ ] **Profile Sharing**: Public profile pages
+- [ ] **Travel Buddy**: Connect with other travelers
+
+---
+
 ## Testing Checklist
 
 ### Functional Testing
 - [ ] User can register with valid credentials
 - [ ] User can login with valid credentials
 - [ ] User can logout successfully
-- [ ] Email verification flow works
+- [ ] Email verification banner shows for unverified users
+- [ ] Profile editing works for essential fields
 - [ ] Token refresh works automatically
 - [ ] Protected routes redirect properly
 - [ ] Session data is preserved after login
@@ -441,26 +515,28 @@ This document outlines the complete implementation plan for adding user authenti
 - [ ] Navigation is intuitive
 - [ ] Auth modal works properly
 - [ ] User menu functions correctly
+- [ ] Profile page is user-friendly
 
 ### Integration Testing
 - [ ] Auth works with existing itinerary system
 - [ ] API calls include proper headers
 - [ ] State management is consistent
 - [ ] Page refreshes maintain auth state
+- [ ] Email verification prompts work correctly
 
 ---
 
-## Estimated Total Time: 20-25 hours
+## Estimated Total Time: 18-22 hours (Reduced Scope)
 
 ### Phase Time Breakdown:
-- **Phase 1**: 2.25 hours
-- **Phase 2**: 2.75 hours  
-- **Phase 3**: 6.5 hours
-- **Phase 4**: 2 hours
-- **Phase 5**: 4.25 hours
+- **Phase 1**: 2.25 hours ✅
+- **Phase 2**: 2.75 hours ✅
+- **Phase 3**: 6.5 hours ✅
+- **Phase 4**: 2 hours ✅
+- **Phase 5**: 4.25 hours ✅
 - **Phase 6**: 2.25 hours
 - **Phase 7**: 2.25 hours
-- **Phase 8**: 4 hours
+- **Phase 8**: 2.5 hours (reduced from 4)
 
 ---
 
@@ -471,13 +547,12 @@ This document outlines the complete implementation plan for adding user authenti
 - Anonymous users can use the app without authentication
 - Session data can be migrated when user logs in (handled by backend)
 
-### Future Enhancements (Out of Scope)
-- Password reset functionality
-- Social login (Google, Facebook)
-- Two-factor authentication
-- Advanced profile management
-- Account deletion
-- Subscription management
+### Current Implementation Scope
+- Essential profile fields only (name, email, username, bio)
+- Inline email verification prompts
+- Basic settings page (placeholder)
+- No password management (deferred)
+- No advanced travel preferences (deferred)
 
 ### Technical Decisions
 - Using JWT tokens stored in localStorage

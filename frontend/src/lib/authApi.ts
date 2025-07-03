@@ -172,6 +172,22 @@ export async function getUserProfile(): Promise<ApiResponse<User>> {
 }
 
 /**
+ * Update user profile
+ */
+export async function updateUserProfile(profileData: {
+  first_name: string;
+  last_name: string;
+  display_name: string;
+  username: string;
+  bio?: string;
+}): Promise<ApiResponse<User>> {
+  return authenticatedRequest<User>('/users/profile', {
+    method: 'PUT',
+    body: JSON.stringify(profileData),
+  });
+}
+
+/**
  * Check if user is authenticated (has valid tokens)
  */
 export function isAuthenticated(): boolean {
