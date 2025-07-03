@@ -109,4 +109,9 @@ export async function getItinerary(
 export async function getSessionItineraries(): Promise<ApiResponse<ItineraryBase[]>> {
   const sessionId = getSessionId();
   return apiRequest<ItineraryBase[]>(`/api/itineraries/session/${sessionId}`);
+}
+
+// Get all itineraries for authenticated user
+export async function getUserItineraries(userId: string): Promise<ApiResponse<ItineraryBase[]>> {
+  return apiRequest<ItineraryBase[]>(`/api/itineraries/user/${userId}`);
 } 
