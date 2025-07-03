@@ -14,18 +14,18 @@ export default function ChatPanel() {
   return (
     <>
       {/* Mobile overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={closeChat} />
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" onClick={closeChat} />
       
       {/* Chat panel - Fixed positioned with card styling */}
       <div className={`
         fixed
-        inset-0 lg:top-4 lg:right-4 lg:bottom-4 lg:left-auto
+        top-16 lg:top-20 right-0 lg:right-4 bottom-0 lg:bottom-4 left-0 lg:left-auto
         w-full lg:w-1/3
         lg:max-w-md
         bg-white
         lg:rounded-lg
         lg:shadow-lg
-        z-50
+        z-40
         flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
