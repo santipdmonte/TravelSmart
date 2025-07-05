@@ -79,6 +79,8 @@ export interface AuthState {
   isLoading: boolean;
   error: string | null;
   tokens: TokenData | null;
+  verificationPending: boolean;
+  verificationEmail: string | null;
 }
 
 // Authentication error interface
@@ -95,19 +97,26 @@ export interface EmailVerificationRequest {
 
 export interface EmailVerificationResponse {
   message: string;
-  success: boolean;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+  user: User;
 }
 
 // Auth action types for reducer
 export type AuthAction =
-  | { type: 'AUTH_START' }
-  | { type: 'AUTH_SUCCESS'; payload: { user: User; tokens: TokenData } }
-  | { type: 'AUTH_FAILURE'; payload: string }
-  | { type: 'AUTH_LOGOUT' }
-  | { type: 'SET_USER'; payload: User }
-  | { type: 'SET_TOKENS'; payload: TokenData }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'CLEAR_ERROR' }
-  | { type: 'TOKEN_REFRESH_SUCCESS'; payload: TokenData }
-  | { type: 'TOKEN_REFRESH_FAILURE' }; 
+  | { type: "AUTH_START" }
+  | { type: "AUTH_SUCCESS"; payload: { user: User; tokens: TokenData } }
+  | { type: "AUTH_FAILURE"; payload: string }
+  | { type: "AUTH_LOGOUT" }
+  | { type: "SET_USER"; payload: User }
+  | { type: "SET_TOKENS"; payload: TokenData }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_ERROR"; payload: string | null }
+  | { type: "CLEAR_ERROR" }
+  | { type: "TOKEN_REFRESH_SUCCESS"; payload: TokenData }
+  | { type: "TOKEN_REFRESH_FAILURE" }
+  | { type: "VERIFICATION_PENDING"; payload: string }
+  | { type: "VERIFICATION_SUCCESS" }
+  | { type: "VERIFICATION_FAILURE"; payload: string };

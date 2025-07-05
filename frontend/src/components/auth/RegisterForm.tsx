@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { registerSchema, RegisterFormData } from '@/lib/validationSchemas';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { registerSchema, RegisterFormData } from "@/lib/validationSchemas";
 import {
   Form,
   FormControl,
@@ -14,18 +14,21 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import EmailVerificationPending from "./EmailVerificationPending";
 
 // Helper function to generate username from email
 const generateUsernameFromEmail = (email: string): string => {
-  const localPart = email.split('@')[0];
+  const localPart = email.split("@")[0];
   // Remove special characters and keep only alphanumeric, underscore, hyphen
-  const cleanUsername = localPart.replace(/[^a-zA-Z0-9_-]/g, '');
+  const cleanUsername = localPart.replace(/[^a-zA-Z0-9_-]/g, "");
   // Add random suffix to avoid conflicts
-  const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const randomSuffix = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
   return `${cleanUsername}_${randomSuffix}`;
 };
 
@@ -34,15 +37,21 @@ interface RegisterFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+export default function RegisterForm({
+  onSuccess,
+  onSwitchToLogin,
+}: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(
+    null
+  );
   const { register, isLoading, error, clearError } = useAuth();
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -61,13 +70,16 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       });
 
       if (success) {
+        // Check if we need to show verification pending state
+        // This will be handled by the auth context state
+        setVerificationEmail(data.email);
         // Reset form on success
         form.reset();
         // Call success callback
         onSuccess?.();
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
     }
   };
 
@@ -78,10 +90,27 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
     }
   };
 
+  // Show verification pending state if email is set
+  if (verificationEmail) {
+    return (
+      <EmailVerificationPending
+        email={verificationEmail}
+        onResendSuccess={() => {
+          // Success message is handled by the component
+        }}
+        onResendError={() => {
+          // Error is handled by the component
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight">Create your account</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Create your account
+        </h2>
         <p className="text-sm text-muted-foreground">
           Join TravelSmart and start planning your perfect trips
         </p>
@@ -128,7 +157,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                   <div className="relative">
                     <Input
                       {...field}
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="Create a password"
                       disabled={isLoading}
                       onChange={(e) => {
@@ -150,13 +179,14 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                         <Eye className="h-4 w-4" />
                       )}
                       <span className="sr-only">
-                        {showPassword ? 'Hide password' : 'Show password'}
+                        {showPassword ? "Hide password" : "Show password"}
                       </span>
                     </Button>
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Must be at least 8 characters with uppercase, lowercase, and number
+                  Must be at least 8 characters with uppercase, lowercase, and
+                  number
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -170,7 +200,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
                 Creating account...
               </>
             ) : (
-              'Create account'
+              "Create account"
             )}
           </Button>
         </form>
@@ -189,15 +219,15 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       </div>
 
       <div className="text-xs text-muted-foreground text-center">
-        By creating an account, you agree to our{' '}
+        By creating an account, you agree to our{" "}
         <a href="/terms" className="underline hover:text-foreground">
           Terms of Service
-        </a>{' '}
-        and{' '}
+        </a>{" "}
+        and{" "}
         <a href="/privacy" className="underline hover:text-foreground">
           Privacy Policy
         </a>
       </div>
     </div>
   );
-} 
+}
