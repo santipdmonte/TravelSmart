@@ -50,11 +50,11 @@ export default function VerifyEmailPage() {
 
         if (success) {
           setVerificationStatus("success");
-          // Redirect to home page after 3 seconds
+          // Redirect to home page after 10 seconds 
           setTimeout(() => {
             setIsRedirecting(true);
             router.push("/");
-          }, 3000);
+          }, 10000);
         } else {
           setVerificationStatus("error");
           setErrorMessage(
@@ -74,8 +74,8 @@ export default function VerifyEmailPage() {
 
   // If user is already authenticated and verification is complete, redirect to home
   useEffect(() => {
-    if (isAuthenticated && user && verificationStatus === "success") {
-      router.push("/");
+    if (isAuthenticated && user && verificationStatus !== "success") {
+      setVerificationStatus("success");
     }
   }, [isAuthenticated, user, router, verificationStatus]);
 
@@ -132,6 +132,26 @@ export default function VerifyEmailPage() {
         );
 
       case "error":
+        if (isAuthenticated) {
+          // If user is authenticated, treat as success
+          return (
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight">
+                Email already verified!
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                You&apos;re already logged in and ready to start planning your adventures.
+              </p>
+              <Button onClick={() => router.push("/")} className="mt-4">
+                Go to Dashboard
+              </Button>
+            </div>
+          );
+        }
+        // Show error UI for unauthenticated users
         return (
           <div className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
