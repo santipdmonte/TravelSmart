@@ -1,19 +1,37 @@
+'use client';
+
 import Link from "next/link";
 import { Button } from "@/components";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LandingPage() {
+  const { isAuthenticated, userDisplayName } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <header className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-4">
-            Welcome to <span className="text-indigo-700">TravelSmart</span>
-          </h1>
-          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Create personalized travel itineraries with AI assistance. 
-            Plan your perfect trip in minutes.
-          </p>
+          {isAuthenticated ? (
+            <>
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-4">
+                Welcome back, <span className="text-indigo-700">{userDisplayName}</span>!
+              </h1>
+              <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+                Ready to plan your next adventure? Create a new itinerary or explore your existing trips.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-4">
+                Welcome to <span className="text-indigo-700">TravelSmart</span>
+              </h1>
+              <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+                Create personalized travel itineraries with AI assistance. 
+                Plan your perfect trip in minutes.
+              </p>
+            </>
+          )}
         </header>
 
         {/* Main CTA Section */}

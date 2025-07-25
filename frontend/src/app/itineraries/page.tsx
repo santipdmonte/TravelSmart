@@ -4,11 +4,13 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components';
 
 export default function ItinerariesPage() {
   const { itineraries, loading, error } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetchAllItineraries();
@@ -71,10 +73,18 @@ export default function ItinerariesPage() {
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Itineraries</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {isAuthenticated ? 'Your Itineraries' : 'Session Itineraries'}
+              </h1>
               <p className="text-gray-600">
-                {itineraries.length} {itineraries.length === 1 ? 'itinerary' : 'itineraries'} created
+                {itineraries.length} {itineraries.length === 1 ? 'itinerary' : 'itineraries'} 
+                {isAuthenticated ? ' in your account' : ' in this session'}
               </p>
+              {!isAuthenticated && (
+                <p className="text-sm text-amber-600 mt-1">
+                  💡 Sign in to save your itineraries permanently and access them from any device
+                </p>
+              )}
             </div>
             <Button asChild className="mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700">
               <Link href="/create">
@@ -87,10 +97,20 @@ export default function ItinerariesPage() {
           {itineraries.length === 0 ? (
             <div className="bg-white rounded-lg shadow-lg p-12 text-center">
               <div className="text-6xl mb-4">🗺️</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">No Itineraries Yet</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {isAuthenticated ? 'No Itineraries Yet' : 'No Session Itineraries'}
+              </h2>
               <p className="text-gray-600 mb-8">
-                Start planning your next adventure by creating your first itinerary.
+                {isAuthenticated 
+                  ? 'Start planning your next adventure by creating your first itinerary.'
+                  : 'Start planning your next adventure! Your itineraries will be saved for this session.'
+                }
               </p>
+              {!isAuthenticated && (
+                <p className="text-sm text-amber-600 mb-6">
+                  💡 Create an account to save your itineraries permanently
+                </p>
+              )}
               <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
                 <Link href="/create">
                   Create Your First Itinerary

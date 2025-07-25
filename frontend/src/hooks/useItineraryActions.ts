@@ -2,11 +2,13 @@
 
 import { useCallback } from 'react';
 import { useItinerary } from '@/contexts/ItineraryContext';
-import { generateItinerary, getItinerary, getSessionItineraries } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
+import { generateItinerary, getItinerary, getSessionItineraries, getUserItineraries } from '@/lib/api';
 import { GenerateItineraryRequest } from '@/types/itinerary';
 
 export function useItineraryActions() {
   const { dispatch } = useItinerary();
+  const { user, isAuthenticated } = useAuth();
 
   const createItinerary = useCallback(async (request: GenerateItineraryRequest) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -65,7 +67,16 @@ export function useItineraryActions() {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const response = await getSessionItineraries();
+      let response;
+      
+      // Use different endpoints based on authentication status
+      if (isAuthenticated && user?.id) {
+        // Authenticated user: fetch user-specific itineraries
+        response = await getUserItineraries(user.id);
+      } else {
+        // Anonymous user: fetch session-based itineraries
+        response = await getSessionItineraries();
+      }
       
       if (response.error) {
         dispatch({ type: 'SET_ERROR', payload: response.error });
@@ -85,7 +96,7 @@ export function useItineraryActions() {
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return [];
     }
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated, user?.id]);
 
   const clearError = useCallback(() => {
     dispatch({ type: 'SET_ERROR', payload: null });

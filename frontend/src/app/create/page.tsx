@@ -72,7 +72,7 @@ export default function CreateItineraryPage() {
   };
 
   // Clear server errors when user starts typing
-  const watchedFields = form.watch();
+  form.watch();
   if (error && (form.formState.dirtyFields.trip_name || form.formState.dirtyFields.duration_days)) {
     clearError();
   }

@@ -1,4 +1,5 @@
 import { Itinerary, ItineraryBase, GenerateItineraryRequest, ApiResponse } from '@/types/itinerary';
+import { getAccessToken, ensureValidToken, refreshToken, clearTokens } from './authApi';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 
@@ -14,22 +15,64 @@ export function getSessionId(): string {
   return sessionId;
 }
 
-// Base fetch wrapper with session ID header
+// Get authentication headers (JWT or session-based)
+function getAuthHeaders(): Record<string, string> {
+  const accessToken = getAccessToken();
+  const sessionId = getSessionId();
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Session-ID': sessionId, // Always include session ID for backward compatibility
+  };
+  
+  // Add Authorization header if user is authenticated
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+  
+  return headers;
+}
+
+// Base fetch wrapper with dual authentication support
 async function apiRequest<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const sessionId = getSessionId();
-  
   try {
+    // Ensure valid token if user is authenticated
+    const hasValidToken = await ensureValidToken();
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Session-ID': sessionId,
+        ...getAuthHeaders(),
         ...options.headers,
       },
       ...options,
     });
+
+    // Handle 401 Unauthorized - try token refresh once
+    if (response.status === 401 && hasValidToken) {
+      const refreshResult = await refreshToken();
+      
+      if (refreshResult.data) {
+        // Retry the original request with new token
+        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+          headers: {
+            ...getAuthHeaders(),
+            ...options.headers,
+          },
+          ...options,
+        });
+        
+        if (retryResponse.ok) {
+          const data = await retryResponse.json();
+          return { data };
+        }
+      } else {
+        // Refresh failed, clear tokens
+        clearTokens();
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,4 +109,9 @@ export async function getItinerary(
 export async function getSessionItineraries(): Promise<ApiResponse<ItineraryBase[]>> {
   const sessionId = getSessionId();
   return apiRequest<ItineraryBase[]>(`/api/itineraries/session/${sessionId}`);
+}
+
+// Get all itineraries for authenticated user
+export async function getUserItineraries(userId: string): Promise<ApiResponse<ItineraryBase[]>> {
+  return apiRequest<ItineraryBase[]>(`/api/itineraries/user/${userId}`);
 } 
