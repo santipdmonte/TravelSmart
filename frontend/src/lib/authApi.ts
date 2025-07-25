@@ -6,6 +6,8 @@ import {
   TokenData,
   EmailVerificationResponse,
   ApiResponse,
+  PasswordResetRequest,
+  PasswordResetConfirmRequest,
 } from "@/types/auth";
 
 const API_BASE_URL =
@@ -184,6 +186,32 @@ export async function resendVerification(): Promise<
       method: "POST",
     }
   );
+}
+
+// ==================== PASSWORD MANAGEMENT ====================
+
+/**
+ * Request password reset email
+ */
+export async function requestPasswordReset(
+  emailData: PasswordResetRequest
+): Promise<ApiResponse<{ message: string }>> {
+  return authApiRequest<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(emailData),
+  });
+}
+
+/**
+ * Reset password with token
+ */
+export async function resetPassword(
+  resetData: PasswordResetConfirmRequest
+): Promise<ApiResponse<{ message: string }>> {
+  return authApiRequest<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(resetData),
+  });
 }
 
 /**

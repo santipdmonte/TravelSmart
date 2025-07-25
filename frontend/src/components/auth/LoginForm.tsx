@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, LoginFormData } from '@/lib/validationSchemas';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { loginSchema, LoginFormData } from "@/lib/validationSchemas";
 import {
   Form,
   FormControl,
@@ -13,25 +13,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
   onSuccess?: () => void;
   onSwitchToRegister?: () => void;
+  onSwitchToForgotPassword?: () => void;
 }
 
-export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
+export default function LoginForm({
+  onSuccess,
+  onSwitchToRegister,
+  onSwitchToForgotPassword,
+}: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, clearError } = useAuth();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -52,7 +57,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
         onSuccess?.();
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
     }
   };
 
@@ -113,7 +118,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
                   <div className="relative">
                     <Input
                       {...field}
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       disabled={isLoading}
                       onChange={(e) => {
@@ -135,7 +140,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
                         <Eye className="h-4 w-4" />
                       )}
                       <span className="sr-only">
-                        {showPassword ? 'Hide password' : 'Show password'}
+                        {showPassword ? "Hide password" : "Show password"}
                       </span>
                     </Button>
                   </div>
@@ -151,27 +156,20 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
               variant="link"
               className="px-0 font-normal"
               disabled={isLoading}
-              onClick={() => {
-                // TODO: Implement forgot password in future
-                console.log('Forgot password clicked');
-              }}
+              onClick={onSwitchToForgotPassword}
             >
               Forgot your password?
             </Button>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Signing in...
               </>
             ) : (
-              'Sign in'
+              "Sign in"
             )}
           </Button>
         </form>
@@ -179,7 +177,9 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
 
       {onSwitchToRegister && (
         <div className="text-center text-sm">
-                        <span className="text-muted-foreground">Don&apos;t have an account? </span>
+          <span className="text-muted-foreground">
+            Don&apos;t have an account?{" "}
+          </span>
           <Button
             type="button"
             variant="link"
@@ -193,4 +193,4 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
       )}
     </div>
   );
-} 
+}
