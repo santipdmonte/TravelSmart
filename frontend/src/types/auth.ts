@@ -104,6 +104,27 @@ export interface EmailVerificationResponse {
   user: User;
 }
 
+// Authentication request interfaces
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  username: string;
+  password: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetConfirmRequest {
+  token: string;
+  new_password: string;
+}
+
 // Auth action types for reducer
 export type AuthAction =
   | { type: "AUTH_START" }
