@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
@@ -25,6 +25,7 @@ function VerifyEmailPageInner() {
   >("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const attemptedTokenRef = useRef<string | null>(null);
 
   // Usamos useCallback para que la función no se recree en cada render, evitando bucles.
   const runVerification = useCallback(
@@ -33,6 +34,10 @@ function VerifyEmailPageInner() {
         const success = await verifyEmail(token);
         if (success) {
           setVerificationStatus("success");
+          // Remove token from URL to avoid accidental re-verification on re-renders
+          try {
+            router.replace("/verify-email?verified=1");
+          } catch {}
           setTimeout(() => {
             setIsRedirecting(true);
             router.push("/");
@@ -53,23 +58,43 @@ function VerifyEmailPageInner() {
 
   // Este useEffect se ejecutará solo una vez o si cambian sus dependencias estables.
   useEffect(() => {
+    // If already authenticated and verified, mark success and stop
     if (isAuthenticated && user?.email_verified) {
       setVerificationStatus("success");
       return;
     }
 
+    // Validate token presence
     const token = searchParams.get("token");
-    if (token) {
-      // Solo ejecutamos la verificación si el estado es 'loading' para evitar re-verificaciones.
-      if (verificationStatus === "loading") {
-        runVerification(token);
+    if (!token) {
+      // If we've already succeeded or user is verified, don't flip to error
+      if (
+        !(isAuthenticated && user?.email_verified) &&
+        verificationStatus === "loading"
+      ) {
+        setVerificationStatus("error");
+        setErrorMessage("Invalid verification link. No token provided.");
       }
-    } else {
-      setVerificationStatus("error");
-      setErrorMessage("Invalid verification link. No token provided.");
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, isAuthenticated, user, runVerification]);
+
+    // Ensure we only attempt verification once per token
+    if (attemptedTokenRef.current === token) {
+      return;
+    }
+    attemptedTokenRef.current = token;
+
+    // Only attempt when in loading state
+    if (verificationStatus === "loading") {
+      runVerification(token);
+    }
+  }, [
+    searchParams,
+    isAuthenticated,
+    user,
+    runVerification,
+    verificationStatus,
+  ]);
 
   const renderContent = () => {
     switch (verificationStatus) {
