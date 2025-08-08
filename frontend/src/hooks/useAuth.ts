@@ -16,7 +16,7 @@ export function useAuth() {
     refreshUserProfile,
     clearError,
     verifyEmail,
-    resendVerification,
+  resendVerification,
   } = useAuthContext();
 
   return {
@@ -62,8 +62,8 @@ export function useAuth() {
       return await verifyEmail(token);
     },
 
-    resendVerification: async (): Promise<boolean> => {
-      return await resendVerification();
+    resendVerification: async (email: string): Promise<boolean> => {
+      return await resendVerification(email);
     },
 
     // Helper methods

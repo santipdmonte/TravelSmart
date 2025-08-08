@@ -201,15 +201,14 @@ export async function verifyEmail(
 /**
  * Resend email verification
  */
-export async function resendVerification(): Promise<
+export async function resendVerification(email: string): Promise<
   ApiResponse<{ message: string }>
 > {
-  return authenticatedRequest<{ message: string }>(
-    "/auth/resend-verification",
-    {
-      method: "POST",
-    }
-  );
+  // This endpoint does NOT require auth; backend expects body { email }
+  return authApiRequest<{ message: string }>("/auth/resend-verification", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
 }
 
 // ==================== PASSWORD MANAGEMENT ====================

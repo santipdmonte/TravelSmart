@@ -160,7 +160,7 @@ interface AuthContextType {
   refreshUserProfile: () => Promise<void>;
   clearError: () => void;
   verifyEmail: (token: string) => Promise<boolean>;
-  resendVerification: () => Promise<boolean>;
+  resendVerification: (email: string) => Promise<boolean>;
 }
 
 // Create context
@@ -393,11 +393,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Resend verification email function
-  const resendVerification = async (): Promise<boolean> => {
+  const resendVerification = async (email: string): Promise<boolean> => {
     dispatch({ type: "AUTH_START" });
 
     try {
-      const response = await apiResendVerification();
+      const response = await apiResendVerification(email);
 
       if (response.error) {
         dispatch({ type: "AUTH_FAILURE", payload: response.error });
@@ -426,7 +426,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshUserProfile,
     clearError,
     verifyEmail,
-    resendVerification,
+  resendVerification,
   };
 
   return (

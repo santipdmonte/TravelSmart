@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { resendVerification, verifyEmail } from '@/lib/authApi';
+import { verifyEmail } from '@/lib/authApi';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ interface EmailVerificationBannerProps {
 }
 
 export function EmailVerificationBanner({ className = '' }: EmailVerificationBannerProps) {
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, resendVerification } = useAuth();
   const [isResending, setIsResending] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -35,7 +35,11 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
     setResendSuccess(false);
 
     try {
-      await resendVerification();
+      if (user?.email) {
+        await resendVerification(user.email);
+      } else {
+        throw new Error('No email available to resend verification');
+      }
       setResendSuccess(true);
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
