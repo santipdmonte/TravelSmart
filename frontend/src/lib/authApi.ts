@@ -13,6 +13,15 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001";
 
+// Expected response shape for POST /auth/refresh-token
+interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number; // seconds
+  user_id: string;
+}
+
 // Token management utilities
 export function getTokens(): TokenData | null {
   if (typeof window === "undefined") return null;
@@ -152,13 +161,28 @@ export async function refreshToken(
   if (!tokenToUse) {
     return { error: "No refresh token available" };
   }
-
-  return authApiRequest<TokenData>(
-    `/auth/refresh-token?refresh-token=${encodeURIComponent(tokenToUse)}`,
+  // Backend expects POST /auth/refresh-token with form or body param `refresh_token`
+  const result = await authApiRequest<RefreshTokenResponse>(
+    `/auth/refresh-token`,
     {
-      method: "GET",
+      method: "POST",
+      body: JSON.stringify({ refresh_token: tokenToUse }),
     }
   );
+
+  if (result.error || !result.data) return result as ApiResponse<TokenData>;
+
+  // The backend returns token_type, access_token, refresh_token, expires_in, user_id
+  const now = Date.now();
+  const expiresAt =
+    now + (result.data.expires_in ? result.data.expires_in * 1000 : 0);
+  const tokenData: TokenData = {
+    access_token: result.data.access_token,
+    refresh_token: result.data.refresh_token ?? tokenToUse,
+    expires_at: expiresAt,
+  };
+  setTokens(tokenData);
+  return { data: tokenData };
 }
 
 /**

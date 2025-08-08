@@ -64,7 +64,10 @@ export default function AuthModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader></DialogHeader>
+        {/* Radix A11y: DialogContent requires a DialogTitle. We provide a visually-hidden one. */}
+        <DialogHeader>
+          <DialogTitle className="sr-only">Authentication</DialogTitle>
+        </DialogHeader>
 
         {showRegistrationSuccess ? (
           <div className="py-6">
@@ -72,9 +75,9 @@ export default function AuthModal({
               <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <DialogTitle className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold">
                 Account created successfully!
-              </DialogTitle>
+              </h2>
               <p className="text-sm text-gray-600 mt-2">
                 Welcome to TravelSmart! Please verify your email to get started.
               </p>

@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import {
   AuthState,
@@ -340,7 +341,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Verify email function
-  const verifyEmail = async (token: string): Promise<boolean> => {
+  const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
     console.log("AuthContext: Starting email verification with token:", token);
     dispatch({ type: "AUTH_START" });
 
@@ -389,7 +390,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatch({ type: "VERIFICATION_FAILURE", payload: errorMessage });
       return false;
     }
-  };
+  }, []);
 
   // Resend verification email function
   const resendVerification = async (): Promise<boolean> => {
