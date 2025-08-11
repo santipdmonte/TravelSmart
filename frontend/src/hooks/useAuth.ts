@@ -16,7 +16,7 @@ export function useAuth() {
     refreshUserProfile,
     clearError,
     verifyEmail,
-  resendVerification,
+    resendVerification,
   } = useAuthContext();
 
   return {

@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { verifyEmail } from '@/lib/authApi';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { AlertTriangle, X, Mail, CheckCircle, Key } from 'lucide-react';
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { verifyEmail } from "@/lib/authApi";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle, X, Mail, CheckCircle, Key } from "lucide-react";
 
 interface EmailVerificationBannerProps {
   className?: string;
 }
 
-export function EmailVerificationBanner({ className = '' }: EmailVerificationBannerProps) {
+export function EmailVerificationBanner({
+  className = "",
+}: EmailVerificationBannerProps) {
   const { user, refreshProfile, resendVerification } = useAuth();
   const [isResending, setIsResending] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [resendError, setResendError] = useState<string | null>(null);
   const [showTokenInput, setShowTokenInput] = useState(false);
-  const [verificationToken, setVerificationToken] = useState('');
+  const [verificationToken, setVerificationToken] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
   const [verifySuccess, setVerifySuccess] = useState(false);
@@ -38,7 +40,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
       if (user?.email) {
         await resendVerification(user.email);
       } else {
-        throw new Error('No email available to resend verification');
+        throw new Error("No email available to resend verification");
       }
       setResendSuccess(true);
       // Auto-hide success message after 5 seconds
@@ -46,7 +48,11 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
         setResendSuccess(false);
       }, 5000);
     } catch (error) {
-      setResendError(error instanceof Error ? error.message : 'Failed to resend verification email');
+      setResendError(
+        error instanceof Error
+          ? error.message
+          : "Failed to resend verification email"
+      );
     } finally {
       setIsResending(false);
     }
@@ -58,7 +64,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
 
   const handleVerifyToken = async () => {
     if (!verificationToken.trim()) {
-      setVerifyError('Please enter a verification token');
+      setVerifyError("Please enter a verification token");
       return;
     }
 
@@ -67,7 +73,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
 
     try {
       const result = await verifyEmail(verificationToken);
-      
+
       if (result.error) {
         setVerifyError(result.error);
       } else {
@@ -78,11 +84,13 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
         setTimeout(() => {
           setVerifySuccess(false);
           setShowTokenInput(false);
-          setVerificationToken('');
+          setVerificationToken("");
         }, 3000);
       }
     } catch (error) {
-      setVerifyError(error instanceof Error ? error.message : 'Failed to verify email');
+      setVerifyError(
+        error instanceof Error ? error.message : "Failed to verify email"
+      );
     } finally {
       setIsVerifying(false);
     }
@@ -90,7 +98,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
 
   const toggleTokenInput = () => {
     setShowTokenInput(!showTokenInput);
-    setVerificationToken('');
+    setVerificationToken("");
     setVerifyError(null);
   };
 
@@ -121,7 +129,10 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
         <CheckCircle className="h-4 w-4 text-green-600" />
         <AlertDescription className="text-green-800">
           <div className="flex items-center justify-between">
-            <span>Verification email sent successfully! Check your inbox or enter your token below.</span>
+            <span>
+              Verification email sent successfully! Check your inbox or enter
+              your token below.
+            </span>
             <Button
               variant="ghost"
               size="sm"
@@ -145,7 +156,8 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
             <div className="flex-1">
               <p className="font-medium">Email verification required</p>
               <p className="text-sm mt-1">
-                Please verify your email address to access all features. Check your inbox for a verification link.
+                Please verify your email address to access all features. Check
+                your inbox for a verification link.
               </p>
               {resendError && (
                 <p className="text-sm text-red-600 mt-1">{resendError}</p>
@@ -178,7 +190,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
                 className="text-amber-700 border-amber-300 hover:bg-amber-100"
               >
                 <Key className="h-3 w-3 mr-1" />
-                {showTokenInput ? 'Hide' : 'Enter Token'}
+                {showTokenInput ? "Hide" : "Enter Token"}
               </Button>
               <Button
                 variant="ghost"
@@ -194,7 +206,9 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
           {showTokenInput && (
             <div className="border-t border-amber-200 pt-3">
               <div className="space-y-2">
-                <p className="text-sm font-medium">Enter your verification token:</p>
+                <p className="text-sm font-medium">
+                  Enter your verification token:
+                </p>
                 <div className="flex space-x-2">
                   <Input
                     placeholder="Enter token from your email..."
@@ -202,7 +216,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
                     onChange={(e) => setVerificationToken(e.target.value)}
                     className="flex-1 bg-white border-amber-300 focus:border-amber-500"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         handleVerifyToken();
                       }
                     }}
@@ -219,7 +233,7 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
                         Verifying...
                       </>
                     ) : (
-                      'Verify'
+                      "Verify"
                     )}
                   </Button>
                 </div>
@@ -236,4 +250,4 @@ export function EmailVerificationBanner({ className = '' }: EmailVerificationBan
       </AlertDescription>
     </Alert>
   );
-} 
+}

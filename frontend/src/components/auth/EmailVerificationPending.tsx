@@ -33,7 +33,7 @@ export default function EmailVerificationPending({
     setResendSuccess(false);
 
     try {
-  const success = await resendVerification(email);
+      const success = await resendVerification(email);
 
       if (success) {
         setResendSuccess(true);

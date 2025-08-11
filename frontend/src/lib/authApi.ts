@@ -201,9 +201,9 @@ export async function verifyEmail(
 /**
  * Resend email verification
  */
-export async function resendVerification(email: string): Promise<
-  ApiResponse<{ message: string }>
-> {
+export async function resendVerification(
+  email: string
+): Promise<ApiResponse<{ message: string }>> {
   // This endpoint does NOT require auth; backend expects body { email }
   return authApiRequest<{ message: string }>("/auth/resend-verification", {
     method: "POST",

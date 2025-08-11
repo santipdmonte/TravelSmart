@@ -426,7 +426,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshUserProfile,
     clearError,
     verifyEmail,
-  resendVerification,
+    resendVerification,
   };
 
   return (
