@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   getTestQuestions,
   startTravelerTest,
@@ -21,15 +21,19 @@ export default function TravelerTestContainer() {
   const [testId, setTestId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({}); // { questionId: optionId }
+  // Para single-select: [opción]; para multi-select: [opción1, opción2, ...]
+  const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [status, setStatus] = useState<
     "loading" | "taking" | "submitting" | "error"
   >("loading");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     const initializeTest = async () => {
+      if (initializedRef.current) return; // guard against double-invoke in React Strict Mode
+      initializedRef.current = true;
       try {
         // Reuse existing active test if present to avoid 400 from backend
         let activeTestId: string | null = null;
@@ -68,14 +72,26 @@ export default function TravelerTestContainer() {
     initializeTest();
   }, []);
 
-  const handleAnswer = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  // Use backend-provided multi_select flag when available
+  const isMultiSelect = (q: QuestionWithOptions) => Boolean(q.multi_select);
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setTimeout(() => {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-      }, 300);
-    }
+  const handleAnswer = (questionId: string, optionId: string) => {
+    const q = questions.find((qq) => qq.id === questionId);
+    const multi = q ? isMultiSelect(q) : false;
+
+    setAnswers((prev) => {
+      const prevForQ = prev[questionId] || [];
+      if (multi) {
+        // toggle
+        return {
+          ...prev,
+          [questionId]: prevForQ.includes(optionId)
+            ? prevForQ.filter((id) => id !== optionId)
+            : [...prevForQ, optionId],
+        };
+      }
+      return { ...prev, [questionId]: [optionId] };
+    });
   };
 
   const handleSubmit = async () => {
@@ -90,14 +106,13 @@ export default function TravelerTestContainer() {
     try {
       const answerData: UserAnswerBulkCreate = {
         user_traveler_test_id: testId,
-        answers: Object.values(answers),
+        answers: Object.values(answers).flat(),
       };
 
       const submitResponse = await submitUserAnswers(answerData);
       if (submitResponse.error) {
         throw new Error(submitResponse.error);
       }
-
       const completeResponse = await completeTravelerTest(testId);
       if (completeResponse.error || !completeResponse.data) {
         throw new Error(completeResponse.error || "Failed to finalize test.");
@@ -134,6 +149,18 @@ export default function TravelerTestContainer() {
   const allAnswered =
     questions.length > 0 && Object.keys(answers).length === questions.length;
 
+  const currentAnsweredCount = currentQuestion
+    ? answers[currentQuestion.id]?.length || 0
+    : 0;
+  const currentIsMulti = currentQuestion
+    ? isMultiSelect(currentQuestion)
+    : false;
+  const canGoNext = currentQuestion
+    ? currentIsMulti
+      ? currentAnsweredCount >= 1
+      : currentAnsweredCount === 1
+    : false;
+
   return (
     <div className="max-w-2xl mx-auto py-8">
       <h1 className="text-3xl font-bold text-center mb-2">
@@ -152,7 +179,8 @@ export default function TravelerTestContainer() {
         <QuestionCard
           question={currentQuestion}
           onAnswer={handleAnswer}
-          selectedOption={answers[currentQuestion.id]}
+          selectedOptionIds={answers[currentQuestion.id] || []}
+          isMultiSelect={currentIsMulti}
         />
       ) : (
         <div className="mt-6">
@@ -195,7 +223,7 @@ export default function TravelerTestContainer() {
                   Math.min(questions.length - 1, prev + 1)
                 )
               }
-              disabled={!currentQuestion || !answers[currentQuestion.id]}
+              disabled={!currentQuestion || !canGoNext}
             >
               Next
             </Button>

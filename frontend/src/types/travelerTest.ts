@@ -7,6 +7,7 @@ export interface Question {
   order: number;
   category: string | null;
   image_url: string | null;
+  multi_select?: boolean | null;
   created_at: string;
   updated_at: string;
 }

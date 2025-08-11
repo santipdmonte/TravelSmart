@@ -10,12 +10,12 @@ export default function TestProgressBar({
   const percentage = total > 0 ? (current / total) * 100 : 0;
 
   return (
-    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-8">
       <div
         className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
         style={{ width: `${percentage}%` }}
       ></div>
-      <p className="text-center text-sm text-gray-500 mt-2">{`Question ${current} of ${total}`}</p>
+      <p className="text-center text-sm text-gray-500 mt-6 mb-4">{`Question ${current} of ${total}`}</p>
     </div>
   );
 }

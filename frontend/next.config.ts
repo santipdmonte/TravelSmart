@@ -5,13 +5,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "storage.googleapis.com", // <-- CAMBIA ESTO por el hostname de tus imágenes
+        hostname: "storage.googleapis.com", // GCS assets
         port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "example.com",
+        hostname: "images.unsplash.com", // Unsplash remote images used by the app
         port: "",
         pathname: "/**",
       },

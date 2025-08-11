@@ -12,31 +12,41 @@ import Image from "next/image"; // Importar el componente Image
 interface QuestionCardProps {
   question: QuestionWithOptions;
   onAnswer: (questionId: string, optionId: string) => void;
-  selectedOption: string | undefined;
+  selectedOptionIds: string[]; // soporta multi-select
+  isMultiSelect?: boolean;
 }
 
 export default function QuestionCard({
   question,
   onAnswer,
-  selectedOption,
+  selectedOptionIds,
+  isMultiSelect = false,
 }: QuestionCardProps) {
   return (
-    <Card className="mt-6 shadow-lg overflow-hidden">
+    <Card className="mt-16 shadow-lg overflow-hidden">
       <CardHeader>
+        {/*
         {question.image_url && (
           <div className="relative h-48 w-full mb-4">
             <Image
               src={question.image_url}
               alt={question.question}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
+              fill
+              className="rounded-lg object-cover"
             />
           </div>
         )}
+        */}
         <CardTitle className="text-xl">{question.question}</CardTitle>
+        {/*
         {question.category && (
           <CardDescription>Category: {question.category}</CardDescription>
+        )}
+        */}
+        {isMultiSelect && (
+          <CardDescription className="text-indigo-600 font-medium mt-1">
+            You can select more than one option
+          </CardDescription>
         )}
       </CardHeader>
       <CardContent>
@@ -45,8 +55,9 @@ export default function QuestionCard({
             <Option
               key={option.id}
               option={option}
-              isSelected={selectedOption === option.id}
+              isSelected={selectedOptionIds.includes(option.id)}
               onClick={() => onAnswer(question.id, option.id)}
+              multi={isMultiSelect}
             />
           ))}
         </div>

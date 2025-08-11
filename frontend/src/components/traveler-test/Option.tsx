@@ -6,6 +6,7 @@ interface OptionProps {
   option: QuestionOption;
   isSelected: boolean;
   onClick: () => void;
+  multi?: boolean;
 }
 
 export default function Option({ option, isSelected, onClick }: OptionProps) {
@@ -20,17 +21,18 @@ export default function Option({ option, isSelected, onClick }: OptionProps) {
           : "bg-white hover:bg-gray-50 hover:border-gray-300"
       )}
     >
+      {/*
       {option.image_url && (
         <div className="relative h-32 w-full mb-3">
           <Image
             src={option.image_url}
             alt={option.option}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-md"
+            fill
+            className="rounded-md object-cover"
           />
         </div>
       )}
+      */}
       <span className="font-semibold text-gray-800">{option.option}</span>
       {option.description && (
         <span className="text-sm text-gray-500 mt-1">{option.description}</span>

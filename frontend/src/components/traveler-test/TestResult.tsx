@@ -81,9 +81,8 @@ export default function TestResult({ testId }: TestResultProps) {
             <Image
               src={traveler_type.image_url}
               alt={traveler_type.name}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
+              fill
+              className="rounded-lg object-cover"
             />
           </div>
         )}
