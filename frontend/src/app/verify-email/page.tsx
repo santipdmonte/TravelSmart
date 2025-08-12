@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { verifyEmail, isAuthenticated, user } = useAuth();
@@ -25,36 +25,23 @@ export default function VerifyEmailPage() {
   >("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const attemptedTokenRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const token = searchParams.get("token");
-
-    if (!token) {
-      setVerificationStatus("error");
-      setErrorMessage(
-        "Invalid verification link. Please check your email and try again."
-      );
-      return;
-    }
-
-    // Prevent multiple verification attempts
-    if (verificationStatus !== "loading") {
-      console.log("Skipping verification - status is:", verificationStatus);
-      return;
-    }
-
-    const verifyEmailToken = async () => {
+  // Usamos useCallback para que la función no se recree en cada render, evitando bucles.
+  const runVerification = useCallback(
+    async (token: string) => {
       try {
-        console.log("Attempting to verify email with token:", token);
         const success = await verifyEmail(token);
-
         if (success) {
           setVerificationStatus("success");
-          // Redirect to home page after 10 seconds 
+          // Remove token from URL to avoid accidental re-verification on re-renders
+          try {
+            router.replace("/verify-email?verified=1");
+          } catch {}
           setTimeout(() => {
             setIsRedirecting(true);
             router.push("/");
-          }, 10000);
+          }, 5000);
         } else {
           setVerificationStatus("error");
           setErrorMessage(
@@ -63,21 +50,51 @@ export default function VerifyEmailPage() {
         }
       } catch {
         setVerificationStatus("error");
-        setErrorMessage(
-          "An error occurred during verification. Please try again."
-        );
+        setErrorMessage("An unexpected error occurred during verification.");
       }
-    };
+    },
+    [verifyEmail, router]
+  );
 
-    verifyEmailToken();
-  }, [searchParams, verifyEmail, router, verificationStatus]);
-
-  // If user is already authenticated and verification is complete, redirect to home
+  // Este useEffect se ejecutará solo una vez o si cambian sus dependencias estables.
   useEffect(() => {
-    if (isAuthenticated && user && verificationStatus !== "success") {
+    // If already authenticated and verified, mark success and stop
+    if (isAuthenticated && user?.email_verified) {
       setVerificationStatus("success");
+      return;
     }
-  }, [isAuthenticated, user, router, verificationStatus]);
+
+    // Validate token presence
+    const token = searchParams.get("token");
+    if (!token) {
+      // If we've already succeeded or user is verified, don't flip to error
+      if (
+        !(isAuthenticated && user?.email_verified) &&
+        verificationStatus === "loading"
+      ) {
+        setVerificationStatus("error");
+        setErrorMessage("Invalid verification link. No token provided.");
+      }
+      return;
+    }
+
+    // Ensure we only attempt verification once per token
+    if (attemptedTokenRef.current === token) {
+      return;
+    }
+    attemptedTokenRef.current = token;
+
+    // Only attempt when in loading state
+    if (verificationStatus === "loading") {
+      runVerification(token);
+    }
+  }, [
+    searchParams,
+    isAuthenticated,
+    user,
+    runVerification,
+    verificationStatus,
+  ]);
 
   const renderContent = () => {
     switch (verificationStatus) {
@@ -90,12 +107,9 @@ export default function VerifyEmailPage() {
             <h2 className="text-2xl font-bold tracking-tight">
               Verifying your email
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Please wait while we verify your email address...
-            </p>
+            <p className="text-sm text-muted-foreground">Please wait...</p>
           </div>
         );
-
       case "success":
         return (
           <div className="text-center space-y-4">
@@ -106,87 +120,38 @@ export default function VerifyEmailPage() {
               Email verified successfully!
             </h2>
             <p className="text-sm text-muted-foreground">
-              Welcome to TravelSmart! You&apos;re now logged in and ready to
-              start planning your adventures.
+              Welcome to TravelSmart! You&apos;re ready to start planning.
             </p>
             {isRedirecting && (
-              <p className="text-sm text-blue-600">
-                Redirecting you to the dashboard...
-              </p>
+              <p className="text-sm text-blue-600">Redirecting you...</p>
             )}
             <Button
               onClick={() => router.push("/")}
               className="mt-4"
               disabled={isRedirecting}
             >
-              {isRedirecting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Redirecting...
-                </>
-              ) : (
-                "Go to Dashboard"
-              )}
+              {isRedirecting ? "Redirecting..." : "Go to Dashboard"}
             </Button>
           </div>
         );
-
       case "error":
-        if (isAuthenticated) {
-          // If user is authenticated, treat as success
-          return (
-            <div className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight">
-                Email already verified!
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                You&apos;re already logged in and ready to start planning your adventures.
-              </p>
-              <Button onClick={() => router.push("/")} className="mt-4">
-                Go to Dashboard
-              </Button>
-            </div>
-          );
-        }
-        // Show error UI for unauthenticated users
         return (
           <div className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
               <XCircle className="h-8 w-8 text-red-600" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Verification failed
+              Verification Failed
             </h2>
             <Alert variant="destructive">
               <XCircle className="h-4 w-4" />
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Please try one of the following:
-              </p>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="w-full"
-                >
-                  Try Again
-                </Button>
-                <Button variant="outline" asChild className="w-full">
-                  <Link href="/login">Go to Login</Link>
-                </Button>
-                <Button variant="outline" asChild className="w-full">
-                  <Link href="/register">Register Again</Link>
-                </Button>
-              </div>
-            </div>
+            <Button variant="outline" asChild className="w-full">
+              <Link href="/login">Go to Login</Link>
+            </Button>
           </div>
         );
-
       default:
         return null;
     }
@@ -194,7 +159,6 @@ export default function VerifyEmailPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -207,8 +171,6 @@ export default function VerifyEmailPage() {
           </div>
         </div>
       </header>
-
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <Card className="shadow-lg">
@@ -220,15 +182,35 @@ export default function VerifyEmailPage() {
           </Card>
         </div>
       </main>
-
-      {/* Footer */}
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2024 TravelSmart. All rights reserved.
+            © 2025 TravelSmart. All rights reserved.
           </p>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+              {/* simple fallback spinner text to avoid importing icons here */}
+              <span className="text-blue-600 animate-pulse">Loading…</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Preparing verification…
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <VerifyEmailPageInner />
+    </Suspense>
   );
 }
