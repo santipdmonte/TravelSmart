@@ -53,3 +53,23 @@ export interface ApiResponse<T> {
   error?: string;
   message?: string;
 } 
+
+// --- AI Itinerary Change Preview types ---
+export type ActivityStatus = 'unchanged' | 'added' | 'modified' | 'deleted';
+
+export interface DiffActivity {
+  id: string;
+  name: string;
+  status: ActivityStatus;
+}
+
+export interface DiffDay {
+  day_number: number;
+  activities: DiffActivity[];
+}
+
+export interface ItineraryDiffResponse {
+  days: DiffDay[];
+  summary: string;
+  proposed_itinerary: ItineraryDetails; // Backend returns full itinerary details payload
+}

@@ -10,26 +10,23 @@ export function useChatActions() {
   const { fetchItinerary } = useItineraryActions();
 
   const openChat = useCallback(async (itineraryId: string) => {
-    // Open chat immediately and show initializing state
-    dispatch({ type: 'OPEN_CHAT' });
-    dispatch({ type: 'SET_INITIALIZING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
-    
-    // Clear any existing state if switching to a different itinerary
-    dispatch({ type: 'CLEAR_CHAT' });
-    dispatch({ type: 'OPEN_CHAT' });
-    dispatch({ type: 'SET_INITIALIZING', payload: true });
-    dispatch({ type: 'SET_THREAD_ID', payload: itineraryId });
+  // Open chat and init state once
+  dispatch({ type: 'CLEAR_CHAT' });
+  dispatch({ type: 'OPEN_CHAT' });
+  dispatch({ type: 'SET_ERROR', payload: null });
+  dispatch({ type: 'SET_INITIALIZING', payload: true });
+  dispatch({ type: 'SET_THREAD_ID', payload: itineraryId });
 
     try {
       // Try to get existing agent state first
-      const existingState = await getAgentState(itineraryId);
+  // Ensure threadId set before calling getAgentState
+  const existingState = await getAgentState(itineraryId);
       
       if (existingState.data && existingState.data.messages.length > 0) {
         // Use existing chat history
         dispatch({ type: 'SET_AGENT_STATE', payload: existingState.data });
       } else {
-        // Initialize new agent
+  // Initialize new agent if no state
         const response = await initializeAgent(itineraryId);
         
         if (response.error) {

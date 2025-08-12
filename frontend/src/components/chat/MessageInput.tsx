@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
 import { useState, useRef, useEffect } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { Button, Textarea } from '@/components';
+import { proposeItineraryChanges } from '@/lib/api';
+import type { ItineraryDiffResponse } from '@/types/itinerary';
 
-export default function MessageInput() {
+type Props = {
+  onProposalReceived?: (data: ItineraryDiffResponse) => void;
+};
+
+export default function MessageInput({ onProposalReceived }: Props) {
   const { loading, threadId } = useChat();
   const { sendMessage } = useChatActions();
   const [message, setMessage] = useState('');
@@ -18,10 +24,26 @@ export default function MessageInput() {
       return;
     }
 
-    const messageToSend = message.trim();
+    const instruction = message.trim();
     setMessage(''); // Clear input immediately
 
-    await sendMessage(threadId, messageToSend);
+    // 1) Keep chat behavior: show user message and AI thinking
+    // sendMessage handles adding the user message and loading state
+    const sendPromise = sendMessage(threadId, instruction);
+
+    // 2) In parallel, request a proposal diff and lift state up; keep chat open
+    proposeItineraryChanges(threadId, instruction)
+      .then((resp) => {
+        if (resp.data) {
+          console.log('Proposed diff from chat:', resp.data);
+          onProposalReceived?.(resp.data);
+        } else if (resp.error) {
+          console.error('Proposal error:', resp.error);
+        }
+      })
+      .catch((err) => console.error('Proposal request failed:', err));
+
+    await sendPromise;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

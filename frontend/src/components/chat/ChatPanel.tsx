@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import type { ItineraryDiffResponse } from '@/types/itinerary';
 
-export default function ChatPanel() {
+type Props = {
+  onProposalReceived?: (data: ItineraryDiffResponse) => void;
+};
+
+export default function ChatPanel({ onProposalReceived }: Props) {
   const { isOpen } = useChat();
   const { closeChat } = useChatActions();
 
@@ -55,7 +60,7 @@ export default function ChatPanel() {
 
         {/* Input - Fixed at bottom */}
         <div className="flex-shrink-0 lg:rounded-b-lg">
-          <MessageInput />
+          <MessageInput onProposalReceived={onProposalReceived} />
         </div>
       </div>
     </>

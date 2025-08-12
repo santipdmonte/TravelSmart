@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
@@ -8,7 +8,8 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
-import { FloatingEditButton, Button } from '@/components';
+import { FloatingEditButton, Button, AIChangePreview } from '@/components';
+import type { ItineraryDiffResponse } from '@/types/itinerary';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function ItineraryDetailsPage() {
   const { clearChat } = useChatActions();
 
   const itineraryId = params.id as string;
+  const [diffData, setDiffData] = useState<ItineraryDiffResponse | null>(null);
 
   useEffect(() => {
     if (itineraryId) {
@@ -40,6 +42,19 @@ export default function ItineraryDetailsPage() {
       }
     };
   }, [isChatOpen, clearChat]);
+
+  // For now, just log when a proposal arrives
+  const handleProposalReceived = (data: ItineraryDiffResponse) => {
+    console.log('Parent received proposal diff:', data);
+    setDiffData(data);
+  };
+
+  // Log whenever diffData changes (temporary for wiring validation)
+  useEffect(() => {
+    if (diffData) {
+      console.log('diffData updated in parent:', diffData);
+    }
+  }, [diffData]);
 
   if (loading) {
     return (
@@ -160,7 +175,18 @@ export default function ItineraryDetailsPage() {
             ))}
           </div>
 
-          {/* Actions */}
+          {/* AI Change Preview (from chat) */}
+          {diffData && (
+            <div className="mt-8">
+              <AIChangePreview
+                itineraryId={itineraryId}
+                initialDiff={diffData}
+                onClear={() => setDiffData(null)}
+              />
+            </div>
+          )}
+
+          {/* Other Actions */}
           <div className="mt-8 text-center">
             <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
               <Link href="/create">
@@ -174,8 +200,8 @@ export default function ItineraryDetailsPage() {
       {/* Floating Edit Button */}
       <FloatingEditButton itineraryId={itineraryId} />
 
-      {/* Chat Panel - Fixed positioned */}
-      <ChatPanel />
+  {/* Chat Panel - Fixed positioned */}
+  <ChatPanel onProposalReceived={handleProposalReceived} />
     </div>
   );
 } 
