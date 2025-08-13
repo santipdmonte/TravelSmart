@@ -1,6 +1,11 @@
+export interface DayActividadItem {
+  nombre: string;
+  descripcion: string;
+}
+
 export interface DayActivity {
   posicion_dia: number;
-  actividades: string;
+  actividades: DayActividadItem[] | string;
 }
 
 export interface Destination {

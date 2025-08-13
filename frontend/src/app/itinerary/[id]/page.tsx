@@ -9,7 +9,10 @@ import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
 import { ChatPanel } from "@/components/chat";
 import { FloatingEditButton, Button, AIChangePreview } from "@/components";
-import type { ItineraryDiffResponse } from "@/types/itinerary";
+import type {
+  ItineraryDiffResponse,
+  DayActividadItem,
+} from "@/types/itinerary";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -177,9 +180,30 @@ export default function ItineraryDetailsPage() {
                           Day {day.posicion_dia}
                         </h3>
                       </div>
-                      <p className="text-gray-700 leading-relaxed ml-11">
-                        {day.actividades}
-                      </p>
+                      <div className="text-gray-700 leading-relaxed ml-11">
+                        {Array.isArray(day.actividades) ? (
+                          day.actividades.length > 0 ? (
+                            <ul className="list-disc pl-5 space-y-1">
+                              {day.actividades.map(
+                                (actividad: DayActividadItem, idx: number) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">
+                                      {actividad.nombre}:
+                                    </span>{" "}
+                                    {actividad.descripcion}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="italic text-gray-500">
+                              No activities for this day.
+                            </p>
+                          )
+                        ) : (
+                          <p>{day.actividades}</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
