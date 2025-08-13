@@ -1,15 +1,22 @@
-import { AgentState, AgentResponse, ApiResponse, HILResponse } from '@/types/agent';
+import {
+  AgentState,
+  AgentResponse,
+  ApiResponse,
+  HILResponse,
+  ToolCall,
+} from "@/types/agent";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001";
 
 // Get session ID for headers
 function getSessionId(): string {
-  if (typeof window === 'undefined') return '';
-  
-  let sessionId = localStorage.getItem('session_id');
+  if (typeof window === "undefined") return "";
+
+  let sessionId = localStorage.getItem("session_id");
   if (!sessionId) {
     sessionId = crypto.randomUUID();
-    localStorage.setItem('session_id', sessionId);
+    localStorage.setItem("session_id", sessionId);
   }
   return sessionId;
 }
@@ -17,70 +24,112 @@ function getSessionId(): string {
 // Parse HIL response from agent response
 export function parseHILResponse(response: AgentResponse): HILResponse {
   try {
-    // Check if there are tool calls in the latest AI message
     const agentState = response[0];
-    const lastMessage = agentState.messages[agentState.messages.length - 1];
-    
-    if (lastMessage?.type === 'ai' && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-      const toolCall = lastMessage.tool_calls.find(tc => tc.name === 'apply_itinerary_modifications');
-      
-      if (toolCall) {
-        // Check for HIL confirmation message in the complex response structure
-        const hilData = response[6]; // Array containing HIL information
-        
-        if (hilData && Array.isArray(hilData) && hilData.length > 0) {
-          const hilEntry = hilData[0];
-          // Type guard for hilEntry structure
-          if (hilEntry && 
-              typeof hilEntry === 'object' && 
-              hilEntry !== null &&
-              '4' in hilEntry &&
-              Array.isArray((hilEntry as Record<string, unknown>)[4]) &&
-              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] &&
-              typeof ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] === 'object' &&
-              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] !== null &&
-              'value' in (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>)) {
-            
-            const value = (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>).value;
-            
-            return {
-              isHIL: true,
-              confirmationMessage: typeof value === 'string' ? value : 'Confirm changes?',
-              proposedChanges: toolCall.args.new_itinerary,
-              summary: toolCall.args.new_itinerary_modifications_summary
-            };
-          }
+    const messages = agentState.messages || [];
+    const lastMessage = messages[messages.length - 1];
+
+    // Helper: try to extract the apply tool call from recent messages
+    const recent = messages.slice(-3);
+    let toolCall: ToolCall | undefined;
+    for (const msg of recent) {
+      if (msg?.tool_calls && msg.tool_calls.length > 0) {
+        const found = msg.tool_calls.find(
+          (tc) => tc.name === "apply_itinerary_modifications"
+        );
+        if (found) {
+          toolCall = found;
+          break;
         }
-        
-        // Fallback: if we have tool calls but no HIL structure, still might be HIL
-        return {
-          isHIL: true,
-          confirmationMessage: `¿Confirmas estos cambios? ${toolCall.args.new_itinerary_modifications_summary || ''}`,
-          proposedChanges: toolCall.args.new_itinerary,
-          summary: toolCall.args.new_itinerary_modifications_summary
-        };
       }
     }
-    
-    return { isHIL: false };
+
+    // Heuristic flags indicating an interrupt/HIL
+    const hasApplyTool = Boolean(toolCall);
+    const hilDataUnknown: unknown = (response as unknown as { 6?: unknown })[6];
+    const hilDataArray = Array.isArray(hilDataUnknown)
+      ? (hilDataUnknown as unknown[])
+      : undefined;
+    const hasHilDataArray = Array.isArray(hilDataArray);
+
+    const hasIsHIL = (obj: unknown): obj is { isHIL: boolean } => {
+      return (
+        typeof obj === "object" &&
+        obj !== null &&
+        "isHIL" in (obj as Record<string, unknown>) &&
+        typeof (obj as { isHIL?: unknown }).isHIL === "boolean"
+      );
+    };
+
+    const lastHasHilFlag = Boolean(
+      (hasIsHIL(lastMessage?.additional_kwargs) &&
+        lastMessage?.additional_kwargs.isHIL) ||
+        (hasIsHIL(lastMessage?.response_metadata) &&
+          lastMessage?.response_metadata.isHIL)
+    );
+
+    const isHIL = hasApplyTool || lastHasHilFlag || hasHilDataArray;
+    if (!isHIL) {
+      return { isHIL: false };
+    }
+
+    // Try to extract a human-friendly confirmation message
+    let confirmationMessage: string | undefined;
+    if (Array.isArray(hilDataArray) && hilDataArray.length > 0) {
+      const first = hilDataArray[0] as unknown;
+      if (first && typeof first === "object") {
+        const rec = first as Record<string, unknown>;
+        const maybe4 = rec["4"];
+        if (Array.isArray(maybe4) && maybe4.length > 0) {
+          const entry0 = maybe4[0] as unknown;
+          if (
+            entry0 &&
+            typeof entry0 === "object" &&
+            "value" in (entry0 as Record<string, unknown>)
+          ) {
+            const val = (entry0 as { value: unknown }).value;
+            if (typeof val === "string" && val.trim()) {
+              confirmationMessage = val;
+            }
+          }
+        }
+      }
+    }
+    if (!confirmationMessage) {
+      // Fallback to AI text if present
+      if (
+        typeof lastMessage?.content === "string" &&
+        lastMessage.content.trim()
+      ) {
+        confirmationMessage = lastMessage.content;
+      } else {
+        confirmationMessage = "¿Confirmas estos cambios?";
+      }
+    }
+
+    return {
+      isHIL: true,
+      confirmationMessage,
+      proposedChanges: toolCall?.args?.new_itinerary,
+      summary: toolCall?.args?.new_itinerary_modifications_summary,
+    };
   } catch (error) {
-    console.error('Error parsing HIL response:', error);
+    console.error("Error parsing HIL response:", error);
     return { isHIL: false };
   }
 }
 
 // Base fetch wrapper with session ID header
 async function agentApiRequest<T>(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const sessionId = getSessionId();
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
-        'Content-Type': 'application/json',
-        'X-Session-ID': sessionId,
+        "Content-Type": "application/json",
+        "X-Session-ID": sessionId,
         ...options.headers,
       },
       ...options,
@@ -93,9 +142,9 @@ async function agentApiRequest<T>(
     const data = await response.json();
     return { data };
   } catch (error) {
-    console.error('Agent API request failed:', error);
-    return { 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    console.error("Agent API request failed:", error);
+    return {
+      error: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
 }
@@ -104,9 +153,12 @@ async function agentApiRequest<T>(
 export async function initializeAgent(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/${itineraryId}/agent/${itineraryId}`, {
-    method: 'POST',
-  });
+  const response = await agentApiRequest<AgentResponse>(
+    `/api/itineraries/${itineraryId}/agent/${itineraryId}`,
+    {
+      method: "POST",
+    }
+  );
 
   if (response.error) {
     return { error: response.error };
@@ -118,7 +170,7 @@ export async function initializeAgent(
     return { data: agentState };
   }
 
-  return { error: 'Invalid response format' };
+  return { error: "Invalid response format" };
 }
 
 // Send message to agent
@@ -128,9 +180,12 @@ export async function sendAgentMessage(
 ): Promise<ApiResponse<{ agentState: AgentState; hilResponse: HILResponse }>> {
   // Encode the message as a query parameter
   const encodedMessage = encodeURIComponent(message);
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/${itineraryId}/agent/${itineraryId}/messages?message=${encodedMessage}`, {
-    method: 'POST',
-  });
+  const response = await agentApiRequest<AgentResponse>(
+    `/api/itineraries/${itineraryId}/agent/${itineraryId}/messages?message=${encodedMessage}`,
+    {
+      method: "POST",
+    }
+  );
 
   if (response.error) {
     return { error: response.error };
@@ -140,23 +195,25 @@ export async function sendAgentMessage(
   if (response.data) {
     const agentState = response.data[0]; // First element is the AgentState
     const hilResponse = parseHILResponse(response.data);
-    
-    return { 
-      data: { 
-        agentState, 
-        hilResponse 
-      } 
+
+    return {
+      data: {
+        agentState,
+        hilResponse,
+      },
     };
   }
 
-  return { error: 'Invalid response format' };
+  return { error: "Invalid response format" };
 }
 
 // Get current agent state (using itinerary_id as thread_id)
 export async function getAgentState(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+  const response = await agentApiRequest<AgentResponse>(
+    `/api/itineraries/agent/${itineraryId}`
+  );
 
   if (response.error) {
     return { error: response.error };
@@ -168,5 +225,5 @@ export async function getAgentState(
     return { data: agentState };
   }
 
-  return { error: 'Invalid response format' };
-} 
+  return { error: "Invalid response format" };
+}

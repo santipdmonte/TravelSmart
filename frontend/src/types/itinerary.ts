@@ -1,6 +1,11 @@
+export interface DayActividadItem {
+  nombre: string;
+  descripcion: string;
+}
+
 export interface DayActivity {
   posicion_dia: number;
-  actividades: string;
+  actividades: DayActividadItem[] | string;
 }
 
 export interface Destination {
@@ -27,8 +32,8 @@ export interface ItineraryBase {
   duration_days: number;
   trip_name: string;
   trip_type: string | null;
-  visibility: 'private' | 'public';
-  status: 'draft' | 'published';
+  visibility: "private" | "public";
+  status: "draft" | "published";
   created_at: string;
   updated_at: string;
 }
@@ -52,4 +57,24 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
-} 
+}
+
+// --- AI Itinerary Change Preview types ---
+export type ActivityStatus = "unchanged" | "added" | "modified" | "deleted";
+
+export interface DiffActivity {
+  id: string;
+  name: string;
+  status: ActivityStatus;
+}
+
+export interface DiffDay {
+  day_number: number;
+  activities: DiffActivity[];
+}
+
+export interface ItineraryDiffResponse {
+  days: DiffDay[];
+  summary: string;
+  proposed_itinerary: ItineraryDetails; // Backend returns full itinerary details payload
+}

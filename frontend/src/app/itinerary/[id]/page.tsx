@@ -1,14 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useItinerary } from '@/contexts/ItineraryContext';
-import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { useChat } from '@/contexts/AgentContext';
-import { useChatActions } from '@/hooks/useChatActions';
-import { ChatPanel } from '@/components/chat';
-import { FloatingEditButton, Button } from '@/components';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useItinerary } from "@/contexts/ItineraryContext";
+import { useItineraryActions } from "@/hooks/useItineraryActions";
+import { useChat } from "@/contexts/AgentContext";
+import { useChatActions } from "@/hooks/useChatActions";
+import { ChatPanel } from "@/components/chat";
+import { FloatingEditButton, Button, AIChangePreview } from "@/components";
+import { onItineraryChangesConfirmed } from "@/lib/events";
+import type {
+  ItineraryDiffResponse,
+  DayActividadItem,
+} from "@/types/itinerary";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -18,6 +23,7 @@ export default function ItineraryDetailsPage() {
   const { clearChat } = useChatActions();
 
   const itineraryId = params.id as string;
+  const [diffData, setDiffData] = useState<ItineraryDiffResponse | null>(null);
 
   useEffect(() => {
     if (itineraryId) {
@@ -41,6 +47,33 @@ export default function ItineraryDetailsPage() {
     };
   }, [isChatOpen, clearChat]);
 
+  // Sync: when chat confirms changes, clear any preview and refresh itinerary
+  useEffect(() => {
+    if (!itineraryId) return;
+    const off = onItineraryChangesConfirmed(({ itineraryId: changedId }) => {
+      if (changedId === itineraryId) {
+        setDiffData(null);
+        fetchItinerary(itineraryId);
+      }
+    });
+    return () => {
+      off?.();
+    };
+  }, [itineraryId, fetchItinerary]);
+
+  // For now, just log when a proposal arrives
+  const handleProposalReceived = (data: ItineraryDiffResponse) => {
+    console.log("Parent received proposal diff:", data);
+    setDiffData(data);
+  };
+
+  // Log whenever diffData changes (temporary for wiring validation)
+  useEffect(() => {
+    if (diffData) {
+      console.log("diffData updated in parent:", diffData);
+    }
+  }, [diffData]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -60,9 +93,7 @@ export default function ItineraryDetailsPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Error</h2>
             <p className="text-gray-700 mb-6">{error}</p>
             <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/itineraries">
-                Back to Itineraries
-              </Link>
+              <Link href="/itineraries">Back to Itineraries</Link>
             </Button>
           </div>
         </div>
@@ -75,12 +106,14 @@ export default function ItineraryDetailsPage() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Itinerary Not Found</h2>
-            <p className="text-gray-700 mb-6">The itinerary you&apos;re looking for doesn&apos;t exist.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Itinerary Not Found
+            </h2>
+            <p className="text-gray-700 mb-6">
+              The itinerary you&apos;re looking for doesn&apos;t exist.
+            </p>
             <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/itineraries">
-                Back to Itineraries
-              </Link>
+              <Link href="/itineraries">Back to Itineraries</Link>
             </Button>
           </div>
         </div>
@@ -93,7 +126,11 @@ export default function ItineraryDetailsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Main Content Area */}
-      <div className={`transition-all duration-300 ${isChatOpen ? 'lg:mr-[33.333333%]' : ''}`}>
+      <div
+        className={`transition-all duration-300 ${
+          isChatOpen ? "lg:mr-[33.333333%]" : ""
+        }`}
+      >
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -113,12 +150,16 @@ export default function ItineraryDetailsPage() {
                   {details_itinerary.nombre_viaje}
                 </h1>
                 <p className="text-gray-700 mb-4">
-                  {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} days
+                  {details_itinerary.destino_general} •{" "}
+                  {details_itinerary.cantidad_dias} days
                 </p>
                 <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                   <span>Status: {currentItinerary.status}</span>
                   <span>•</span>
-                  <span>Created: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
+                  <span>
+                    Created:{" "}
+                    {new Date(currentItinerary.created_at).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
@@ -127,12 +168,16 @@ export default function ItineraryDetailsPage() {
           {/* Destinations */}
           <div className="space-y-8">
             {details_itinerary.destinos.map((destination, destIndex) => (
-              <div key={destIndex} className="bg-white rounded-lg shadow-lg p-8">
+              <div
+                key={destIndex}
+                className="bg-white rounded-lg shadow-lg p-8"
+              >
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {destination.nombre_destino}
                 </h2>
                 <p className="text-gray-700 mb-6">
-                  {destination.cantidad_dias_en_destino} days in this destination
+                  {destination.cantidad_dias_en_destino} days in this
+                  destination
                 </p>
 
                 {/* Days */}
@@ -150,9 +195,30 @@ export default function ItineraryDetailsPage() {
                           Day {day.posicion_dia}
                         </h3>
                       </div>
-                      <p className="text-gray-700 leading-relaxed ml-11">
-                        {day.actividades}
-                      </p>
+                      <div className="text-gray-700 leading-relaxed ml-11">
+                        {Array.isArray(day.actividades) ? (
+                          day.actividades.length > 0 ? (
+                            <ul className="list-disc pl-5 space-y-1">
+                              {day.actividades.map(
+                                (actividad: DayActividadItem, idx: number) => (
+                                  <li key={idx}>
+                                    <span className="font-medium">
+                                      {actividad.nombre}:
+                                    </span>{" "}
+                                    {actividad.descripcion}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          ) : (
+                            <p className="italic text-gray-500">
+                              No activities for this day.
+                            </p>
+                          )
+                        ) : (
+                          <p>{day.actividades}</p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -160,12 +226,25 @@ export default function ItineraryDetailsPage() {
             ))}
           </div>
 
-          {/* Actions */}
+          {/* AI Change Preview (from chat) */}
+          {diffData && (
+            <div className="mt-8">
+              <AIChangePreview
+                itineraryId={itineraryId}
+                initialDiff={diffData}
+                onClear={() => setDiffData(null)}
+              />
+            </div>
+          )}
+
+          {/* Other Actions */}
           <div className="mt-8 text-center">
-            <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/create">
-                Create Another Itinerary
-              </Link>
+            <Button
+              asChild
+              size="lg"
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              <Link href="/create">Create Another Itinerary</Link>
             </Button>
           </div>
         </div>
@@ -175,7 +254,7 @@ export default function ItineraryDetailsPage() {
       <FloatingEditButton itineraryId={itineraryId} />
 
       {/* Chat Panel - Fixed positioned */}
-      <ChatPanel />
+      <ChatPanel onProposalReceived={handleProposalReceived} />
     </div>
   );
-} 
+}
