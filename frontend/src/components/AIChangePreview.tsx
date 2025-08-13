@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { proposeItineraryChanges } from '@/lib/api';
-import type { ItineraryDiffResponse, ActivityStatus } from '@/types/itinerary';
-import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { useChatActions } from '@/hooks/useChatActions';
-import { Button } from '@/components';
-import ErrorMessage from '@/components/ErrorMessage';
+import { useEffect, useState } from "react";
+import { proposeItineraryChanges } from "@/lib/api";
+import type { ItineraryDiffResponse, ActivityStatus } from "@/types/itinerary";
+import { useItineraryActions } from "@/hooks/useItineraryActions";
+import { useChatActions } from "@/hooks/useChatActions";
+import { Button } from "@/components";
+import ErrorMessage from "@/components/ErrorMessage";
 
 type Props = {
   itineraryId: string;
@@ -16,19 +16,23 @@ type Props = {
 
 function statusClasses(status: ActivityStatus): string {
   switch (status) {
-    case 'added':
-      return 'bg-green-50 border-green-300 text-green-800';
-    case 'deleted':
-      return 'bg-red-50 border-red-300 text-red-800 line-through opacity-70';
-    case 'modified':
-      return 'bg-yellow-50 border-yellow-300 text-yellow-900';
-    case 'unchanged':
+    case "added":
+      return "bg-green-50 border-green-300 text-green-800";
+    case "deleted":
+      return "bg-red-50 border-red-300 text-red-800 line-through opacity-70";
+    case "modified":
+      return "bg-yellow-50 border-yellow-300 text-yellow-900";
+    case "unchanged":
     default:
-      return 'bg-gray-50 border-gray-200 text-gray-700';
+      return "bg-gray-50 border-gray-200 text-gray-700";
   }
 }
 
-export default function AIChangePreview({ itineraryId, initialDiff, onClear }: Props) {
+export default function AIChangePreview({
+  itineraryId,
+  initialDiff,
+  onClear,
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [diff, setDiff] = useState<ItineraryDiffResponse | null>(null);
@@ -49,9 +53,9 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
       setLoading(true);
       const response = await proposeItineraryChanges(
         itineraryId,
-        'Make my 7-day trip into a 9-day trip.'
+        "Make my 7-day trip into a 9-day trip."
       );
-      console.log('AI Itinerary Diff Response:', response);
+      console.log("AI Itinerary Diff Response:", response);
       if (response.error) {
         setError(response.error);
         setDiff(null);
@@ -61,7 +65,7 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
         setDiff(response.data);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to fetch preview');
+      setError(e instanceof Error ? e.message : "Failed to fetch preview");
       setDiff(null);
     } finally {
       setLoading(false);
@@ -81,15 +85,15 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
       // Use the same confirmation logic as the chat button for consistency
       const ok = await confirmChanges(itineraryId);
       if (!ok) {
-        setError('Failed to confirm changes');
+        setError("Failed to confirm changes");
         return;
       }
       // Refresh itinerary and clear preview
       await fetchItinerary(itineraryId);
       setDiff(null);
-  onClear?.();
+      onClear?.();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to confirm changes');
+      setError(e instanceof Error ? e.message : "Failed to confirm changes");
     } finally {
       setConfirming(false);
     }
@@ -104,7 +108,7 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
             disabled={loading}
             className="bg-emerald-600 hover:bg-emerald-700"
           >
-            {loading ? 'Loading preview…' : 'Preview AI Changes'}
+            {loading ? "Loading preview…" : "Preview AI Changes"}
           </Button>
         )}
         {diff && (
@@ -114,20 +118,28 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
         )}
       </div>
 
-      {error && (
-        <ErrorMessage message={error} onRetry={handlePreview} />
-      )}
+      {error && <ErrorMessage message={error} onRetry={handlePreview} />}
 
       {diff && (
         <div className="bg-white rounded-lg shadow-lg p-6 text-left">
           <div className="mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">AI Change Preview</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              AI Change Preview
+            </h3>
             <p className="text-sm text-gray-600 mt-1">{diff.summary}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 rounded border bg-green-50 border-green-200 text-green-700">Added</span>
-              <span className="px-2 py-1 rounded border bg-yellow-50 border-yellow-200 text-yellow-800">Modified</span>
-              <span className="px-2 py-1 rounded border bg-red-50 border-red-200 text-red-700 line-through">Deleted</span>
-              <span className="px-2 py-1 rounded border bg-gray-50 border-gray-200 text-gray-700">Unchanged</span>
+              <span className="px-2 py-1 rounded border bg-green-50 border-green-200 text-green-700">
+                Added
+              </span>
+              <span className="px-2 py-1 rounded border bg-yellow-50 border-yellow-200 text-yellow-800">
+                Modified
+              </span>
+              <span className="px-2 py-1 rounded border bg-red-50 border-red-200 text-red-700 line-through">
+                Deleted
+              </span>
+              <span className="px-2 py-1 rounded border bg-gray-50 border-gray-200 text-gray-700">
+                Unchanged
+              </span>
             </div>
           </div>
 
@@ -146,10 +158,14 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
                   {day.activities.map((act) => (
                     <li
                       key={act.id}
-                      className={`border rounded px-3 py-2 ${statusClasses(act.status)}`}
+                      className={`border rounded px-3 py-2 ${statusClasses(
+                        act.status
+                      )}`}
                     >
                       {act.name}
-                      <span className="ml-2 text-xs opacity-70">({act.status})</span>
+                      <span className="ml-2 text-xs opacity-70">
+                        ({act.status})
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -164,9 +180,13 @@ export default function AIChangePreview({ itineraryId, initialDiff, onClear }: P
               disabled={confirming}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              {confirming ? 'Confirming…' : 'Confirm Changes'}
+              {confirming ? "Confirming…" : "Confirm Changes"}
             </Button>
-            <Button variant="secondary" onClick={handleClear} disabled={confirming}>
+            <Button
+              variant="secondary"
+              onClick={handleClear}
+              disabled={confirming}
+            >
               Cancel
             </Button>
           </div>

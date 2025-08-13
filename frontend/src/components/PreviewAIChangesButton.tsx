@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { proposeItineraryChanges } from '@/lib/api';
-import { Button } from './ui/button';
+import { useState } from "react";
+import { proposeItineraryChanges } from "@/lib/api";
+import { Button } from "./ui/button";
 
 type Props = {
   itineraryId: string;
@@ -17,11 +17,11 @@ export default function PreviewAIChangesButton({ itineraryId }: Props) {
       // Phase 1: use a hardcoded instruction and just log the response
       const response = await proposeItineraryChanges(
         itineraryId,
-        'Make my 7-day trip into a 9-day trip.'
+        "Make my 7-day trip into a 9-day trip."
       );
-      console.log('AI Itinerary Diff Response:', response);
+      console.log("AI Itinerary Diff Response:", response);
     } catch (err) {
-      console.error('Failed to fetch AI changes preview:', err);
+      console.error("Failed to fetch AI changes preview:", err);
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export default function PreviewAIChangesButton({ itineraryId }: Props) {
       disabled={loading}
       className="bg-emerald-600 hover:bg-emerald-700"
     >
-      {loading ? 'Loading preview…' : 'Preview AI Changes'}
+      {loading ? "Loading preview…" : "Preview AI Changes"}
     </Button>
   );
 }
