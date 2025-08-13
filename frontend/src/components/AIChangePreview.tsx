@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { proposeItineraryChanges } from "@/lib/api";
+import { proposeItineraryChanges, confirmItineraryChanges } from "@/lib/api";
 import type { ItineraryDiffResponse, ActivityStatus } from "@/types/itinerary";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
-import { useChatActions } from "@/hooks/useChatActions";
 import { Button } from "@/components";
+import {
+  onItineraryChangesConfirmed,
+  onItineraryProposalReceived,
+} from "@/lib/events";
 import ErrorMessage from "@/components/ErrorMessage";
 
 type Props = {
@@ -38,7 +41,6 @@ export default function AIChangePreview({
   const [diff, setDiff] = useState<ItineraryDiffResponse | null>(null);
   const [confirming, setConfirming] = useState(false);
   const { fetchItinerary } = useItineraryActions();
-  const { confirmChanges } = useChatActions();
 
   // Sync initial diff from parent
   useEffect(() => {
@@ -46,6 +48,26 @@ export default function AIChangePreview({
       setDiff(initialDiff);
     }
   }, [initialDiff]);
+
+  // Listen for chat-confirmed changes to clear outdated diff and refresh
+  useEffect(() => {
+    const offConfirm = onItineraryChangesConfirmed(({ itineraryId: id }) => {
+      if (id === itineraryId) {
+        setDiff(null);
+      }
+    });
+    const offProposal = onItineraryProposalReceived<ItineraryDiffResponse>(
+      ({ itineraryId: id, data }) => {
+        if (id === itineraryId) {
+          setDiff(data);
+        }
+      }
+    );
+    return () => {
+      offConfirm?.();
+      offProposal?.();
+    };
+  }, [itineraryId]);
 
   const handlePreview = async () => {
     try {
@@ -82,13 +104,15 @@ export default function AIChangePreview({
     try {
       setConfirming(true);
       setError(null);
-      // Use the same confirmation logic as the chat button for consistency
-      const ok = await confirmChanges(itineraryId);
-      if (!ok) {
-        setError("Failed to confirm changes");
+      // Persist exactly what the user sees in the preview to avoid drift
+      const res = await confirmItineraryChanges(
+        itineraryId,
+        diff.proposed_itinerary
+      );
+      if (res.error) {
+        setError(res.error);
         return;
       }
-      // Refresh itinerary and clear preview
       await fetchItinerary(itineraryId);
       setDiff(null);
       onClear?.();

@@ -5,6 +5,7 @@ import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
 import { Button, Textarea } from "@/components";
 import { proposeItineraryChanges } from "@/lib/api";
+import { emitItineraryProposalReceived } from "@/lib/events";
 import type { ItineraryDiffResponse } from "@/types/itinerary";
 
 type Props = {
@@ -37,6 +38,8 @@ export default function MessageInput({ onProposalReceived }: Props) {
         if (resp.data) {
           console.log("Proposed diff from chat:", resp.data);
           onProposalReceived?.(resp.data);
+          // Broadcast proposal so any preview components can update
+          emitItineraryProposalReceived(threadId, resp.data);
         } else if (resp.error) {
           console.error("Proposal error:", resp.error);
         }

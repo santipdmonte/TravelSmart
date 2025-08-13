@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useChat } from '@/contexts/AgentContext';
-import { useChatActions } from '@/hooks/useChatActions';
-import { useEffect, useRef } from 'react';
-import Message from './Message';
-import ConfirmationMessage from './ConfirmationMessage';
-import ErrorMessage from '../ErrorMessage';
+import { useChat } from "@/contexts/AgentContext";
+import { useChatActions } from "@/hooks/useChatActions";
+import { useEffect, useRef } from "react";
+import Message from "./Message";
+import ConfirmationMessage from "./ConfirmationMessage";
+import ErrorMessage from "../ErrorMessage";
 
 // Loading skeleton component
 function LoadingSkeleton() {
@@ -16,7 +16,9 @@ function LoadingSkeleton() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 max-w-xs">
           <div className="flex items-center space-x-2">
             <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-            <span className="text-sm text-blue-700 font-medium">Setting up your chat...</span>
+            <span className="text-sm text-blue-700 font-medium">
+              Setting up your chat...
+            </span>
           </div>
         </div>
       </div>
@@ -57,12 +59,13 @@ function LoadingSkeleton() {
 }
 
 export default function MessageList() {
-  const { messages, loading, error, hilState, threadId, initializing } = useChat();
+  const { messages, loading, error, hilState, threadId, initializing } =
+    useChat();
   const { clearError } = useChatActions();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -81,20 +84,31 @@ export default function MessageList() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
-        {error && (
-          <ErrorMessage message={error} onRetry={clearError} />
-        )}
-        
+        {error && <ErrorMessage message={error} onRetry={clearError} />}
+
         {messages.length === 0 && !loading && !error && (
           <div className="text-center py-8">
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              <svg
+                className="w-6 h-6 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to help!</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Ready to help!
+            </h3>
             <p className="text-gray-600 max-w-sm mx-auto">
-              Ask me anything about your itinerary. I can help you modify plans, add activities, or answer questions about your trip.
+              Ask me anything about your itinerary. I can help you modify plans,
+              add activities, or answer questions about your trip.
             </p>
           </div>
         )}
@@ -103,12 +117,10 @@ export default function MessageList() {
           <Message key={message.id} message={message} />
         ))}
 
-        {/* Show HIL confirmation if available */}
-        {hilState?.isHIL && threadId && (
-          <ConfirmationMessage />
-        )}
+        {/* Show HIL confirmation inline when present */}
+        {hilState?.isHIL && threadId ? <ConfirmationMessage /> : null}
 
-        {loading && (
+        {loading && !hilState?.isHIL && (
           <div className="flex items-center space-x-2 p-4 text-gray-700">
             <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
             <span className="text-sm">AI is thinking...</span>
@@ -118,4 +130,4 @@ export default function MessageList() {
       <div ref={messagesEndRef} />
     </div>
   );
-} 
+}

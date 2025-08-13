@@ -8,6 +8,7 @@ import {
   sendAgentMessage,
   getAgentState,
 } from "@/lib/agentApi";
+import { emitItineraryChangesConfirmed } from "@/lib/events";
 
 export function useChatActions() {
   const { dispatch } = useChat();
@@ -83,11 +84,13 @@ export function useChatActions() {
         if (response.data) {
           const { agentState, hilResponse } = response.data;
 
-          // Update with complete agent state (includes AI response) - this will set loading to false
+          // Update with complete agent state (includes AI response)
           dispatch({ type: "SET_AGENT_STATE", payload: agentState });
 
           // Handle HIL response
           if (hilResponse.isHIL) {
+            // Explicitly turn off loading so UI stops showing spinner
+            dispatch({ type: "SET_LOADING", payload: false });
             dispatch({ type: "SET_HIL_STATE", payload: hilResponse });
           } else {
             // Check if the itinerary was updated and refresh it
@@ -149,6 +152,10 @@ export function useChatActions() {
 
           // Refresh the itinerary since changes were confirmed
           await fetchItinerary(itineraryId);
+
+          // Broadcast a confirmation event so any listeners (e.g., preview panel)
+          // can clear outdated diffs and re-sync with the latest state
+          emitItineraryChangesConfirmed(itineraryId);
 
           return true;
         }

@@ -9,6 +9,7 @@ import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
 import { ChatPanel } from "@/components/chat";
 import { FloatingEditButton, Button, AIChangePreview } from "@/components";
+import { onItineraryChangesConfirmed } from "@/lib/events";
 import type {
   ItineraryDiffResponse,
   DayActividadItem,
@@ -45,6 +46,20 @@ export default function ItineraryDetailsPage() {
       }
     };
   }, [isChatOpen, clearChat]);
+
+  // Sync: when chat confirms changes, clear any preview and refresh itinerary
+  useEffect(() => {
+    if (!itineraryId) return;
+    const off = onItineraryChangesConfirmed(({ itineraryId: changedId }) => {
+      if (changedId === itineraryId) {
+        setDiffData(null);
+        fetchItinerary(itineraryId);
+      }
+    });
+    return () => {
+      off?.();
+    };
+  }, [itineraryId, fetchItinerary]);
 
   // For now, just log when a proposal arrives
   const handleProposalReceived = (data: ItineraryDiffResponse) => {
