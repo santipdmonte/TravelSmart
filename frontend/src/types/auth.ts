@@ -1,3 +1,4 @@
+import type { TravelerType } from "./travelerTest";
 // Base API response interface
 export interface ApiResponse<T> {
   data?: T;
@@ -14,6 +15,8 @@ export interface User {
   last_name: string;
   display_name: string;
   bio: string;
+  // Eager-loaded traveler profile (if user has completed the test)
+  traveler_type?: TravelerType | null;
   date_of_birth: string;
   phone_number: string;
   country: string;
