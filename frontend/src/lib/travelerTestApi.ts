@@ -97,12 +97,9 @@ export async function submitUserAnswers(
 export async function completeTravelerTest(
   testId: string
 ): Promise<ApiResponse<UserTravelerTest>> {
-  return apiRequest<UserTravelerTest>(
-    `/traveler-tests/${testId}/complete`,
-    {
-      method: "POST",
-    }
-  );
+  return apiRequest<UserTravelerTest>(`/traveler-tests/${testId}/complete`, {
+    method: "POST",
+  });
 }
 
 // ==================== RESULTS API FUNCTIONS ====================
