@@ -74,21 +74,4 @@ export interface TestResultResponse {
   scores: Record<string, number>;
   completion_time_minutes?: number | null;
 }
-
-// ===== Admin history response types =====
-export interface UserAnswerHistoryResponse {
-  question_id: string;
-  question_text: string;
-  selected_option_id: string;
-  selected_option_text: string;
-  created_at?: string | null;
-}
-
-export interface TestHistoryDetailResponse {
-  test_id: string;
-  user_id: string;
-  completed_at?: string | null;
-  traveler_type_id?: string | null;
-  traveler_type_name?: string | null;
-  answers: UserAnswerHistoryResponse[];
-}
+// Admin Test History types removed

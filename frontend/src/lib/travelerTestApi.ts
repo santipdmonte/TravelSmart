@@ -8,7 +8,6 @@ import {
   TestResult,
   TravelerType,
   TestResultResponse,
-  TestHistoryDetailResponse,
 } from "@/types/travelerTest";
 import { ApiResponse } from "@/types/itinerary"; // Reutilizamos ApiResponse
 
@@ -135,12 +134,4 @@ export async function getMyActiveTest(): Promise<
   return apiRequest<UserTravelerTest>(`/traveler-tests/user/me/active`);
 }
 
-// ==================== ADMIN HISTORY API ====================
-
-export async function getAdminTestHistory(
-  testId: string
-): Promise<ApiResponse<TestHistoryDetailResponse>> {
-  return apiRequest<TestHistoryDetailResponse>(
-    `/api/traveler-tests/${testId}/history`
-  );
-}
+// Admin Test History feature removed

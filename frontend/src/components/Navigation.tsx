@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, MapPin, Plus, User, Wand2, Shield } from "lucide-react";
+import { Menu, X, MapPin, Plus, User, Wand2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal, UserMenu } from "@/components/auth";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,6 @@ const Navigation = () => {
 
   const adminNav = isAdmin
     ? [
-        {
-          name: "Admin Test History",
-          href: "/admin/test-history",
-          icon: Shield,
-        },
         {
           name: "Admin Users",
           href: "/admin/users",

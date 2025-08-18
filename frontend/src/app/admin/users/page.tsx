@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { getUsersWithProfiles } from "@/lib/adminApi";
 import { AdminUserWithProfile } from "@/types/admin";
 import { useAuth } from "@/hooks/useAuth";
@@ -79,14 +78,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-2">{u.email}</td>
                   <td className="px-4 py-2">{u.traveler_type?.name || "—"}</td>
-                  <td className="px-4 py-2 text-right">
-                    <Link
-                      className="text-indigo-600 hover:underline"
-                      href="/admin/test-history"
-                    >
-                      History
-                    </Link>
-                  </td>
+                  <td className="px-4 py-2 text-right"></td>
                 </tr>
               ))}
             </tbody>
