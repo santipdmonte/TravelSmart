@@ -18,7 +18,7 @@ import { ApiResponse } from "@/types/itinerary"; // Reutilizamos ApiResponse
  * Fetches all public questions from the API.
  */
 async function getPublicQuestions(): Promise<ApiResponse<Question[]>> {
-  return apiRequest<Question[]>("/api/questions/public/all");
+  return apiRequest<Question[]>("/questions/public/all");
 }
 
 /**
@@ -28,7 +28,7 @@ async function getPublicQuestionOptions(
   questionId: string
 ): Promise<ApiResponse<QuestionOption[]>> {
   return apiRequest<QuestionOption[]>(
-    `/api/question-options/public/question/${questionId}`
+    `/question-options/public/question/${questionId}`
   );
 }
 
@@ -71,7 +71,7 @@ export async function getTestQuestions(): Promise<
 export async function startTravelerTest(): Promise<
   ApiResponse<UserTravelerTest>
 > {
-  return apiRequest<UserTravelerTest>("/api/traveler-tests/", {
+  return apiRequest<UserTravelerTest>("/traveler-tests/", {
     method: "POST",
   });
 }
@@ -84,7 +84,7 @@ export async function submitUserAnswers(
   answersData: UserAnswerBulkCreate
 ): Promise<ApiResponse<TestResultResponse>> {
   // New backend bulk submission endpoint returns the final result
-  return apiRequest<TestResultResponse>("/api/user-answers/bulk", {
+  return apiRequest<TestResultResponse>("/user-answers/bulk", {
     method: "POST",
     body: JSON.stringify(answersData),
   });
@@ -98,7 +98,7 @@ export async function completeTravelerTest(
   testId: string
 ): Promise<ApiResponse<UserTravelerTest>> {
   return apiRequest<UserTravelerTest>(
-    `/api/traveler-tests/${testId}/complete`,
+    `/traveler-tests/${testId}/complete`,
     {
       method: "POST",
     }
@@ -114,7 +114,7 @@ export async function completeTravelerTest(
 export async function getTestResult(
   testId: string
 ): Promise<ApiResponse<TestResult>> {
-  return apiRequest<TestResult>(`/api/traveler-tests/${testId}`);
+  return apiRequest<TestResult>(`/traveler-tests/${testId}`);
 }
 
 /**
@@ -124,7 +124,7 @@ export async function getTestResult(
 export async function getTravelerTypeDetails(
   travelerTypeId: string
 ): Promise<ApiResponse<TravelerType>> {
-  return apiRequest<TravelerType>(`/api/traveler-types/${travelerTypeId}`);
+  return apiRequest<TravelerType>(`/traveler-types/${travelerTypeId}`);
 }
 
 // ==================== USER TEST HELPERS ====================
@@ -135,7 +135,7 @@ export async function getTravelerTypeDetails(
 export async function getMyActiveTest(): Promise<
   ApiResponse<UserTravelerTest>
 > {
-  return apiRequest<UserTravelerTest>(`/api/traveler-tests/user/me/active`);
+  return apiRequest<UserTravelerTest>(`/traveler-tests/user/me/active`);
 }
 
 // ==================== ADMIN HISTORY API ====================

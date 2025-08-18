@@ -33,6 +33,11 @@ const Navigation = () => {
           href: "/admin/test-history",
           icon: Shield,
         },
+        {
+          name: "Admin Users",
+          href: "/admin/users",
+          icon: User,
+        },
       ]
     : [];
   const navItems = [...navigation, ...adminNav];
