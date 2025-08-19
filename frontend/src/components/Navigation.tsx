@@ -16,7 +16,8 @@ const Navigation = () => {
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
 
   const navigation = [
     { name: "Home", href: "/", icon: null },
@@ -24,6 +25,17 @@ const Navigation = () => {
     { name: "My Itineraries", href: "/itineraries", icon: MapPin },
     { name: "Traveler Test", href: "/traveler-test", icon: Wand2 },
   ];
+
+  const adminNav = isAdmin
+    ? [
+        {
+          name: "Admin Users",
+          href: "/admin/users",
+          icon: User,
+        },
+      ]
+    : [];
+  const navItems = [...navigation, ...adminNav];
 
   const openLoginModal = () => {
     setAuthModalTab("login");
@@ -67,7 +79,7 @@ const Navigation = () => {
 
               {/* Desktop navigation */}
               <div className="hidden md:ml-8 md:flex md:space-x-8">
-                {navigation.map((item) => {
+                {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
@@ -136,7 +148,7 @@ const Navigation = () => {
           <div className="md:hidden">
             <div className="pt-2 pb-3 space-y-1 bg-gray-50 border-t border-gray-200">
               {/* Mobile navigation links */}
-              {navigation.map((item) => {
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link

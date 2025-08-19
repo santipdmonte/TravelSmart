@@ -7,6 +7,7 @@ import {
   UserAnswerBulkCreate,
   TestResult,
   TravelerType,
+  TestResultResponse,
 } from "@/types/travelerTest";
 import { ApiResponse } from "@/types/itinerary"; // Reutilizamos ApiResponse
 
@@ -80,8 +81,9 @@ export async function startTravelerTest(): Promise<
  */
 export async function submitUserAnswers(
   answersData: UserAnswerBulkCreate
-): Promise<ApiResponse<unknown>> {
-  return apiRequest<unknown>("/user-answers/bulk", {
+): Promise<ApiResponse<TestResultResponse>> {
+  // New backend bulk submission endpoint returns the final result
+  return apiRequest<TestResultResponse>("/user-answers/bulk", {
     method: "POST",
     body: JSON.stringify(answersData),
   });
@@ -131,3 +133,5 @@ export async function getMyActiveTest(): Promise<
 > {
   return apiRequest<UserTravelerTest>(`/traveler-tests/user/me/active`);
 }
+
+// Admin Test History feature removed

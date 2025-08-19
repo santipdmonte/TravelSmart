@@ -9,9 +9,7 @@ import {
   PasswordResetRequest,
   PasswordResetConfirmRequest,
 } from "@/types/auth";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001";
+import { ROOT_BASE_URL } from "./config";
 
 // Expected response shape for POST /auth/refresh-token
 interface RefreshTokenResponse {
@@ -49,13 +47,16 @@ export function getAccessToken(): string | null {
   return tokens?.access_token || null;
 }
 
-// Base fetch wrapper for auth endpoints
+// Base fetch wrapper for auth and other root-mounted endpoints
 async function authApiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const url = `${ROOT_BASE_URL}${path}`;
+
+    const response = await fetch(url.replace(/([^:])\/\//g, "$1/"), {
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
@@ -74,8 +75,7 @@ async function authApiRequest<T>(
     if (!response.ok) {
       return {
         error:
-          data.message ||
-          data.detail ||
+          (data && (data.message || data.detail)) ||
           `HTTP error! status: ${response.status}`,
       };
     }

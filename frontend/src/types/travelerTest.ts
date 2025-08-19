@@ -58,10 +58,20 @@ export interface UserAnswer {
 
 export interface UserAnswerBulkCreate {
   user_traveler_test_id: string;
-  // Backend expects the property name `answers` (list of question_option IDs)
-  answers: string[];
+  // Backend expects the property name `answers` as a map of question_id -> array of selected option IDs
+  answers: Record<string, string[]>;
 }
 
 export interface TestResult extends UserTravelerTest {
   traveler_type: TravelerType;
 }
+
+// Response returned by the new bulk submission endpoint
+export interface TestResultResponse {
+  user_traveler_test: UserTravelerTest;
+  traveler_type: TravelerType | null;
+  // Scores per traveler type slug/name
+  scores: Record<string, number>;
+  completion_time_minutes?: number | null;
+}
+// Admin Test History types removed

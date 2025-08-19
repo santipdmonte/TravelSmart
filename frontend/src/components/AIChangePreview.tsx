@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import { proposeItineraryChanges, confirmItineraryChanges } from "@/lib/api";
 import type { ItineraryDiffResponse, ActivityStatus } from "@/types/itinerary";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
+import { useChat } from "@/contexts/AgentContext";
+import { useChatActions } from "@/hooks/useChatActions";
 import { Button } from "@/components";
 import {
   onItineraryChangesConfirmed,
   onItineraryProposalReceived,
+  emitItineraryChangesConfirmed,
 } from "@/lib/events";
 import ErrorMessage from "@/components/ErrorMessage";
 
@@ -41,6 +44,8 @@ export default function AIChangePreview({
   const [diff, setDiff] = useState<ItineraryDiffResponse | null>(null);
   const [confirming, setConfirming] = useState(false);
   const { fetchItinerary } = useItineraryActions();
+  const { hilState, threadId } = useChat();
+  const { confirmChanges } = useChatActions();
 
   // Sync initial diff from parent
   useEffect(() => {
@@ -116,6 +121,18 @@ export default function AIChangePreview({
       await fetchItinerary(itineraryId);
       setDiff(null);
       onClear?.();
+      // If chat is currently asking for confirmation on this itinerary,
+      // trigger the same confirmation so the conversation advances and UI dismisses.
+      if (hilState?.isHIL && threadId === itineraryId) {
+        try {
+          await confirmChanges(threadId);
+        } catch (e) {
+          // non-fatal: fall back to event below
+          console.warn("Chat confirm sync failed, falling back to event.", e);
+        }
+      }
+      // Notify other UIs (e.g., chat) that changes were confirmed elsewhere
+      emitItineraryChangesConfirmed(itineraryId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to confirm changes");
     } finally {

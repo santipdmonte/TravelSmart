@@ -5,7 +5,6 @@ import {
   getTestQuestions,
   startTravelerTest,
   submitUserAnswers,
-  completeTravelerTest,
   getMyActiveTest,
 } from "@/lib/travelerTestApi";
 import {
@@ -21,7 +20,7 @@ export default function TravelerTestContainer() {
   const [testId, setTestId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // Para single-select: [opción]; para multi-select: [opción1, opción2, ...]
+  // answers: map question_id -> array of selected option_ids
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [status, setStatus] = useState<
     "loading" | "taking" | "submitting" | "error"
@@ -106,17 +105,21 @@ export default function TravelerTestContainer() {
     try {
       const answerData: UserAnswerBulkCreate = {
         user_traveler_test_id: testId,
-        answers: Object.values(answers).flat(),
+        answers,
       };
 
       const submitResponse = await submitUserAnswers(answerData);
-      if (submitResponse.error) {
-        throw new Error(submitResponse.error);
+      if (submitResponse.error || !submitResponse.data) {
+        throw new Error(submitResponse.error || "Submission failed.");
       }
-      const completeResponse = await completeTravelerTest(testId);
-      if (completeResponse.error || !completeResponse.data) {
-        throw new Error(completeResponse.error || "Failed to finalize test.");
-      }
+
+      // Cache the result for the result page to use instantly
+      try {
+        sessionStorage.setItem(
+          `traveler_test_result_${testId}`,
+          JSON.stringify(submitResponse.data)
+        );
+      } catch {}
 
       router.push(`/traveler-test/results/${testId}`);
     } catch (err) {

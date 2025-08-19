@@ -5,9 +5,7 @@ import {
   HILResponse,
   ToolCall,
 } from "@/types/agent";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001";
+import { API_BASE_URL } from "./config";
 
 // Get session ID for headers
 function getSessionId(): string {
@@ -154,7 +152,7 @@ export async function initializeAgent(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
   const response = await agentApiRequest<AgentResponse>(
-    `/api/itineraries/${itineraryId}/agent/${itineraryId}`,
+    `/itineraries/${itineraryId}/agent/${itineraryId}`,
     {
       method: "POST",
     }
@@ -181,7 +179,7 @@ export async function sendAgentMessage(
   // Encode the message as a query parameter
   const encodedMessage = encodeURIComponent(message);
   const response = await agentApiRequest<AgentResponse>(
-    `/api/itineraries/${itineraryId}/agent/${itineraryId}/messages?message=${encodedMessage}`,
+    `/itineraries/${itineraryId}/agent/${itineraryId}/messages?message=${encodedMessage}`,
     {
       method: "POST",
     }
@@ -212,7 +210,7 @@ export async function getAgentState(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
   const response = await agentApiRequest<AgentResponse>(
-    `/api/itineraries/agent/${itineraryId}`
+    `/itineraries/agent/${itineraryId}`
   );
 
   if (response.error) {

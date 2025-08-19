@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getTestResult } from "@/lib/travelerTestApi";
-import { TestResult as TestResultType } from "@/types/travelerTest";
+import {
+  TestResult as TestResultType,
+  TestResultResponse,
+} from "@/types/travelerTest";
 import {
   LoadingSpinner,
   ErrorMessage,
@@ -24,6 +27,7 @@ interface TestResultProps {
 export default function TestResult({ testId }: TestResultProps) {
   // ... (el resto del código del componente sigue igual) ...
   const [result, setResult] = useState<TestResultType | null>(null);
+  const [scores, setScores] = useState<Record<string, number> | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
@@ -31,6 +35,23 @@ export default function TestResult({ testId }: TestResultProps) {
 
   useEffect(() => {
     const fetchResult = async () => {
+      // Prefer the freshly returned submission payload if available
+      try {
+        const cached = sessionStorage.getItem(`traveler_test_result_${testId}`);
+        if (cached) {
+          const parsed: TestResultResponse = JSON.parse(cached);
+          if (parsed && parsed.user_traveler_test) {
+            setResult({
+              ...parsed.user_traveler_test,
+              traveler_type: parsed.traveler_type || undefined,
+            } as unknown as TestResultType);
+            if (parsed.scores) setScores(parsed.scores);
+            setStatus("success");
+            return;
+          }
+        }
+      } catch {}
+
       const response = await getTestResult(testId);
       if (response.error || !response.data) {
         setError(response.error || "Could not fetch test results.");
@@ -89,6 +110,22 @@ export default function TestResult({ testId }: TestResultProps) {
         <CardDescription className="text-lg text-gray-700 my-4">
           {traveler_type.description}
         </CardDescription>
+
+        {scores && (
+          <div className="mt-6 text-left max-w-md mx-auto">
+            <h3 className="font-semibold text-gray-800 mb-2">Your scores</h3>
+            <ul className="space-y-1">
+              {Object.entries(scores).map(([type, score]) => (
+                <li key={type} className="flex justify-between text-sm">
+                  <span className="text-gray-600">{type}</span>
+                  <span className="font-medium">
+                    {Math.round(score * 100) / 100}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="mt-8">
           <Button asChild size="lg">

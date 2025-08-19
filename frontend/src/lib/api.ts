@@ -11,9 +11,7 @@ import {
   refreshToken,
   clearTokens,
 } from "./authApi";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001";
+import { API_BASE_URL, ROOT_BASE_URL } from "./config";
 
 // Generate a session ID if not exists
 export function getSessionId(): string {
@@ -45,6 +43,21 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+// Decide base URL based on endpoint path
+function withBaseUrl(endpoint: string): string {
+  // Normalize: ensure endpoint starts with '/'
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const isApiPath = path === "/api" || path.startsWith("/api/");
+  const base = (isApiPath ? API_BASE_URL : ROOT_BASE_URL).replace(/\/$/, "");
+
+  if (isApiPath) {
+    // Strip leading '/api' but keep a single leading '/'
+    const stripped = path.replace(/^\/api/, "");
+    return `${base}${stripped.startsWith("/") ? "" : "/"}${stripped}`;
+  }
+  return `${base}${path}`;
+}
+
 // Base fetch wrapper with dual authentication support
 export async function apiRequest<T>(
   endpoint: string,
@@ -54,7 +67,9 @@ export async function apiRequest<T>(
     // Ensure valid token if user is authenticated
     const hasValidToken = await ensureValidToken();
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = withBaseUrl(endpoint);
+
+    const response = await fetch(url, {
       headers: {
         ...getAuthHeaders(),
         ...options.headers,
@@ -68,7 +83,7 @@ export async function apiRequest<T>(
 
       if (refreshResult.data) {
         // Retry the original request with new token
-        const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const retryResponse = await fetch(url, {
           headers: {
             ...getAuthHeaders(),
             ...options.headers,
