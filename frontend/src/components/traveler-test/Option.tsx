@@ -1,6 +1,5 @@
 import { QuestionOption } from "@/types/travelerTest";
 import { cn } from "@/lib/utils";
-import Image from "next/image"; // Importar el componente Image
 
 interface OptionProps {
   option: QuestionOption;

@@ -7,7 +7,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import Option from "./Option";
-import Image from "next/image"; // Importar el componente Image
 
 interface QuestionCardProps {
   question: QuestionWithOptions;

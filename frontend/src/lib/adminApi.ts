@@ -1,6 +1,7 @@
 import { apiRequest } from "./api";
 import { ApiResponse } from "@/types/itinerary";
 import { AdminUserWithProfile } from "@/types/admin";
+import { TestHistoryDetailResponse } from "@/types/travelerTest";
 
 export async function getUsersWithProfiles(params?: {
   skip?: number;
@@ -13,4 +14,14 @@ export async function getUsersWithProfiles(params?: {
   if (params?.status) search.set("status", params.status);
   const suffix = search.toString() ? `?${search.toString()}` : "";
   return apiRequest<AdminUserWithProfile[]>(`/users/with-profiles${suffix}`);
+}
+
+/**
+ * Fetches detailed test history for admin purposes
+ * @param testId - The ID of the test to fetch history for
+ */
+export async function getAdminTestHistory(
+  testId: string
+): Promise<ApiResponse<TestHistoryDetailResponse>> {
+  return apiRequest<TestHistoryDetailResponse>(`/admin/tests/${testId}/history`);
 }

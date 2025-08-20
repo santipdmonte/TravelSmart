@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getAdminTestHistory } from "@/lib/travelerTestApi";
+import { getAdminTestHistory } from "@/lib/adminApi";
 import { TestHistoryDetailResponse } from "@/types/travelerTest";
 import { useAuth } from "@/hooks/useAuth";
 import {

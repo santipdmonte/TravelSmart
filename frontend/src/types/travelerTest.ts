@@ -74,4 +74,21 @@ export interface TestResultResponse {
   scores: Record<string, number>;
   completion_time_minutes?: number | null;
 }
+
+// ---------- ADMIN TEST HISTORY TYPES ----------
+export interface AdminTestHistoryAnswer {
+  question_id: string;
+  question_text: string;
+  selected_option_id: string;
+  selected_option_text: string;
+  created_at?: string;
+}
+
+export interface TestHistoryDetailResponse {
+  test_id: string;
+  user_id: string;
+  traveler_type_name?: string;
+  completed_at?: string;
+  answers: AdminTestHistoryAnswer[];
+}
 // Admin Test History types removed
