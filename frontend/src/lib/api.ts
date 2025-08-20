@@ -3,7 +3,6 @@ import {
   ItineraryBase,
   GenerateItineraryRequest,
   ApiResponse,
-  ItineraryDiffResponse,
 } from "@/types/itinerary";
 import {
   getAccessToken,
@@ -141,32 +140,4 @@ export async function getUserItineraries(
   userId: string
 ): Promise<ApiResponse<ItineraryBase[]>> {
   return apiRequest<ItineraryBase[]>(`/api/itineraries/user/${userId}`);
-}
-
-// Propose AI itinerary changes (preview diff)
-export async function proposeItineraryChanges(
-  itineraryId: string,
-  instruction: string
-): Promise<ApiResponse<ItineraryDiffResponse>> {
-  return apiRequest<ItineraryDiffResponse>(
-    `/api/itineraries/${itineraryId}/propose-changes`,
-    {
-      method: "POST",
-      body: JSON.stringify({ instruction }),
-    }
-  );
-}
-
-// Confirm previously proposed changes (persist to DB)
-export async function confirmItineraryChanges(
-  itineraryId: string,
-  proposed_itinerary: Itinerary["details_itinerary"]
-): Promise<ApiResponse<Itinerary>> {
-  return apiRequest<Itinerary>(
-    `/api/itineraries/${itineraryId}/confirm-changes`,
-    {
-      method: "POST",
-      body: JSON.stringify({ proposed_itinerary }),
-    }
-  );
 }
