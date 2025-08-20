@@ -19,6 +19,7 @@ import {
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image"; // Importar el componente Image
+import { useAuth } from "@/hooks/useAuth";
 
 interface TestResultProps {
   testId: string;
@@ -32,6 +33,7 @@ export default function TestResult({ testId }: TestResultProps) {
     "loading"
   );
   const [error, setError] = useState<string | null>(null);
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -59,6 +61,9 @@ export default function TestResult({ testId }: TestResultProps) {
       } else {
         setResult(response.data);
         setStatus("success");
+        try {
+          await refreshProfile();
+        } catch {}
       }
     };
     fetchResult();

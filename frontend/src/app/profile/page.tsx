@@ -20,6 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
+import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
+import type { TravelerType } from "@/types/travelerTest";
 import {
   profileUpdateSchema,
   type ProfileUpdateFormData,
@@ -44,6 +46,9 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [resolvedTravelerType, setResolvedTravelerType] =
+    useState<TravelerType | null>(null);
+  const [isTravelerTypeLoading, setIsTravelerTypeLoading] = useState(false);
   const [formData, setFormData] = useState<ProfileUpdateFormData>({
     first_name: "",
     last_name: "",
@@ -67,6 +72,20 @@ export default function ProfilePage() {
         username: user.username || "",
         bio: user.bio || "",
       });
+
+      // Resolve traveler type either from embedded object or by fetching via id
+      if (user.traveler_type) {
+        setResolvedTravelerType(user.traveler_type);
+      } else if (user.traveler_type_id) {
+        setIsTravelerTypeLoading(true);
+        getTravelerTypeDetails(user.traveler_type_id)
+          .then((resp) => {
+            if (resp.data) setResolvedTravelerType(resp.data);
+          })
+          .finally(() => setIsTravelerTypeLoading(false));
+      } else {
+        setResolvedTravelerType(null);
+      }
     }
   }, [user]);
 
@@ -210,13 +229,13 @@ export default function ProfilePage() {
                       <XCircle className="h-4 w-4 ml-2 text-red-500" />
                     )}
                   </CardDescription>
-                  {user.traveler_type && (
+                  {resolvedTravelerType && (
                     <div className="mt-2 text-sm text-gray-700">
                       <span className="font-medium">Traveler Type:</span>{" "}
-                      <span>{user.traveler_type.name}</span>
-                      {user.traveler_type.description && (
+                      <span>{resolvedTravelerType.name}</span>
+                      {resolvedTravelerType.description && (
                         <p className="text-gray-600 mt-1">
-                          {user.traveler_type.description}
+                          {resolvedTravelerType.description}
                         </p>
                       )}
                     </div>
@@ -441,6 +460,41 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Traveler Type</CardTitle>
+                      <CardDescription>
+                        Discover your travel personality
+                      </CardDescription>
+                    </div>
+                    <Button onClick={() => router.push("/traveler-test")}>
+                      Do the traveler test
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {resolvedTravelerType ? (
+                    <div>
+                      <p className="text-gray-900 font-medium">
+                        {resolvedTravelerType.name}
+                      </p>
+                      {resolvedTravelerType.description && (
+                        <p className="text-gray-600 mt-1">
+                          {resolvedTravelerType.description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">
+                      You haven't taken the traveler test yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="account">

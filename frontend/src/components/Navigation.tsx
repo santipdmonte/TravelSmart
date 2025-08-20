@@ -23,7 +23,7 @@ const Navigation = () => {
     { name: "Home", href: "/", icon: null },
     { name: "Create Itinerary", href: "/create", icon: Plus },
     { name: "My Itineraries", href: "/itineraries", icon: MapPin },
-    { name: "Traveler Test", href: "/traveler-test", icon: Wand2 },
+    // { name: "Traveler Test", href: "/traveler-test", icon: Wand2 },
   ];
 
   const adminNav = isAdmin

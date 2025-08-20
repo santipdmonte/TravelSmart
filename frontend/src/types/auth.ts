@@ -17,6 +17,7 @@ export interface User {
   bio: string;
   // Eager-loaded traveler profile (if user has completed the test)
   traveler_type?: TravelerType | null;
+  traveler_type_id?: string | null;
   date_of_birth: string;
   phone_number: string;
   country: string;

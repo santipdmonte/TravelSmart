@@ -15,6 +15,7 @@ import { LoadingSpinner, ErrorMessage, Button } from "@/components";
 import QuestionCard from "./QuestionCard";
 import TestProgressBar from "./TestProgressBar";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TravelerTestContainer() {
   const [testId, setTestId] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export default function TravelerTestContainer() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const initializedRef = useRef(false);
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     const initializeTest = async () => {
@@ -119,6 +121,10 @@ export default function TravelerTestContainer() {
           `traveler_test_result_${testId}`,
           JSON.stringify(submitResponse.data)
         );
+      } catch {}
+
+      try {
+        await refreshProfile();
       } catch {}
 
       router.push(`/traveler-test/results/${testId}`);
