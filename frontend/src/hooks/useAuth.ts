@@ -36,35 +36,14 @@ export function useAuth() {
       "",
     hasCompletedOnboarding: state.user?.onboarding_completed ?? false,
 
-    // Actions
-    login: async (credentials: LoginRequest): Promise<boolean> => {
-      return await login(credentials);
-    },
-
-    register: async (userData: RegisterRequest): Promise<boolean> => {
-      return await register(userData);
-    },
-
-    logout: async (): Promise<void> => {
-      await logout();
-    },
-
-    refreshProfile: async (): Promise<void> => {
-      await refreshUserProfile();
-    },
-
-    clearError: (): void => {
-      clearError();
-    },
-
-    // Verification methods
-    verifyEmail: async (token: string): Promise<boolean> => {
-      return await verifyEmail(token);
-    },
-
-    resendVerification: async (email: string): Promise<boolean> => {
-      return await resendVerification(email);
-    },
+    // Actions (return the stable functions directly)
+    login,
+    register,
+    logout,
+    refreshProfile: refreshUserProfile,
+    clearError,
+    verifyEmail,
+    resendVerification,
 
     // Helper methods
     getUserInitials: (): string => {

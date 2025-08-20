@@ -212,7 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Login function
-  const login = async (credentials: LoginRequest): Promise<boolean> => {
+  const login = useCallback(async (credentials: LoginRequest): Promise<boolean> => {
     dispatch({ type: "AUTH_START" });
 
     try {
@@ -252,10 +252,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
       return false;
     }
-  };
+  }, []);
 
   // Register function
-  const register = async (userData: RegisterRequest): Promise<boolean> => {
+  const register = useCallback(async (userData: RegisterRequest): Promise<boolean> => {
     dispatch({ type: "AUTH_START" });
 
     try {
@@ -305,10 +305,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
       return false;
     }
-  };
+  }, []);
 
   // Logout function
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       // Call API logout (will clear tokens internally)
       await apiLogout();
@@ -318,12 +318,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Always clear local state regardless of API response
       dispatch({ type: "AUTH_LOGOUT" });
     }
-  };
+  }, []);
 
   // Refresh user profile
-  const refreshUserProfile = async (): Promise<void> => {
-    if (!state.isAuthenticated) return;
-
+  const refreshUserProfile = useCallback(async (): Promise<void> => {
     try {
       const response = await getUserProfile();
 
@@ -333,12 +331,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error("Failed to refresh user profile:", error);
     }
-  };
+  }, []);
 
   // Clear error
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     dispatch({ type: "CLEAR_ERROR" });
-  };
+  }, []);
 
   // Verify email function
   const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
@@ -393,7 +391,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Resend verification email function
-  const resendVerification = async (email: string): Promise<boolean> => {
+  const resendVerification = useCallback(async (email: string): Promise<boolean> => {
     dispatch({ type: "AUTH_START" });
 
     try {
@@ -415,7 +413,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
       return false;
     }
-  };
+  }, []);
 
   const contextValue: AuthContextType = {
     state,
