@@ -1,14 +1,7 @@
-"use client";
+'use client';
 
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  ReactNode,
-  useEffect,
-} from "react";
-import { onItineraryChangesConfirmed } from "@/lib/events";
-import { AgentState, Message, HILResponse } from "@/types/agent";
+import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { AgentState, Message, HILResponse } from '@/types/agent';
 
 interface ChatState {
   isOpen: boolean;
@@ -16,22 +9,22 @@ interface ChatState {
   messages: Message[];
   loading: boolean;
   error: string | null;
-  currentItinerary: AgentState["itinerary"] | null;
+  currentItinerary: AgentState['itinerary'] | null;
   threadId: string | null;
   hilState: HILResponse | null;
 }
 
 type ChatAction =
-  | { type: "OPEN_CHAT" }
-  | { type: "CLOSE_CHAT" }
-  | { type: "SET_INITIALIZING"; payload: boolean }
-  | { type: "SET_LOADING"; payload: boolean }
-  | { type: "SET_ERROR"; payload: string | null }
-  | { type: "SET_AGENT_STATE"; payload: AgentState }
-  | { type: "SET_HIL_STATE"; payload: HILResponse | null }
-  | { type: "SET_THREAD_ID"; payload: string }
-  | { type: "ADD_MESSAGE"; payload: Message }
-  | { type: "CLEAR_CHAT" };
+  | { type: 'OPEN_CHAT' }
+  | { type: 'CLOSE_CHAT' }
+  | { type: 'SET_INITIALIZING'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_AGENT_STATE'; payload: AgentState }
+  | { type: 'SET_HIL_STATE'; payload: HILResponse | null }
+  | { type: 'SET_THREAD_ID'; payload: string }
+  | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'CLEAR_CHAT' };
 
 const initialState: ChatState = {
   isOpen: false,
@@ -46,22 +39,17 @@ const initialState: ChatState = {
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
-    case "OPEN_CHAT":
+    case 'OPEN_CHAT':
       return { ...state, isOpen: true };
-    case "CLOSE_CHAT":
+    case 'CLOSE_CHAT':
       return { ...state, isOpen: false };
-    case "SET_INITIALIZING":
+    case 'SET_INITIALIZING':
       return { ...state, initializing: action.payload };
-    case "SET_LOADING":
+    case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    case "SET_ERROR":
-      return {
-        ...state,
-        error: action.payload,
-        loading: false,
-        initializing: false,
-      };
-    case "SET_AGENT_STATE":
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, loading: false, initializing: false };
+    case 'SET_AGENT_STATE':
       return {
         ...state,
         messages: action.payload.messages,
@@ -70,16 +58,16 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         initializing: false,
         error: null,
       };
-    case "SET_HIL_STATE":
+    case 'SET_HIL_STATE':
       return { ...state, hilState: action.payload };
-    case "SET_THREAD_ID":
+    case 'SET_THREAD_ID':
       return { ...state, threadId: action.payload };
-    case "ADD_MESSAGE":
+    case 'ADD_MESSAGE':
       return {
         ...state,
         messages: [...state.messages, action.payload],
       };
-    case "CLEAR_CHAT":
+    case 'CLEAR_CHAT':
       return initialState;
     default:
       return state;
@@ -95,21 +83,6 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
 
-  // Keep chat HIL prompt in sync when confirmations happen elsewhere
-  useEffect(() => {
-    const off = onItineraryChangesConfirmed(({ itineraryId }) => {
-      // threadId equals itineraryId in this app
-      if (
-        state.threadId &&
-        state.threadId === itineraryId &&
-        state.hilState?.isHIL
-      ) {
-        dispatch({ type: "SET_HIL_STATE", payload: null });
-      }
-    });
-    return () => off?.();
-  }, [state.threadId, state.hilState?.isHIL]);
-
   return (
     <ChatContext.Provider value={{ ...state, dispatch }}>
       {children}
@@ -120,7 +93,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 export function useChat() {
   const context = useContext(ChatContext);
   if (context === undefined) {
-    throw new Error("useChat must be used within a ChatProvider");
+    throw new Error('useChat must be used within a ChatProvider');
   }
   return context;
-}
+} 
