@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, MapPin, Plus, User, Wand2 } from "lucide-react";
+import { Menu, X, MapPin, Plus, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthModal, UserMenu } from "@/components/auth";
 import { Button } from "@/components/ui/button";

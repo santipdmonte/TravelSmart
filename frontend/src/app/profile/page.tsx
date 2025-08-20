@@ -48,7 +48,6 @@ export default function ProfilePage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [resolvedTravelerType, setResolvedTravelerType] =
     useState<TravelerType | null>(null);
-  const [isTravelerTypeLoading, setIsTravelerTypeLoading] = useState(false);
   const [formData, setFormData] = useState<ProfileUpdateFormData>({
     first_name: "",
     last_name: "",
@@ -77,12 +76,11 @@ export default function ProfilePage() {
       if (user.traveler_type) {
         setResolvedTravelerType(user.traveler_type);
       } else if (user.traveler_type_id) {
-        setIsTravelerTypeLoading(true);
         getTravelerTypeDetails(user.traveler_type_id)
           .then((resp) => {
             if (resp.data) setResolvedTravelerType(resp.data);
           })
-          .finally(() => setIsTravelerTypeLoading(false));
+          .finally(() => {});
       } else {
         setResolvedTravelerType(null);
       }
@@ -489,7 +487,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <p className="text-gray-600">
-                      You haven't taken the traveler test yet.
+                      You haven&apos;t taken the traveler test yet.
                     </p>
                   )}
                 </CardContent>

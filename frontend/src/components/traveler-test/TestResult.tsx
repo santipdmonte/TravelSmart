@@ -67,7 +67,7 @@ export default function TestResult({ testId }: TestResultProps) {
       }
     };
     fetchResult();
-  }, [testId]);
+  }, [testId, refreshProfile]);
 
   if (status === "loading") {
     return (
