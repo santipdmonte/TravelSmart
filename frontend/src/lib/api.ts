@@ -50,11 +50,7 @@ function withBaseUrl(endpoint: string): string {
   const isApiPath = path === "/api" || path.startsWith("/api/");
   const base = (isApiPath ? API_BASE_URL : ROOT_BASE_URL).replace(/\/$/, "");
 
-  if (isApiPath) {
-    // Strip leading '/api' but keep a single leading '/'
-    const stripped = path.replace(/^\/api/, "");
-    return `${base}${stripped.startsWith("/") ? "" : "/"}${stripped}`;
-  }
+  // Always use the full path - no stripping of /api
   return `${base}${path}`;
 }
 
