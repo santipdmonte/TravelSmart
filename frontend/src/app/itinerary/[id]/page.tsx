@@ -188,9 +188,29 @@ export default function ItineraryDetailsPage() {
               </TabsContent>
 
               <TabsContent value="transport" className="mt-6">
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
-                  <p>Próximamente: opciones de transporte.</p>
-                </div>
+                {details_itinerary.destinos.length > 1 ? (
+                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                    {details_itinerary.destinos.map((dest, idx) => (
+                      <div key={`transport-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
+                        <div className="flex items-center mb-2">
+                          <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
+                          <h2 className="text-2xl font-bold text-gray-900">
+                            {dest.nombre_destino}
+                          </h2>
+                        </div>
+                        {idx < details_itinerary.destinos.length - 1 && (
+                          <div className="ml-6 text-gray-700">
+                            <div className="font-medium text-gray-900">Avión • 1 h 20 min • US$ 120</div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
+                    <p>Agrega más de un destino para ver las conexiones de transporte.</p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="stays" className="mt-6">
