@@ -214,8 +214,28 @@ export default function ItineraryDetailsPage() {
               </TabsContent>
 
               <TabsContent value="stays" className="mt-6">
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
-                  <p>Próximamente: alojamientos sugeridos.</p>
+                <div className="space-y-6">
+                  {details_itinerary.destinos.map((dest, idx) => (
+                    <div key={`stay-${idx}`} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">{dest.nombre_destino}</h2>
+                      <p className="text-gray-700 mb-4">Encuentra hospedaje para tu estadía.</p>
+
+                      <div className="flex items-center gap-3">
+                        <Button asChild className="rounded-full bg-sky-500 hover:bg-sky-700 px-6 shadow-md">
+                          <a href="https://www.booking.com" target="_blank" rel="noopener noreferrer">
+                            Buscar alojamiento
+                          </a>
+                        </Button>
+
+                        <div className="text-sm text-gray-600 flex flex-wrap items-center gap-3">
+                          <span>También en:</span>
+                          <a href="https://www.airbnb.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">Airbnb</a>
+                          <a href="https://www.booking.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">Booking</a>
+                          <a href="https://www.expedia.com" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">Expedia</a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </TabsContent>
             </Tabs>
