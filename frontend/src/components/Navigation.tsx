@@ -16,8 +16,7 @@ const Navigation = () => {
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, hasRole } = useAuth();
-  const isAdmin = hasRole("admin");
+  const { isAuthenticated, isLoading } = useAuth();
 
   const navigation = [
     { name: "Home", href: "/", icon: null },
@@ -26,16 +25,7 @@ const Navigation = () => {
     // { name: "Traveler Test", href: "/traveler-test", icon: Wand2 },
   ];
 
-  const adminNav = isAdmin
-    ? [
-        {
-          name: "Admin Users",
-          href: "/admin/users",
-          icon: User,
-        },
-      ]
-    : [];
-  const navItems = [...navigation, ...adminNav];
+  const navItems = [...navigation];
 
   const openLoginModal = () => {
     setAuthModalTab("login");

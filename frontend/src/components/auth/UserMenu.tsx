@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Settings, LogOut, MapPin, TrendingUp } from 'lucide-react';
+import { User, Settings, LogOut, MapPin, TrendingUp, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function UserMenu() {
   const router = useRouter();
-  const { user, logout, getUserInitials, getFullName } = useAuth();
+  const { user, logout, getUserInitials, getFullName, hasRole } = useAuth();
 
   if (!user) return null;
 
@@ -56,6 +56,13 @@ export default function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
+        {hasRole('admin') && (
+          <DropdownMenuItem onClick={() => router.push('/admin/users')}>
+            <Shield className="mr-2 h-4 w-4" />
+            Admin
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem onClick={handleProfileClick}>
           <User className="mr-2 h-4 w-4" />
           Profile
@@ -65,13 +72,6 @@ export default function UserMenu() {
           <MapPin className="mr-2 h-4 w-4" />
           My Itineraries
         </DropdownMenuItem>
-        
-        {user.total_trips_created > 0 && (
-          <DropdownMenuItem disabled>
-            <TrendingUp className="mr-2 h-4 w-4" />
-            {user.total_trips_created} trips created
-          </DropdownMenuItem>
-        )}
         
         <DropdownMenuSeparator />
         
