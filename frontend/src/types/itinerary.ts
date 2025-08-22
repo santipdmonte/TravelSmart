@@ -46,6 +46,18 @@ export interface Itinerary extends ItineraryBase {
 export interface GenerateItineraryRequest {
   trip_name: string;
   duration_days: number;
+  // Additional optional answers, wrapped for backend compatibility
+  preferences?: {
+    when?: 'winter' | 'spring' | 'summer' | 'fall';
+    trip_type?: 'business' | 'couples' | 'friends' | 'boys' | 'girls' | 'solo' | 'family_teen' | 'family_young_kids';
+    occasion?: 'anniversary' | 'bachelorette' | 'bachelor' | 'birthday' | 'graduation' | 'honeymoon' | 'spring_break' | 'christmas' | 'new_years';
+    city_view?: 'touristy' | 'off_beaten' | 'local';
+    travel_styles?: string[];
+    food_preferences?: string[];
+    budget?: number | null; // USD per person, entire trip
+    budget_currency?: 'USD';
+    notes?: string; // up to 250 chars
+  };
 }
 
 export interface ApiResponse<T> {
