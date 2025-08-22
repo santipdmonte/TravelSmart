@@ -296,10 +296,10 @@ export default function CreateItineraryPage() {
                   <button
                     type="button"
                     onClick={() => setMoreOpen(v => !v)}
-                    className="text-gray-800 font-medium flex items-center gap-2 hover:underline"
+                    className="text-yellow-500 font-medium flex items-center gap-2 hover:underline pl-3"
                   >
-                    {moreOpen ? '▾ Ver menos' : '▸ Ver más'}
-                    <span className="text-sm text-gray-500">(responde tanto o tan poco como quieras)</span>
+                    {moreOpen ? '▾ Menos opciones' : '▸ Más opciones'}
+                    <span className="text-sm text-yellow-500">(responde tanto o tan poco como quieras)</span>
                   </button>
                 </div>
 
