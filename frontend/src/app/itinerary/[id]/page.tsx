@@ -137,7 +137,7 @@ export default function ItineraryDetailsPage() {
           {/* Tabs mockup */}
           <div>
             <Tabs defaultValue="itinerary">
-              <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1">
+              <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
                 <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
                   Itinerario
                 </TabsTrigger>
@@ -149,7 +149,7 @@ export default function ItineraryDetailsPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="itinerary" className="mt-2">
+              <TabsContent value="itinerary">
                 {/* Destinations */}
                 <div className="space-y-8">
                   {details_itinerary.destinos.map((destination, destIndex) => (
@@ -187,7 +187,7 @@ export default function ItineraryDetailsPage() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="transport" className="mt-6">
+              <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                     {details_itinerary.destinos.map((dest, idx) => (
@@ -213,7 +213,7 @@ export default function ItineraryDetailsPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="stays" className="mt-6">
+              <TabsContent value="stays">
                 <div className="space-y-6">
                   {details_itinerary.destinos.map((dest, idx) => (
                     <div key={`stay-${idx}`} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
