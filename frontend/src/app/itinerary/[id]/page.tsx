@@ -43,10 +43,10 @@ export default function ItineraryDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-700">Loading your itinerary...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-gray-700">Cargando tu itinerario...</p>
         </div>
       </div>
     );
@@ -54,14 +54,14 @@ export default function ItineraryDetailsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Error</h2>
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
             <p className="text-gray-700 mb-6">{error}</p>
-            <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+            <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full">
               <Link href="/itineraries">
-                Back to Itineraries
+                Volver a itinerarios
               </Link>
             </Button>
           </div>
@@ -72,14 +72,14 @@ export default function ItineraryDetailsPage() {
 
   if (!currentItinerary) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Itinerary Not Found</h2>
-            <p className="text-gray-700 mb-6">The itinerary you&apos;re looking for doesn&apos;t exist.</p>
-            <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Itinerario no encontrado</h2>
+            <p className="text-gray-700 mb-6">El itinerario que buscas no existe.</p>
+            <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full">
               <Link href="/itineraries">
-                Back to Itineraries
+                Volver a itinerarios
               </Link>
             </Button>
           </div>
@@ -91,34 +91,34 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content Area */}
       <div className={`transition-all duration-300 ${isChatOpen ? 'lg:mr-[33.333333%]' : ''}`}>
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Link
               href="/itineraries"
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
+              className="text-sky-600 hover:text-sky-700 font-medium"
             >
-              ← Back to Itineraries
+              ← Volver a itinerarios
             </Link>
           </div>
 
           {/* Itinerary Header */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mb-8">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {details_itinerary.nombre_viaje}
                 </h1>
                 <p className="text-gray-700 mb-4">
-                  {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} days
+                  {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} días
                 </p>
                 <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                  <span>Status: {currentItinerary.status}</span>
+                  <span>Estado: {currentItinerary.status}</span>
                   <span>•</span>
-                  <span>Created: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
+                  <span>Creado: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
@@ -127,12 +127,12 @@ export default function ItineraryDetailsPage() {
           {/* Destinations */}
           <div className="space-y-8">
             {details_itinerary.destinos.map((destination, destIndex) => (
-              <div key={destIndex} className="bg-white rounded-lg shadow-lg p-8">
+              <div key={destIndex} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {destination.nombre_destino}
                 </h2>
                 <p className="text-gray-700 mb-6">
-                  {destination.cantidad_dias_en_destino} days in this destination
+                  {destination.cantidad_dias_en_destino} días en este destino
                 </p>
 
                 {/* Days */}
@@ -140,14 +140,14 @@ export default function ItineraryDetailsPage() {
                   {destination.dias_destino.map((day, dayIndex) => (
                     <div
                       key={dayIndex}
-                      className="border-l-4 border-indigo-200 pl-6 py-4"
+                      className="border-l-4 border-sky-200 pl-6 py-4"
                     >
                       <div className="flex items-center mb-2">
-                        <div className="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3">
+                        <div className="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3 shadow">
                           {day.posicion_dia}
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Day {day.posicion_dia}
+                          Día {day.posicion_dia}
                         </h3>
                       </div>
                       <p className="text-gray-700 leading-relaxed ml-11">
@@ -160,14 +160,6 @@ export default function ItineraryDetailsPage() {
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="mt-8 text-center">
-            <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/create">
-                Create Another Itinerary
-              </Link>
-            </Button>
-          </div>
         </div>
       </div>
 
