@@ -91,7 +91,11 @@ function Chip({ active, children, onClick }: { active: boolean; children: any; o
     <button
       type="button"
       onClick={onClick}
-      className={`px-4 py-2 rounded-full text-sm ${active ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+      className={`px-5 py-2.5 rounded-full text-sm border transition-colors shadow-sm ${
+        active
+          ? 'bg-sky-500 text-white border-sky-500 hover:bg-sky-600'
+          : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow'
+      }`}
     >
       {children}
     </button>
@@ -108,7 +112,7 @@ const createItinerarySchema = z.object({
   duration_days: z
     .number({
       required_error: 'La duración es obligatoria',
-      invalid_type_error: 'Ingresa un número válido',
+      invalid_type_error: 'Ingresa un número válido (1-30)',
     })
     .min(1, 'La duración debe ser de al menos 1 día')
     .max(30, 'La duración no puede superar 30 días')
@@ -198,24 +202,16 @@ export default function CreateItineraryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <Link
-              href="/"
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
-            >
-              ← Volver al inicio
-            </Link>
-          </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border border-gray-100">
+            <h1 className="text-3xl font-bold text-gray-900 pl-3">
               Crea tu itinerario
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-8 pl-3">
               Cuéntanos sobre tu viaje y crearemos un itinerario personalizado para ti.
             </p>
 
@@ -227,11 +223,11 @@ export default function CreateItineraryPage() {
                   name="trip_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Destino del viaje</FormLabel>
+                      <FormLabel className="pl-3 pb-1 text-gray-800">Destino</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="p. ej., Europa, Japón, Nueva York"
-                          className="text-lg h-12 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="¿Donde quieres ir?"
+                          className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                           disabled={loading}
                           {...field}
                           onChange={(e) => {
@@ -254,16 +250,16 @@ export default function CreateItineraryPage() {
                   name="duration_days"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Duración del viaje (días)</FormLabel>
+                      <FormLabel className="pl-3 pb-1 text-gray-800">Duración</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           min="1"
                           max="30"
-                          placeholder="Ingresa la cantidad de días"
-                          className="text-lg h-12 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="¿Cuántos días?"
+                          className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                           disabled={loading}
-                          value={field.value || ''}
+                          // value={field.value || ''}
                           onChange={(e) => {
                             const value = e.target.value;
                             
@@ -300,7 +296,7 @@ export default function CreateItineraryPage() {
                   <button
                     type="button"
                     onClick={() => setMoreOpen(v => !v)}
-                    className="text-gray-800 font-medium flex items-center gap-2"
+                    className="text-gray-800 font-medium flex items-center gap-2 hover:underline"
                   >
                     {moreOpen ? '▾ Ver menos' : '▸ Ver más'}
                     <span className="text-sm text-gray-500">(responde tanto o tan poco como quieras)</span>
@@ -321,7 +317,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -350,7 +346,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -379,7 +375,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -408,7 +404,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -437,7 +433,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange([])}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -477,7 +473,7 @@ export default function CreateItineraryPage() {
                               <button
                                 type="button"
                                 onClick={() => field.onChange([])}
-                                className="text-sm text-gray-500 hover:underline"
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                               >
                                 limpiar
                               </button>
@@ -529,6 +525,7 @@ export default function CreateItineraryPage() {
                                 type="number"
                                 min="0"
                                 placeholder="Ej: 300"
+                                className="h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
                                 disabled={loading}
                                 value={field.value ?? ''}
                                 onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
@@ -572,6 +569,7 @@ export default function CreateItineraryPage() {
                             <Textarea
                               maxLength={250}
                               placeholder="Ej: Quiero más deportes acuáticos, o me gustaría usar un auto para moverme"
+                              className="rounded-2xl border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 min-h-28 placeholder:text-gray-400"
                               disabled={loading}
                               value={field.value ?? ''}
                               onChange={field.onChange}
@@ -598,7 +596,7 @@ export default function CreateItineraryPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60 py-3 transition-all duration-200"
+                  className="w-full h-14 rounded-full bg-sky-500 hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-70 text-white text-base font-semibold shadow-md transition"
                   size="lg"
                 >
                   {loading ? (
