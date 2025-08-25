@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
@@ -8,7 +8,7 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
-import { FloatingEditButton, Button } from '@/components';
+import { FloatingEditButton, Button, Input } from '@/components';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function ItineraryDetailsPage() {
@@ -19,6 +19,10 @@ export default function ItineraryDetailsPage() {
   const { clearChat } = useChatActions();
 
   const itineraryId = params.id as string;
+
+  // Mock state for accommodations per destination
+  const [accommodationsByDest, setAccommodationsByDest] = useState<string[][]>([]);
+  const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
 
   useEffect(() => {
     if (itineraryId) {
@@ -41,6 +45,21 @@ export default function ItineraryDetailsPage() {
       }
     };
   }, [isChatOpen, clearChat]);
+
+  // Seed one placeholder link per destination (mock)
+  useEffect(() => {
+    if (!currentItinerary?.details_itinerary?.destinos) {
+      setAccommodationsByDest([]);
+      setNewLinkByDest([]);
+      return;
+    }
+    const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
+      const q = encodeURIComponent(d.nombre_destino ?? '');
+      return [`https://www.booking.com/searchresults.html?ss=${q}`];
+    });
+    setAccommodationsByDest(seeded);
+    setNewLinkByDest(currentItinerary.details_itinerary.destinos.map(() => ''));
+  }, [currentItinerary]);
 
   if (loading) {
     return (
@@ -90,6 +109,28 @@ export default function ItineraryDetailsPage() {
   }
 
   const { details_itinerary } = currentItinerary;
+
+  const handleAddLink = (destIndex: number) => {
+    const url = (newLinkByDest[destIndex] || '').trim();
+    if (!url) return;
+    setAccommodationsByDest((prev) => {
+      const next = prev.map((arr) => [...arr]);
+      if (!next[destIndex]) next[destIndex] = [];
+      next[destIndex].push(url);
+      return next;
+    });
+    setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? '' : v)));
+  };
+
+  const handleDeleteLink = (destIndex: number, linkIndex: number) => {
+    setAccommodationsByDest((prev) => {
+      const next = prev.map((arr) => [...arr]);
+      if (next[destIndex]) {
+        next[destIndex].splice(linkIndex, 1);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -269,6 +310,62 @@ export default function ItineraryDetailsPage() {
                         </div>
                       </div>
 
+                      {/* Saved accommodations (mock) */}
+                      <div className="mt-6 pt-6 border-t border-gray-100">
+                        <div className="flex items-center gap-2 max-w-md">
+                          <Input
+                            placeholder="Pega un enlace de Airbnb, Booking o Expedia"
+                            value={newLinkByDest[idx] ?? ''}
+                            onChange={(e) =>
+                              setNewLinkByDest((prev) => prev.map((v, i) => (i === idx ? e.target.value : v)))
+                            }
+                            className="rounded-full"
+                          />
+                          <Button
+                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5"
+                            onClick={() => handleAddLink(idx)}
+                          >
+                            + Agregar
+                          </Button>
+                        </div>
+
+                        <ul className="mt-4 space-y-2">
+                          {(accommodationsByDest[idx] ?? []).map((link, linkIdx) => (
+                            <li key={`${idx}-${linkIdx}`} className="flex items-center justify-between gap-3 border border-gray-100 rounded-full px-4 py-2">
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sky-700 hover:text-sky-800 hover:underline truncate"
+                              >
+                                {link}
+                              </a>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full hover:bg-red-100"
+                                onClick={() => handleDeleteLink(idx, linkIdx)}
+                                aria-label="Eliminar alojamiento"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-gray-500 group-hover:text-red-600 transition-colors"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
+                                  />
+                                </svg>
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   ))}
                 </div>
