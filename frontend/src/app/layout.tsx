@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ItineraryProvider } from "@/contexts/ItineraryContext";
 import { ChatProvider } from "@/contexts/AgentContext";
 import { Navigation } from "@/components";
+import { __warnMissingApiBaseIfNeeded } from "@/lib/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Log in server console when the app renders and the env var is missing
+  __warnMissingApiBaseIfNeeded({ when: "onLoad" });
   return (
     <html lang="en">
       <body
@@ -35,9 +38,7 @@ export default function RootLayout({
           <ItineraryProvider>
             <ChatProvider>
               <Navigation />
-              <main>
-                {children}
-              </main>
+              <main>{children}</main>
             </ChatProvider>
           </ItineraryProvider>
         </AuthProvider>

@@ -10,7 +10,11 @@ import {
   refreshToken,
   clearTokens,
 } from "./authApi";
-import { API_BASE_URL, ROOT_BASE_URL } from "./config";
+import {
+  API_BASE_URL,
+  ROOT_BASE_URL,
+  __warnMissingApiBaseIfNeeded,
+} from "./config";
 
 // Generate a session ID if not exists
 export function getSessionId(): string {
@@ -50,6 +54,9 @@ function withBaseUrl(endpoint: string): string {
   const base = (isApiPath ? API_BASE_URL : ROOT_BASE_URL).replace(/\/$/, "");
 
   // Always use the full path - no stripping of /api
+  if (isApiPath) {
+    __warnMissingApiBaseIfNeeded({ when: "onApiCall" });
+  }
   return `${base}${path}`;
 }
 
