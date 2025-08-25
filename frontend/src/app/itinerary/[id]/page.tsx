@@ -109,6 +109,7 @@ export default function ItineraryDetailsPage() {
   }
 
   const { details_itinerary } = currentItinerary;
+  const hasMultipleDestinations = details_itinerary.destinos.length > 1;
 
   const handleAddLink = (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || '').trim();
@@ -179,8 +180,13 @@ export default function ItineraryDetailsPage() {
           <div>
             <Tabs defaultValue="itinerary">
               <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
+                {hasMultipleDestinations && (
+                  <TabsTrigger value="route" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                    Ruta
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Itinerario
+                  Actividades
                 </TabsTrigger>
                 <TabsTrigger value="transport" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
                   Transporte
@@ -227,6 +233,80 @@ export default function ItineraryDetailsPage() {
                   ))}
                 </div>
               </TabsContent>
+
+              {hasMultipleDestinations && (
+                <TabsContent value="route">
+                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+                      {/* Left: Destination steps */}
+                      <div className="md:col-span-2 space-y-5">
+                        {details_itinerary.destinos.map((dest, idx) => (
+                          <div key={`route-left-${idx}`} className="relative pl-8">
+                            {idx < details_itinerary.destinos.length - 1 && (
+                              <span className="absolute left-4 top-6 bottom-[-14px] w-px bg-sky-200"></span>
+                            )}
+                            <span className="absolute left-0 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-sm font-semibold shadow">
+                              {idx + 1}
+                            </span>
+                            <div className="flex items-baseline justify-between">
+                              <h3 className="text-lg font-semibold text-gray-900">{dest.nombre_destino}</h3>
+                              <span className="text-sm text-gray-600">{dest.cantidad_dias_en_destino} días</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Right: Mock map with route */}
+                      <div className="md:col-span-3">
+                        <div className="relative w-full h-80 md:h-[420px] rounded-2xl overflow-hidden border border-gray-100 shadow-inner">
+                          {/* Simple map-like background */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#d7f0ff] to-[#eaf7ff]" />
+                          <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'radial-gradient(#9bd2f7 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+                          {/* SVG route mock */}
+                          <svg viewBox="0 0 400 400" className="absolute inset-0 w-full h-full">
+                            <defs>
+                              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L6,3 z" fill="#0ea5e9" />
+                              </marker>
+                            </defs>
+                            {(() => {
+                              const count = details_itinerary.destinos.length;
+                              const points = details_itinerary.destinos.map((_, i) => {
+                                const x = 60 + (i * (280 / (count - 1)));
+                                const y = 110 + ((i % 2) * 120);
+                                return { x, y };
+                              });
+                              const path = points
+                                .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
+                                .join(' ');
+                              return (
+                                <g>
+                                  <path d={path} stroke="#0ea5e9" strokeWidth="3" fill="none" markerEnd="url(#arrow)" />
+                                  {points.map((p, i) => (
+                                    <g key={`pt-${i}`}>
+                                      <circle cx={p.x} cy={p.y} r="16" fill="#ffffff" stroke="#0ea5e9" strokeWidth="3" />
+                                      <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="12" fontWeight="700" fill="#0ea5e9">{i + 1}</text>
+                                    </g>
+                                  ))}
+                                </g>
+                              );
+                            })()}
+                          </svg>
+
+                          {/* Corner badges (mock controls) */}
+                          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur rounded-full px-3 py-1 text-sm font-medium text-gray-700 shadow">
+                            Mapa (mock)
+                          </div>
+                          <div className="absolute top-4 right-4">
+                            <button className="rounded-full bg-emerald-500 text-white text-sm px-3 py-1 shadow">Ver</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
