@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
@@ -10,6 +10,12 @@ import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
 import { FloatingEditButton, Button, Input } from '@/components';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -23,6 +29,20 @@ export default function ItineraryDetailsPage() {
   // Mock state for accommodations per destination
   const [accommodationsByDest, setAccommodationsByDest] = useState<string[][]>([]);
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
+  // Mock state for Route tab (destinations + days)
+  type RouteSegment = { name: string; days: number };
+  const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
+
+  // Compute mock map points for the Route tab
+  const routePoints = useMemo(() => {
+    const count = routeSegments.length;
+    if (count < 2) return [] as { x: number; y: number }[];
+    return routeSegments.map((_, i) => {
+      const x = 60 + (i * (280 / (count - 1)));
+      const y = 110 + ((i % 2) * 120);
+      return { x, y };
+    });
+  }, [routeSegments]);
 
   useEffect(() => {
     if (itineraryId) {
@@ -51,6 +71,7 @@ export default function ItineraryDetailsPage() {
     if (!currentItinerary?.details_itinerary?.destinos) {
       setAccommodationsByDest([]);
       setNewLinkByDest([]);
+      setRouteSegments([]);
       return;
     }
     const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
@@ -59,6 +80,13 @@ export default function ItineraryDetailsPage() {
     });
     setAccommodationsByDest(seeded);
     setNewLinkByDest(currentItinerary.details_itinerary.destinos.map(() => ''));
+    // Seed route segments from itinerary
+    setRouteSegments(
+      currentItinerary.details_itinerary.destinos.map((d) => ({
+        name: d.nombre_destino,
+        days: d.cantidad_dias_en_destino,
+      }))
+    );
   }, [currentItinerary]);
 
   if (loading) {
@@ -110,6 +138,46 @@ export default function ItineraryDetailsPage() {
 
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
+
+  // Actions for Route tab (mock)
+  const incrementDays = (index: number) =>
+    setRouteSegments((prev) => prev.map((s, i) => (i === index ? { ...s, days: s.days + 1 } : s)));
+  const decrementDaysOrDelete = (index: number) =>
+    setRouteSegments((prev) => {
+      const copy = [...prev];
+      const seg = copy[index];
+      if (!seg) return prev;
+      if (seg.days <= 1) {
+        copy.splice(index, 1);
+        return copy;
+      }
+      copy[index] = { ...seg, days: seg.days - 1 };
+      return copy;
+    });
+  const moveUp = (index: number) =>
+    setRouteSegments((prev) => {
+      if (index <= 0) return prev;
+      const copy = [...prev];
+      const tmp = copy[index - 1];
+      copy[index - 1] = copy[index];
+      copy[index] = tmp;
+      return copy;
+    });
+  const moveDown = (index: number) =>
+    setRouteSegments((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const copy = [...prev];
+      const tmp = copy[index + 1];
+      copy[index + 1] = copy[index];
+      copy[index] = tmp;
+      return copy;
+    });
+  const addNewDestination = () =>
+    setRouteSegments((prev) => [...prev, { name: 'Nuevo destino', days: 2 }]);
+  const removeDestination = (index: number) =>
+    setRouteSegments((prev) => prev.filter((_, i) => i !== index));
+
+  
 
   const handleAddLink = (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || '').trim();
@@ -240,20 +308,75 @@ export default function ItineraryDetailsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                       {/* Left: Destination steps */}
                       <div className="md:col-span-2 space-y-5">
-                        {details_itinerary.destinos.map((dest, idx) => (
+                        {routeSegments.map((seg, idx) => (
                           <div key={`route-left-${idx}`} className="relative pl-8">
-                            {idx < details_itinerary.destinos.length - 1 && (
+                            {idx < routeSegments.length - 1 && (
                               <span className="absolute left-4 top-6 bottom-[-14px] w-px bg-sky-200"></span>
                             )}
-                            <span className="absolute left-0 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-sky-500 text-white text-sm font-semibold shadow">
+                            <div className="absolute left-0 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
                               {idx + 1}
-                            </span>
-                            <div className="flex items-baseline justify-between">
-                              <h3 className="text-lg font-semibold text-gray-900">{dest.nombre_destino}</h3>
-                              <span className="text-sm text-gray-600">{dest.cantidad_dias_en_destino} días</span>
+                            </div>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="cursor-grab text-gray-400 mr-1" title="Reordenar">
+                                    {/* Drag handle icon (3 lines) */}
+                                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M5 6h10M5 10h10M5 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                  </div>
+                                  <h3 className="text-lg font-semibold text-gray-900">{seg.name}</h3>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {/* subtract/delete */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-full"
+                                  onClick={() => decrementDaysOrDelete(idx)}
+                                  aria-label={seg.days <= 1 ? 'Eliminar destino' : 'Restar día'}
+                                >
+                                  {seg.days <= 1 ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                                    </svg>
+                                  )}
+                                </Button>
+                                {/* days */}
+                                <div>
+                                  <div className="text-xl font-semibold w-8 text-center">{seg.days}</div>
+                                  <div className="text-gray-500 text-sm">días</div>
+                                </div>
+                                {/* add */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-full"
+                                  onClick={() => incrementDays(idx)}
+                                  aria-label="Sumar día"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                                  </svg>
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))}
+                        {/* Add new destination row */}
+                        <button
+                          onClick={addNewDestination}
+                          className="relative pl-8 w-full text-left py-3 border-t border-gray-100 hover:bg-sky-50 rounded-xl"
+                        >
+                          <div className="absolute left-0 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border-2 border-sky-400 text-sm font-semibold shadow">+
+                          </div>
+                          <span className="ml-2 text-sky-700 font-medium">Agregar destino</span>
+                        </button>
                       </div>
 
                       {/* Right: Mock map with route */}
@@ -270,28 +393,17 @@ export default function ItineraryDetailsPage() {
                                 <path d="M0,0 L0,6 L6,3 z" fill="#0ea5e9" />
                               </marker>
                             </defs>
-                            {(() => {
-                              const count = details_itinerary.destinos.length;
-                              const points = details_itinerary.destinos.map((_, i) => {
-                                const x = 60 + (i * (280 / (count - 1)));
-                                const y = 110 + ((i % 2) * 120);
-                                return { x, y };
-                              });
-                              const path = points
-                                .map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`))
-                                .join(' ');
-                              return (
-                                <g>
-                                  <path d={path} stroke="#0ea5e9" strokeWidth="3" fill="none" markerEnd="url(#arrow)" />
-                                  {points.map((p, i) => (
-                                    <g key={`pt-${i}`}>
-                                      <circle cx={p.x} cy={p.y} r="16" fill="#ffffff" stroke="#0ea5e9" strokeWidth="3" />
-                                      <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="12" fontWeight="700" fill="#0ea5e9">{i + 1}</text>
-                                    </g>
-                                  ))}
-                                </g>
-                              );
-                            })()}
+                            {routePoints.length >= 2 && (
+                              <g>
+                                <path d={routePoints.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ')} stroke="#0ea5e9" strokeWidth="3" fill="none" markerEnd="url(#arrow)" />
+                                {routePoints.map((p, i) => (
+                                  <g key={`pt-${i}`}>
+                                    <circle cx={p.x} cy={p.y} r="16" fill="#ffffff" stroke="#0ea5e9" strokeWidth="3" />
+                                    <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="12" fontWeight="700" fill="#0ea5e9">{i + 1}</text>
+                                  </g>
+                                ))}
+                              </g>
+                            )}
                           </svg>
 
                           {/* Corner badges (mock controls) */}
