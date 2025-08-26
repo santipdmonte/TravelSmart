@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
@@ -8,17 +8,13 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
+import { apiRequest } from '@/lib/api';
 import { FloatingEditButton, Button, Input } from '@/components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { CalendarIcon } from 'lucide-react';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -35,11 +31,17 @@ export default function ItineraryDetailsPage() {
   // Mock state for Route tab (destinations + days)
   type RouteSegment = { name: string; days: number };
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isAddDestOpen, setIsAddDestOpen] = useState<boolean>(false);
   const [newDestName, setNewDestName] = useState<string>('');
   const [newDestDays, setNewDestDays] = useState<number>(2);
+  const [activeTab, setActiveTab] = useState<string>('itinerary');
+  const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
+  const [tripStartDate, setTripStartDate] = useState<string>('');
+  const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
+  const [savingTripDetails, setSavingTripDetails] = useState<boolean>(false);
+  const [accommodationLinks, setAccommodationLinks] = useState<Record<string, { airbnb: string; booking: string; expedia: string }>>({});
+  const [loadingAccommodationLinks, setLoadingAccommodationLinks] = useState<boolean>(false);
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -96,6 +98,27 @@ export default function ItineraryDetailsPage() {
       }))
     );
   }, [currentItinerary]);
+
+  // Fetch accommodation links from backend for 'stays' tab
+  const fetchAccommodationLinks = useCallback(async () => {
+    if (!itineraryId) return;
+    if (!currentItinerary?.start_date || !currentItinerary?.travelers_count) return;
+    try {
+      setLoadingAccommodationLinks(true);
+      const res = await apiRequest<Record<string, { airbnb: string; booking: string; expedia: string }>>(
+        `/api/itineraries/${itineraryId}/accommodations/links`
+      );
+      if (res.data) {
+        setAccommodationLinks(res.data);
+      }
+    } finally {
+      setLoadingAccommodationLinks(false);
+    }
+  }, [itineraryId, currentItinerary?.start_date, currentItinerary?.travelers_count]);
+
+  useEffect(() => {
+    fetchAccommodationLinks();
+  }, [fetchAccommodationLinks]);
 
   if (loading) {
     return (
@@ -162,28 +185,7 @@ export default function ItineraryDetailsPage() {
       copy[index] = { ...seg, days: seg.days - 1 };
       return copy;
     });
-  const moveUp = (index: number) =>
-    setRouteSegments((prev) => {
-      if (index <= 0) return prev;
-      const copy = [...prev];
-      const tmp = copy[index - 1];
-      copy[index - 1] = copy[index];
-      copy[index] = tmp;
-      return copy;
-    });
-  const moveDown = (index: number) =>
-    setRouteSegments((prev) => {
-      if (index >= prev.length - 1) return prev;
-      const copy = [...prev];
-      const tmp = copy[index + 1];
-      copy[index + 1] = copy[index];
-      copy[index] = tmp;
-      return copy;
-    });
-  const addNewDestination = () =>
-    setRouteSegments((prev) => [...prev, { name: 'Nuevo destino', days: 2 }]);
-  const removeDestination = (index: number) =>
-    setRouteSegments((prev) => prev.filter((_, i) => i !== index));
+  // Removed unused route reordering/add/remove helpers
 
   const handleConfirmAddDestination = () => {
     const name = newDestName.trim();
@@ -204,7 +206,6 @@ export default function ItineraryDetailsPage() {
   ) => {
     e.dataTransfer.setData('text/plain', String(index));
     e.dataTransfer.effectAllowed = 'move';
-    setDraggingIndex(index);
   };
 
   const onDragOver = (
@@ -226,7 +227,6 @@ export default function ItineraryDetailsPage() {
     const fromIndexString = e.dataTransfer.getData('text/plain');
     const fromIndex = parseInt(fromIndexString, 10);
     setDragOverIndex(null);
-    setDraggingIndex(null);
     if (Number.isNaN(fromIndex) || fromIndex === index) return;
     setRouteSegments((prev) => {
       const updated = [...prev];
@@ -238,7 +238,6 @@ export default function ItineraryDetailsPage() {
 
   const onDragEnd = () => {
     setDragOverIndex(null);
-    setDraggingIndex(null);
   };
 
   const handleAddLink = (destIndex: number) => {
@@ -277,7 +276,12 @@ export default function ItineraryDetailsPage() {
                   {details_itinerary.nombre_viaje}
                 </h1>
                 <p className="text-gray-700">
-                  {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} días
+                  {details_itinerary.destino_general} 
+                  {currentItinerary.start_date ? ` • ${new Date(currentItinerary.start_date).toLocaleDateString()} (${details_itinerary.cantidad_dias} días)` : 
+                  ` • ${details_itinerary.cantidad_dias} días`}
+                  {typeof currentItinerary.travelers_count === 'number' && currentItinerary.travelers_count > 0
+                    ? ` • ${currentItinerary.travelers_count} viajero${currentItinerary.travelers_count > 1 ? 's' : ''}`
+                    : ''}
                 </p>
               </div>
             </div>
@@ -288,23 +292,46 @@ export default function ItineraryDetailsPage() {
 
           {/* Tabs mockup */}
           <div>
-            <Tabs defaultValue="itinerary">
-              <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
-                {hasMultipleDestinations && (
-                  <TabsTrigger value="route" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                    Ruta
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Actividades
-                </TabsTrigger>
-                <TabsTrigger value="transport" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Transporte
-                </TabsTrigger>
-                <TabsTrigger value="stays" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Alojamientos
-                </TabsTrigger>
-              </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="flex justify-between">
+                <div>
+                  <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
+                    {hasMultipleDestinations && (
+                      <TabsTrigger value="route" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                        Ruta
+                      </TabsTrigger>
+                    )}
+                    <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Actividades
+                    </TabsTrigger>
+                    <TabsTrigger value="transport" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Transporte
+                    </TabsTrigger>
+                    <TabsTrigger value="stays" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Alojamientos
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <div className="flex items-center">
+                  {activeTab === 'stays' && (
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={() => {
+                        setTripStartDate(
+                          currentItinerary.start_date
+                            ? new Date(currentItinerary.start_date).toISOString().slice(0, 10)
+                            : ''
+                        );
+                        setTripTravelersCount(currentItinerary.travelers_count ?? 1);
+                        setIsTripDetailsOpen(true);
+                      }}
+                    >
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {currentItinerary.start_date ? 'Modificar fecha viaje' : 'Agregar fecha viaje'}
+                    </Button>
+                  )}
+                </div>
+              </div>
 
               <TabsContent value="itinerary">
                 {/* Destinations */}
@@ -527,6 +554,72 @@ export default function ItineraryDetailsPage() {
                 </DialogContent>
               </Dialog>
 
+              {/* Trip details modal: start date and travelers */}
+              <Dialog open={isTripDetailsOpen} onOpenChange={setIsTripDetailsOpen}>
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>{currentItinerary.start_date ? 'Modificar viaje' : 'Agregar fecha y personas'}</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="trip-start-date">Fecha de inicio</Label>
+                      <Input
+                        id="trip-start-date"
+                        type="date"
+                        value={tripStartDate}
+                        onChange={(e) => setTripStartDate(e.target.value)}
+                        className="rounded-full"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="trip-travelers">Cantidad de personas</Label>
+                      <Input
+                        id="trip-travelers"
+                        type="number"
+                        min={1}
+                        value={tripTravelersCount}
+                        onChange={(e) => setTripTravelersCount(Math.max(1, parseInt(e.target.value || '1', 10)))}
+                        className="rounded-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => setIsTripDetailsOpen(false)}
+                      disabled={savingTripDetails}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={async () => {
+                        if (!tripStartDate) return;
+                        try {
+                          setSavingTripDetails(true);
+                          const payload = {
+                            start_date: tripStartDate, // ISO 8601 date-only
+                            travelers_count: tripTravelersCount,
+                          };
+                          await apiRequest(`/api/itineraries/${itineraryId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(payload),
+                          });
+                          await fetchItinerary(itineraryId);
+                          setIsTripDetailsOpen(false);
+                        } finally {
+                          setSavingTripDetails(false);
+                        }
+                      }}
+                      disabled={!tripStartDate || savingTripDetails}
+                    >
+                      {savingTripDetails ? 'Guardando...' : 'Guardar'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
@@ -560,12 +653,15 @@ export default function ItineraryDetailsPage() {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
                           <h2 className="text-2xl font-bold text-gray-900">{dest.nombre_destino}</h2>
-                          <p className="text-gray-700 ml-1">• dd/mm/aaaa - dd/mm/aaaa (dd días)</p>
+                          <p className="text-gray-700 ml-1">• {dest.cantidad_dias_en_destino} días</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
+                          {loadingAccommodationLinks && (
+                            <span className="text-sm text-gray-600">Generando enlaces...</span>
+                          )}
                           <a
-                            href="https://www.airbnb.com"
+                            href={accommodationLinks[dest.nombre_destino]?.airbnb ?? 'https://www.airbnb.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
@@ -580,7 +676,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href="https://www.booking.com"
+                            href={accommodationLinks[dest.nombre_destino]?.booking ?? 'https://www.booking.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
@@ -594,7 +690,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href="https://www.expedia.com"
+                            href={accommodationLinks[dest.nombre_destino]?.expedia ?? 'https://www.expedia.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
