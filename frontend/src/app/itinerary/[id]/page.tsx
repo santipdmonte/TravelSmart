@@ -8,6 +8,7 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
+import { apiRequest } from '@/lib/api';
 import { FloatingEditButton, Button, Input } from '@/components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -36,6 +37,10 @@ export default function ItineraryDetailsPage() {
   const [newDestName, setNewDestName] = useState<string>('');
   const [newDestDays, setNewDestDays] = useState<number>(2);
   const [activeTab, setActiveTab] = useState<string>('itinerary');
+  const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
+  const [tripStartDate, setTripStartDate] = useState<string>('');
+  const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
+  const [savingTripDetails, setSavingTripDetails] = useState<boolean>(false);
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -306,7 +311,18 @@ export default function ItineraryDetailsPage() {
                 </div>
                 <div className="flex items-center">
                   {activeTab === 'stays' && (
-                    <Button className="rounded-full bg-sky-500 hover:bg-sky-700">
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={() => {
+                        setTripStartDate(
+                          currentItinerary.start_date
+                            ? new Date(currentItinerary.start_date).toISOString().slice(0, 10)
+                            : ''
+                        );
+                        setTripTravelersCount(currentItinerary.travelers_count ?? 1);
+                        setIsTripDetailsOpen(true);
+                      }}
+                    >
                       <CalendarIcon className="w-4 h-4 mr-2" />
                       {currentItinerary.start_date ? 'Modificar fecha viaje' : 'Agregar fecha viaje'}
                     </Button>
@@ -530,6 +546,72 @@ export default function ItineraryDetailsPage() {
                       disabled={!newDestName.trim()}
                     >
                       Agregar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Trip details modal: start date and travelers */}
+              <Dialog open={isTripDetailsOpen} onOpenChange={setIsTripDetailsOpen}>
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>{currentItinerary.start_date ? 'Modificar viaje' : 'Agregar fecha y personas'}</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="trip-start-date">Fecha de inicio</Label>
+                      <Input
+                        id="trip-start-date"
+                        type="date"
+                        value={tripStartDate}
+                        onChange={(e) => setTripStartDate(e.target.value)}
+                        className="rounded-full"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="trip-travelers">Cantidad de personas</Label>
+                      <Input
+                        id="trip-travelers"
+                        type="number"
+                        min={1}
+                        value={tripTravelersCount}
+                        onChange={(e) => setTripTravelersCount(Math.max(1, parseInt(e.target.value || '1', 10)))}
+                        className="rounded-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => setIsTripDetailsOpen(false)}
+                      disabled={savingTripDetails}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={async () => {
+                        if (!tripStartDate) return;
+                        try {
+                          setSavingTripDetails(true);
+                          const payload = {
+                            start_date: tripStartDate, // ISO 8601 date-only
+                            travelers_count: tripTravelersCount,
+                          };
+                          await apiRequest(`/api/itineraries/${itineraryId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(payload),
+                          });
+                          await fetchItinerary(itineraryId);
+                          setIsTripDetailsOpen(false);
+                        } finally {
+                          setSavingTripDetails(false);
+                        }
+                      }}
+                      disabled={!tripStartDate || savingTripDetails}
+                    >
+                      {savingTripDetails ? 'Guardando...' : 'Guardar'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
