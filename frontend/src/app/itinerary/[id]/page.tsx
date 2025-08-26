@@ -276,7 +276,9 @@ export default function ItineraryDetailsPage() {
                   {details_itinerary.nombre_viaje}
                 </h1>
                 <p className="text-gray-700">
-                  {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} días
+                  {details_itinerary.destino_general} 
+                  {currentItinerary.start_date ? ` • ${new Date(currentItinerary.start_date).toLocaleDateString()} (${details_itinerary.cantidad_dias} días)` : 
+                  ` • ${details_itinerary.cantidad_dias} días`}
                   {typeof currentItinerary.travelers_count === 'number' && currentItinerary.travelers_count > 0
                     ? ` • ${currentItinerary.travelers_count} viajero${currentItinerary.travelers_count > 1 ? 's' : ''}`
                     : ''}
