@@ -309,24 +309,28 @@ export default function ItineraryDetailsPage() {
                       {/* Left: Destination steps */}
                       <div className="md:col-span-2 space-y-5">
                         {routeSegments.map((seg, idx) => (
-                          <div key={`route-left-${idx}`} className="relative pl-16 border border-red-500">
-                            {idx < routeSegments.length - 1 && (
-                              <span className="absolute left-10 top-6 bottom-[-14px] w-px bg-sky-200"></span>
-                            )}
-                            {/* Drag handle to the left */}
-                            <div className="absolute left-0 top-1 text-gray-400 cursor-grab" title="Reordenar">
-                              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 6h10M5 10h10M5 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                              </svg>
-                            </div>
-                            {/* Step number */}
-                            <div className="absolute left-6 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
-                              {idx + 1}
-                            </div>
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1">
+                          <div key={`route-left-${idx}`} className="flex justify-between gap-2">
+                            
+                            <div className="flex items-center gap-2">
+                              {/* {idx < routeSegments.length - 1 && (
+                                <span className="absolute left-10 top-6 bottom-[-14px] w-px bg-sky-200"></span>
+                              )} */}
+                              {/* Drag handle to the left */}
+                              <div className="text-gray-400 cursor-grab" title="Reordenar">
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M5 6h10M5 10h10M5 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                              </div>
+                              {/* Step number */}
+                              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1 pl-1">
                                 <h3 className="text-lg font-semibold text-gray-900">{seg.name}</h3>
                               </div>
+                            </div>
+
+                            <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-2">
                                 {/* subtract/delete */}
                                 <Button
@@ -367,12 +371,15 @@ export default function ItineraryDetailsPage() {
                             </div>
                           </div>
                         ))}
+
                         {/* Add new destination row */}
-                        <button onClick={addNewDestination} className="relative pl-16 w-full text-left py-3 hover:bg-sky-50 rounded-xl">
+                        <button onClick={addNewDestination} className="flex pl-6 w-full text-left py-3 hover:bg-sky-50 rounded-xl">
                           {/* Plus circle in the step position */}
                           <div className="flex items-center gap-2">
-                          <div className="absolute left-6 top-1 inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">+</div>
-                            <h3 className="text-sky-700 font-semibold">Agregar destino</h3>
+                            <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
+                                +
+                            </div>
+                            <h3 className="text-sky-700 font-semibold pl-1">Agregar destino</h3>
                           </div>
                         </button>
                       </div>
