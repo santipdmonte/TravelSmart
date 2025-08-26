@@ -11,6 +11,7 @@ import { ChatPanel } from '@/components/chat';
 import { FloatingEditButton, Button, Input } from '@/components';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -278,21 +279,19 @@ export default function ItineraryDetailsPage() {
           </div>
 
           {/* Itinerary Header */}
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mb-8">
+          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-8 relative">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {details_itinerary.nombre_viaje}
                 </h1>
-                <p className="text-gray-700 mb-4">
+                <p className="text-gray-700">
                   {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} días
                 </p>
-                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                  <span>Estado: {currentItinerary.status}</span>
-                  <span>•</span>
-                  <span>Creado: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
-                </div>
               </div>
+            </div>
+            <div className="absolute top-6 right-6">
+              <Badge className="rounded-full capitalize">{currentItinerary.status}</Badge>
             </div>
           </div>
 
