@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -86,7 +86,7 @@ const FOOD_PREF_LABELS: Record<typeof FOOD_PREFS[number], string> = {
 };
 
 // Simple chip button
-function Chip({ active, children, onClick }: { active: boolean; children: any; onClick: () => void; }) {
+function Chip({ active, children, onClick }: { active: boolean; children: ReactNode; onClick: () => void; }) {
   return (
     <button
       type="button"
@@ -166,23 +166,22 @@ export default function CreateItineraryPage() {
       }
       // Clean optional preferences (remove empty values)
       const prefs = data.preferences || {};
-      const cleanedEntries = Object.entries(prefs).filter(([_, v]) => {
+      const cleanedEntries = Object.entries(prefs).filter(([, v]) => {
         if (v === undefined || v === null) return false;
         if (Array.isArray(v)) return v.length > 0;
         if (typeof v === 'string') return v.trim().length > 0;
         return true;
       });
-      const cleanedPreferences = cleanedEntries.reduce((acc, [k, v]) => {
+      const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>((acc, [k, v]) => {
         // preserve values as is
-        // @ts-ignore - dynamic index
-        acc[k] = v;
+        (acc as Record<string, unknown>)[k] = v as unknown;
         return acc;
-      }, {} as Record<string, any>);
+      }, {});
 
       const request: GenerateItineraryRequest = {
         trip_name: data.trip_name,
         duration_days: data.duration_days,
-        ...(Object.keys(cleanedPreferences).length ? { preferences: cleanedPreferences as any } : {}),
+        ...(Object.keys(cleanedPreferences).length ? { preferences: cleanedPreferences } : {}),
       };
 
       const itinerary = await createItinerary(request);
@@ -448,7 +447,11 @@ export default function CreateItineraryPage() {
                                   active={active}
                                   onClick={() => {
                                     const set = new Set(field.value ?? []);
-                                    active ? set.delete(key) : set.add(key);
+                                    if (active) {
+                                      set.delete(key);
+                                    } else {
+                                      set.add(key);
+                                    }
                                     field.onChange(Array.from(set));
                                   }}
                                 >
@@ -488,7 +491,11 @@ export default function CreateItineraryPage() {
                                   active={active}
                                   onClick={() => {
                                     const set = new Set(field.value ?? []);
-                                    active ? set.delete(key) : set.add(key);
+                                    if (active) {
+                                      set.delete(key);
+                                    } else {
+                                      set.add(key);
+                                    }
                                     field.onChange(Array.from(set));
                                   }}
                                 >

@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Settings, LogOut, MapPin, TrendingUp, Shield } from 'lucide-react';
+import { User, Settings, LogOut, MapPin, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {

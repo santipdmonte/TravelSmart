@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth as useAuthContext } from "@/contexts/AuthContext";
-import { LoginRequest, RegisterRequest } from "@/types/auth";
+// import { LoginRequest, RegisterRequest } from "@/types/auth";
 
 /**
  * Convenient hook for authentication operations
