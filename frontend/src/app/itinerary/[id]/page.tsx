@@ -117,10 +117,8 @@ export default function ItineraryDetailsPage() {
   }, [itineraryId, currentItinerary?.start_date, currentItinerary?.travelers_count]);
 
   useEffect(() => {
-    if (activeTab === 'stays') {
-      fetchAccommodationLinks();
-    }
-  }, [activeTab, fetchAccommodationLinks]);
+    fetchAccommodationLinks();
+  }, [fetchAccommodationLinks]);
 
   if (loading) {
     return (
@@ -604,7 +602,6 @@ export default function ItineraryDetailsPage() {
                             body: JSON.stringify(payload),
                           });
                           await fetchItinerary(itineraryId);
-                          await fetchAccommodationLinks();
                           setIsTripDetailsOpen(false);
                         } finally {
                           setSavingTripDetails(false);
