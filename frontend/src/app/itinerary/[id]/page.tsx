@@ -9,6 +9,8 @@ import { useChat } from '@/contexts/AgentContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatPanel } from '@/components/chat';
 import { FloatingEditButton, Button, Input } from '@/components';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -34,6 +36,9 @@ export default function ItineraryDetailsPage() {
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [isAddDestOpen, setIsAddDestOpen] = useState<boolean>(false);
+  const [newDestName, setNewDestName] = useState<string>('');
+  const [newDestDays, setNewDestDays] = useState<number>(2);
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -178,6 +183,17 @@ export default function ItineraryDetailsPage() {
     setRouteSegments((prev) => [...prev, { name: 'Nuevo destino', days: 2 }]);
   const removeDestination = (index: number) =>
     setRouteSegments((prev) => prev.filter((_, i) => i !== index));
+
+  const handleConfirmAddDestination = () => {
+    const name = newDestName.trim();
+    const daysParsed = Number(newDestDays);
+    const days = Number.isFinite(daysParsed) && daysParsed > 0 ? Math.floor(daysParsed) : 1;
+    if (!name) return;
+    setRouteSegments((prev) => [...prev, { name, days }]);
+    setNewDestName('');
+    setNewDestDays(2);
+    setIsAddDestOpen(false);
+  };
 
   
   // DnD handlers for reordering route segments (native HTML5)
@@ -430,7 +446,7 @@ export default function ItineraryDetailsPage() {
                         ))}
 
                         {/* Add new destination row */}
-                        <button onClick={addNewDestination} className="flex pl-6 w-full text-left py-3 hover:bg-sky-50 rounded-xl">
+                        <button onClick={() => setIsAddDestOpen(true)} className="flex pl-6 w-full text-left py-3 hover:bg-sky-50 rounded-xl">
                           {/* Plus circle in the step position */}
                           <div className="flex items-center gap-2">
                             <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
@@ -481,6 +497,54 @@ export default function ItineraryDetailsPage() {
                   </div>
                 </TabsContent>
               )}
+
+              {/* Add Destination Modal */}
+              <Dialog open={isAddDestOpen} onOpenChange={setIsAddDestOpen}>
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>Agregar nuevo destino</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="new-dest-name">Nombre del destino</Label>
+                      <Input
+                        id="new-dest-name"
+                        value={newDestName}
+                        onChange={(e) => setNewDestName(e.target.value)}
+                        placeholder="Ej: Barcelona"
+                        className="rounded-full"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="new-dest-days">Días</Label>
+                      <Input
+                        id="new-dest-days"
+                        type="number"
+                        min={1}
+                        value={newDestDays}
+                        onChange={(e) => setNewDestDays(parseInt(e.target.value || '1', 10))}
+                        className="rounded-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => setIsAddDestOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={handleConfirmAddDestination}
+                      disabled={!newDestName.trim()}
+                    >
+                      Agregar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
