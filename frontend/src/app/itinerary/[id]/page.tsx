@@ -13,12 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { CalendarIcon } from 'lucide-react';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -40,6 +35,7 @@ export default function ItineraryDetailsPage() {
   const [isAddDestOpen, setIsAddDestOpen] = useState<boolean>(false);
   const [newDestName, setNewDestName] = useState<string>('');
   const [newDestDays, setNewDestDays] = useState<number>(2);
+  const [activeTab, setActiveTab] = useState<string>('itinerary');
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -288,23 +284,35 @@ export default function ItineraryDetailsPage() {
 
           {/* Tabs mockup */}
           <div>
-            <Tabs defaultValue="itinerary">
-              <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
-                {hasMultipleDestinations && (
-                  <TabsTrigger value="route" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                    Ruta
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Actividades
-                </TabsTrigger>
-                <TabsTrigger value="transport" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Transporte
-                </TabsTrigger>
-                <TabsTrigger value="stays" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
-                  Alojamientos
-                </TabsTrigger>
-              </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="flex justify-between">
+                <div>
+                  <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
+                    {hasMultipleDestinations && (
+                      <TabsTrigger value="route" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                        Ruta
+                      </TabsTrigger>
+                    )}
+                    <TabsTrigger value="itinerary" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Actividades
+                    </TabsTrigger>
+                    <TabsTrigger value="transport" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Transporte
+                    </TabsTrigger>
+                    <TabsTrigger value="stays" className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700">
+                      Alojamientos
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <div className="flex items-center">
+                  {activeTab === 'stays' && (
+                    <Button className="rounded-full bg-sky-500 hover:bg-sky-700">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {currentItinerary.start_date ? 'Modificar fecha viaje' : 'Agregar fecha viaje'}
+                    </Button>
+                  )}
+                </div>
+              </div>
 
               <TabsContent value="itinerary">
                 {/* Destinations */}
