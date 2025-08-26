@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
@@ -31,7 +31,6 @@ export default function ItineraryDetailsPage() {
   // Mock state for Route tab (destinations + days)
   type RouteSegment = { name: string; days: number };
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isAddDestOpen, setIsAddDestOpen] = useState<boolean>(false);
   const [newDestName, setNewDestName] = useState<string>('');
@@ -41,6 +40,8 @@ export default function ItineraryDetailsPage() {
   const [tripStartDate, setTripStartDate] = useState<string>('');
   const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
   const [savingTripDetails, setSavingTripDetails] = useState<boolean>(false);
+  const [accommodationLinks, setAccommodationLinks] = useState<Record<string, { airbnb: string; booking: string; expedia: string }>>({});
+  const [loadingAccommodationLinks, setLoadingAccommodationLinks] = useState<boolean>(false);
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -97,6 +98,29 @@ export default function ItineraryDetailsPage() {
       }))
     );
   }, [currentItinerary]);
+
+  // Fetch accommodation links from backend for 'stays' tab
+  const fetchAccommodationLinks = useCallback(async () => {
+    if (!itineraryId) return;
+    if (!currentItinerary?.start_date || !currentItinerary?.travelers_count) return;
+    try {
+      setLoadingAccommodationLinks(true);
+      const res = await apiRequest<Record<string, { airbnb: string; booking: string; expedia: string }>>(
+        `/api/itineraries/${itineraryId}/accommodations/links`
+      );
+      if (res.data) {
+        setAccommodationLinks(res.data);
+      }
+    } finally {
+      setLoadingAccommodationLinks(false);
+    }
+  }, [itineraryId, currentItinerary?.start_date, currentItinerary?.travelers_count]);
+
+  useEffect(() => {
+    if (activeTab === 'stays') {
+      fetchAccommodationLinks();
+    }
+  }, [activeTab, fetchAccommodationLinks]);
 
   if (loading) {
     return (
@@ -163,28 +187,7 @@ export default function ItineraryDetailsPage() {
       copy[index] = { ...seg, days: seg.days - 1 };
       return copy;
     });
-  const moveUp = (index: number) =>
-    setRouteSegments((prev) => {
-      if (index <= 0) return prev;
-      const copy = [...prev];
-      const tmp = copy[index - 1];
-      copy[index - 1] = copy[index];
-      copy[index] = tmp;
-      return copy;
-    });
-  const moveDown = (index: number) =>
-    setRouteSegments((prev) => {
-      if (index >= prev.length - 1) return prev;
-      const copy = [...prev];
-      const tmp = copy[index + 1];
-      copy[index + 1] = copy[index];
-      copy[index] = tmp;
-      return copy;
-    });
-  const addNewDestination = () =>
-    setRouteSegments((prev) => [...prev, { name: 'Nuevo destino', days: 2 }]);
-  const removeDestination = (index: number) =>
-    setRouteSegments((prev) => prev.filter((_, i) => i !== index));
+  // Removed unused route reordering/add/remove helpers
 
   const handleConfirmAddDestination = () => {
     const name = newDestName.trim();
@@ -205,7 +208,6 @@ export default function ItineraryDetailsPage() {
   ) => {
     e.dataTransfer.setData('text/plain', String(index));
     e.dataTransfer.effectAllowed = 'move';
-    setDraggingIndex(index);
   };
 
   const onDragOver = (
@@ -227,7 +229,6 @@ export default function ItineraryDetailsPage() {
     const fromIndexString = e.dataTransfer.getData('text/plain');
     const fromIndex = parseInt(fromIndexString, 10);
     setDragOverIndex(null);
-    setDraggingIndex(null);
     if (Number.isNaN(fromIndex) || fromIndex === index) return;
     setRouteSegments((prev) => {
       const updated = [...prev];
@@ -239,7 +240,6 @@ export default function ItineraryDetailsPage() {
 
   const onDragEnd = () => {
     setDragOverIndex(null);
-    setDraggingIndex(null);
   };
 
   const handleAddLink = (destIndex: number) => {
@@ -604,6 +604,7 @@ export default function ItineraryDetailsPage() {
                             body: JSON.stringify(payload),
                           });
                           await fetchItinerary(itineraryId);
+                          await fetchAccommodationLinks();
                           setIsTripDetailsOpen(false);
                         } finally {
                           setSavingTripDetails(false);
@@ -654,8 +655,11 @@ export default function ItineraryDetailsPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
+                          {loadingAccommodationLinks && (
+                            <span className="text-sm text-gray-600">Generando enlaces...</span>
+                          )}
                           <a
-                            href="https://www.airbnb.com"
+                            href={accommodationLinks[dest.nombre_destino]?.airbnb ?? 'https://www.airbnb.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
@@ -670,7 +674,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href="https://www.booking.com"
+                            href={accommodationLinks[dest.nombre_destino]?.booking ?? 'https://www.booking.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
@@ -684,7 +688,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href="https://www.expedia.com"
+                            href={accommodationLinks[dest.nombre_destino]?.expedia ?? 'https://www.expedia.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
