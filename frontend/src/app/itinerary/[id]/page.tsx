@@ -32,6 +32,8 @@ export default function ItineraryDetailsPage() {
   // Mock state for Route tab (destinations + days)
   type RouteSegment = { name: string; days: number };
   const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Compute mock map points for the Route tab
   const routePoints = useMemo(() => {
@@ -178,6 +180,49 @@ export default function ItineraryDetailsPage() {
     setRouteSegments((prev) => prev.filter((_, i) => i !== index));
 
   
+  // DnD handlers for reordering route segments (native HTML5)
+  const onDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    index: number
+  ) => {
+    e.dataTransfer.setData('text/plain', String(index));
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingIndex(index);
+  };
+
+  const onDragOver = (
+    e: React.DragEvent<HTMLDivElement>,
+    index: number
+  ) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const onDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    index: number
+  ) => {
+    e.preventDefault();
+    const fromIndexString = e.dataTransfer.getData('text/plain');
+    const fromIndex = parseInt(fromIndexString, 10);
+    setDragOverIndex(null);
+    setDraggingIndex(null);
+    if (Number.isNaN(fromIndex) || fromIndex === index) return;
+    setRouteSegments((prev) => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(index, 0, moved);
+      return updated;
+    });
+  };
+
+  const onDragEnd = () => {
+    setDragOverIndex(null);
+    setDraggingIndex(null);
+  };
 
   const handleAddLink = (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || '').trim();
@@ -309,14 +354,26 @@ export default function ItineraryDetailsPage() {
                       {/* Left: Destination steps */}
                       <div className="md:col-span-2 space-y-5">
                         {routeSegments.map((seg, idx) => (
-                          <div key={`route-left-${idx}`} className="flex justify-between gap-2">
+                          <div
+                            key={`route-left-${idx}`}
+                            className={`flex justify-between gap-2 ${dragOverIndex === idx ? 'bg-sky-50 rounded-xl' : ''}`}
+                            onDragOver={(e) => onDragOver(e, idx)}
+                            onDragEnter={(e) => onDragOver(e, idx)}
+                            onDrop={(e) => onDrop(e, idx)}
+                          >
                             
                             <div className="flex items-center gap-2">
                               {/* {idx < routeSegments.length - 1 && (
                                 <span className="absolute left-10 top-6 bottom-[-14px] w-px bg-sky-200"></span>
                               )} */}
                               {/* Drag handle to the left */}
-                              <div className="text-gray-400 cursor-grab" title="Reordenar">
+                              <div
+                                className="text-gray-400 cursor-grab"
+                                title="Reordenar"
+                                draggable
+                                onDragStart={(e) => onDragStart(e, idx)}
+                                onDragEnd={onDragEnd}
+                              >
                                 <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M5 6h10M5 10h10M5 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                                 </svg>
