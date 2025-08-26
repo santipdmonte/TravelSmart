@@ -268,15 +268,6 @@ export default function ItineraryDetailsPage() {
       {/* Main Content Area */}
       <div className={`transition-all duration-300 ${isChatOpen ? 'lg:mr-[33.333333%]' : ''}`}>
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="mb-6">
-            <Link
-              href="/itineraries"
-              className="text-sky-600 hover:text-sky-700 font-medium"
-            >
-              ← Volver a itinerarios
-            </Link>
-          </div>
 
           {/* Itinerary Header */}
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-8 relative">
