@@ -277,6 +277,9 @@ export default function ItineraryDetailsPage() {
                 </h1>
                 <p className="text-gray-700">
                   {details_itinerary.destino_general} • {details_itinerary.cantidad_dias} días
+                  {typeof currentItinerary.travelers_count === 'number' && currentItinerary.travelers_count > 0
+                    ? ` • ${currentItinerary.travelers_count} viajero${currentItinerary.travelers_count > 1 ? 's' : ''}`
+                    : ''}
                 </p>
               </div>
             </div>
@@ -648,7 +651,7 @@ export default function ItineraryDetailsPage() {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
                           <h2 className="text-2xl font-bold text-gray-900">{dest.nombre_destino}</h2>
-                          <p className="text-gray-700 ml-1">• dd/mm/aaaa - dd/mm/aaaa (dd días)</p>
+                          <p className="text-gray-700 ml-1">• {dest.cantidad_dias_en_destino} días</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
