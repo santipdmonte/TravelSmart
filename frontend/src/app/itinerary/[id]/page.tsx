@@ -293,15 +293,6 @@ export default function ItineraryDetailsPage() {
                   <span>Creado: {new Date(currentItinerary.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
-              {/* Confirm button mockup */}
-              <div className="flex items-start md:items-center">
-                <Button
-                  className="rounded-full bg-sky-500 hover:bg-sky-700 px-6 shadow-md"
-                  disabled={currentItinerary.status !== 'draft'}
-                >
-                  {currentItinerary.status === 'draft' ? 'Confirmar itinerario' : 'Itinerario confirmado'}
-                </Button>
-              </div>
             </div>
           </div>
 
