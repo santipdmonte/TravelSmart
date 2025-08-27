@@ -47,6 +47,21 @@ export function getAccessToken(): string | null {
   return tokens?.access_token || null;
 }
 
+// Ensure only one refresh happens at a time across the app
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshWithLock(providedRefreshToken?: string): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const result = await refreshToken(providedRefreshToken);
+      return !result.error && !!result.data;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return await refreshInFlight;
+}
+
 // Base fetch wrapper for auth and other root-mounted endpoints
 async function authApiRequest<T>(
   endpoint: string,
@@ -116,8 +131,8 @@ async function authenticatedRequest<T>(
 
   // If unauthorized, try refreshing once and retry
   if (result.status === 401) {
-    const refreshed = await refreshToken();
-    if (!refreshed.error && refreshed.data) {
+    const ok = await refreshWithLock();
+    if (ok) {
       result = await perform();
     }
   }
@@ -295,15 +310,11 @@ export async function ensureValidToken(): Promise<boolean> {
 
   // If we have an expires_at and it's expired, try to refresh
   if (tokens.expires_at && Date.now() >= tokens.expires_at) {
-    const refreshResult = await refreshToken();
-
-    if (refreshResult.error || !refreshResult.data) {
+    const ok = await refreshWithLock();
+    if (!ok) {
       clearTokens();
-      return false;
     }
-
-    setTokens(refreshResult.data);
-    return true;
+    return ok;
   }
 
   return true;
