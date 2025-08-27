@@ -6,6 +6,7 @@ import { ItineraryProvider } from "@/contexts/ItineraryContext";
 import { ChatProvider } from "@/contexts/AgentContext";
 import { Navigation } from "@/components";
 import { __warnMissingApiBaseIfNeeded } from "@/lib/config";
+import ClientTravelerTestWelcome from "@/components/traveler-test/ClientTravelerTestWelcome";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,11 @@ export default function RootLayout({
           <ItineraryProvider>
             <ChatProvider>
               <Navigation />
-              <main>{children}</main>
+              <main>
+                {children}
+                {/* Client-only welcome traveler test prompt */}
+                <ClientTravelerTestWelcome />
+              </main>
             </ChatProvider>
           </ItineraryProvider>
         </AuthProvider>

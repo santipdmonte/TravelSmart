@@ -10,6 +10,7 @@ import { useAuth as useAuthContext } from "@/contexts/AuthContext";
 export function useAuth() {
   const {
     state,
+    dispatch,
     login,
     register,
     logout,
@@ -20,6 +21,9 @@ export function useAuth() {
   } = useAuthContext();
 
   return {
+    // Raw state/dispatch for advanced flows
+    state,
+    dispatch,
     // State
     user: state.user,
     isAuthenticated: state.isAuthenticated,

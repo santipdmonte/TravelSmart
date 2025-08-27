@@ -15,6 +15,7 @@ export interface User {
   last_name: string;
   display_name: string;
   bio: string;
+  login_count?: number; // for traveler test prompt trigger on first login
   // Eager-loaded traveler profile (if user has completed the test)
   traveler_type?: TravelerType | null;
   traveler_type_id?: string | null;
@@ -87,6 +88,7 @@ export interface AuthState {
   tokens: TokenData | null;
   verificationPending: boolean;
   verificationEmail: string | null;
+  showWelcomePopup: boolean;
 }
 
 // Authentication error interface
@@ -146,4 +148,5 @@ export type AuthAction =
   | { type: "TOKEN_REFRESH_FAILURE" }
   | { type: "VERIFICATION_PENDING"; payload: string }
   | { type: "VERIFICATION_SUCCESS" }
-  | { type: "VERIFICATION_FAILURE"; payload: string };
+  | { type: "VERIFICATION_FAILURE"; payload: string }
+  | { type: "SHOW_WELCOME_POPUP"; payload: boolean };

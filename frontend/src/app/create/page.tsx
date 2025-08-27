@@ -10,6 +10,7 @@ import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import { useAuth } from "@/hooks/useAuth";
 import { GenerateItineraryRequest } from "@/types/itinerary";
+import { TravelerTestPromptModal } from "@/components";
 import {
   Button,
   Form,
@@ -231,7 +232,7 @@ export default function CreateItineraryPage() {
   const router = useRouter();
   const { loading, error } = useItinerary();
   const { createItinerary, clearError } = useItineraryActions();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
   // Ensure we only apply backend defaults once
   const appliedDefaultsRef = useRef(false);
@@ -273,6 +274,9 @@ export default function CreateItineraryPage() {
     }
   }, [user, form]);
 
+  const [showPreCreatePrompt, setShowPreCreatePrompt] = useState(false);
+  const pendingSubmissionRef = useRef<FormData | null>(null);
+
   const onSubmit = async (data: FormData) => {
     try {
       // Clear any previous errors
@@ -313,6 +317,52 @@ export default function CreateItineraryPage() {
       console.error("Error creating itinerary:", error);
     }
   };
+
+  const proceedAfterPrompt = async () => {
+    setShowPreCreatePrompt(false);
+    const data = pendingSubmissionRef.current;
+    if (!data) return;
+    pendingSubmissionRef.current = null;
+    try {
+      if (error) clearError();
+      const prefs = data.preferences || {};
+      const cleanedEntries = Object.entries(prefs).filter(([, v]) => {
+        if (v === undefined || v === null) return false;
+        if (Array.isArray(v)) return v.length > 0;
+        if (typeof v === "string") return v.trim().length > 0;
+        return true;
+      });
+      const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
+        (acc, [k, v]) => {
+          (acc as Record<string, unknown>)[k] = v as unknown;
+          return acc;
+        },
+        {}
+      );
+      const request: GenerateItineraryRequest = {
+        trip_name: data.trip_name,
+        duration_days: data.duration_days,
+        ...(Object.keys(cleanedPreferences).length
+          ? { preferences: cleanedPreferences }
+          : {}),
+      };
+      const itinerary = await createItinerary(request);
+      if (itinerary) {
+        router.push(`/itinerary/${itinerary.itinerary_id}`);
+      }
+    } catch (e) {
+      console.error("Error creating itinerary after prompt:", e);
+    }
+  };
+
+  // Show pre-create traveler test prompt immediately on page load
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (!user) return;
+    if (user.traveler_type_id) return;
+    // Only show once per page mount
+    setShowPreCreatePrompt(true);
+  }, [isAuthenticated, user]);
 
   // Clear server errors when user starts typing
   form.watch();
@@ -827,6 +877,23 @@ export default function CreateItineraryPage() {
                     "Generar itinerario"
                   )}
                 </Button>
+                <TravelerTestPromptModal
+                  open={showPreCreatePrompt}
+                  onClose={() => {
+                    // Close and proceed with creation as requested
+                    proceedAfterPrompt();
+                  }}
+                  title="¡Para un itinerario perfecto, haz el test!"
+                  message="Completar el Traveler Test mejora la personalización. Si prefieres, puedes seguir sin hacerlo por ahora."
+                  ctaText="Hacer el test"
+                  onAction={() => {
+                    // If user clicks CTA, go to test and keep prompt closed
+                    setShowPreCreatePrompt(false);
+                    pendingSubmissionRef.current = null;
+                    // navigate to test
+                    window.location.href = "/traveler-test";
+                  }}
+                />
               </form>
             </Form>
           </div>
