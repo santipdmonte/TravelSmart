@@ -153,6 +153,12 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         error: action.payload,
       };
 
+    case "SET_INITIALIZED":
+      return {
+        ...state,
+        isInitialized: action.payload,
+      };
+
     default:
       return state;
   }
