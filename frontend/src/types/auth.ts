@@ -4,6 +4,7 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+  status?: number;
 }
 
 // User profile interface (matches GET /users/profile response)
@@ -85,6 +86,7 @@ export interface AuthState {
   tokens: TokenData | null;
   verificationPending: boolean;
   verificationEmail: string | null;
+  isInitialized?: boolean;
 }
 
 // Authentication error interface
@@ -106,18 +108,6 @@ export interface EmailVerificationResponse {
   token_type: string;
   expires_in: number;
   user: User;
-}
-
-// Authentication request interfaces
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email: string;
-  username: string;
-  password: string;
 }
 
 export interface PasswordResetRequest {
@@ -144,4 +134,5 @@ export type AuthAction =
   | { type: "TOKEN_REFRESH_FAILURE" }
   | { type: "VERIFICATION_PENDING"; payload: string }
   | { type: "VERIFICATION_SUCCESS" }
-  | { type: "VERIFICATION_FAILURE"; payload: string };
+  | { type: "VERIFICATION_FAILURE"; payload: string }
+  | { type: "SET_INITIALIZED"; payload: boolean };

@@ -26,6 +26,7 @@ import {
   isAuthenticated as checkAuthenticated,
   verifyEmail as apiVerifyEmail,
   resendVerification as apiResendVerification,
+  ensureValidToken,
 } from "@/lib/authApi";
 
 // Initial state
@@ -37,6 +38,7 @@ const initialState: AuthState = {
   tokens: null,
   verificationPending: false,
   verificationEmail: null,
+  isInitialized: false,
 };
 
 // Auth reducer
@@ -57,6 +59,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        isInitialized: true,
       };
 
     case "AUTH_FAILURE":
@@ -67,11 +70,13 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
+        isInitialized: true,
       };
 
     case "AUTH_LOGOUT":
       return {
         ...initialState,
+        isInitialized: true,
       };
 
     case "SET_USER":
@@ -79,6 +84,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         user: action.payload,
         isAuthenticated: true,
+        isInitialized: true,
       };
 
     case "SET_TOKENS":
@@ -86,6 +92,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         tokens: action.payload,
         isAuthenticated: true,
+        isInitialized: true,
       };
 
     case "SET_LOADING":
@@ -116,6 +123,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case "TOKEN_REFRESH_FAILURE":
       return {
         ...initialState,
+        isInitialized: true,
       };
 
     case "VERIFICATION_PENDING":
@@ -143,6 +151,12 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         verificationEmail: null,
         isLoading: false,
         error: action.payload,
+      };
+
+    case "SET_INITIALIZED":
+      return {
+        ...state,
+        isInitialized: action.payload,
       };
 
     default:
@@ -184,7 +198,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         dispatch({ type: "SET_LOADING", payload: true });
 
         try {
-          // Try to get user profile to verify token validity
+          // Ensure token is valid (refresh if needed) before fetching profile
+          await ensureValidToken();
+
           const profileResponse = await getUserProfile();
 
           if (profileResponse.data) {
@@ -192,19 +208,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
               type: "AUTH_SUCCESS",
               payload: {
                 user: profileResponse.data,
-                tokens: tokens,
+                tokens: getTokens() || tokens,
               },
             });
           } else {
-            // Token invalid, clear everything
             clearTokens();
             dispatch({ type: "AUTH_LOGOUT" });
           }
         } catch {
-          // Error getting profile, clear auth
           clearTokens();
           dispatch({ type: "AUTH_LOGOUT" });
         }
+      } else {
+        // Not authenticated at startup; mark initialized so consumers can gate on it
+        dispatch({ type: "SET_INITIALIZED", payload: true });
       }
     };
 
