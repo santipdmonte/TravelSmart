@@ -16,7 +16,7 @@ const Navigation = () => {
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isInitialized } = useAuth();
 
   const navigation = [
     { name: "Home", href: "/", icon: null },
@@ -92,7 +92,9 @@ const Navigation = () => {
 
             {/* Right side - Auth buttons or user menu */}
             <div className="hidden md:flex md:items-center md:space-x-4">
-              {!isAuthenticated ? (
+              {!isInitialized || isLoading ? (
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              ) : !isAuthenticated ? (
                 <div className="flex items-center space-x-3">
                   <Button
                     variant="ghost"
@@ -160,7 +162,11 @@ const Navigation = () => {
 
               {/* Mobile auth section */}
               <div className="pt-4 pb-3 border-t border-gray-200">
-                {!isAuthenticated ? (
+                {!isInitialized || isLoading ? (
+                  <div className="px-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+                  </div>
+                ) : !isAuthenticated ? (
                   <div className="px-3 space-y-2">
                     <Button
                       variant="ghost"
