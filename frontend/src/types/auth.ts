@@ -43,6 +43,8 @@ export interface User {
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
+  // Derived defaults from backend for itinerary create UX
+  default_travel_styles?: string[] | null;
 }
 
 // Authentication request interfaces

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 // import Link from 'next/link';
 import { useForm } from "react-hook-form";
@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { useItinerary } from "@/contexts/ItineraryContext";
+import { useAuth } from "@/hooks/useAuth";
 import { GenerateItineraryRequest } from "@/types/itinerary";
 import {
   Button,
@@ -230,7 +231,10 @@ export default function CreateItineraryPage() {
   const router = useRouter();
   const { loading, error } = useItinerary();
   const { createItinerary, clearError } = useItineraryActions();
+  const { user } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
+  // Ensure we only apply backend defaults once
+  const appliedDefaultsRef = useRef(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(createItinerarySchema),
@@ -251,6 +255,23 @@ export default function CreateItineraryPage() {
     },
     mode: "onSubmit", // Only validate on submit, not while typing
   });
+
+  // Apply default travel styles from user profile on first load only
+  useEffect(() => {
+    if (appliedDefaultsRef.current) return;
+    const defaults = user?.default_travel_styles;
+    if (defaults && Array.isArray(defaults) && defaults.length > 0) {
+      const current = form.getValues("preferences.travel_styles") || [];
+      if (!current || current.length === 0) {
+        form.setValue(
+          "preferences.travel_styles",
+          defaults as (typeof TRAVEL_STYLES)[number][],
+          { shouldDirty: true }
+        );
+        appliedDefaultsRef.current = true;
+      }
+    }
+  }, [user, form]);
 
   const onSubmit = async (data: FormData) => {
     try {
