@@ -17,7 +17,8 @@ export default function ItinerariesPage() {
     fetchAllItineraries();
   }, [isInitialized, isLoading, isAuthenticated, fetchAllItineraries]);
 
-  if (loading) {
+  // Show preload while auth is initializing/loading or itineraries are loading
+  if (!isInitialized || isLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
