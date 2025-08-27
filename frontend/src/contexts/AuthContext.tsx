@@ -26,6 +26,7 @@ import {
   isAuthenticated as checkAuthenticated,
   verifyEmail as apiVerifyEmail,
   resendVerification as apiResendVerification,
+  ensureValidToken,
 } from "@/lib/authApi";
 
 // Initial state
@@ -184,7 +185,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         dispatch({ type: "SET_LOADING", payload: true });
 
         try {
-          // Try to get user profile to verify token validity
+          // Ensure token is valid (refresh if needed) before fetching profile
+          await ensureValidToken();
+
           const profileResponse = await getUserProfile();
 
           if (profileResponse.data) {
@@ -192,16 +195,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
               type: "AUTH_SUCCESS",
               payload: {
                 user: profileResponse.data,
-                tokens: tokens,
+                tokens: getTokens() || tokens,
               },
             });
           } else {
-            // Token invalid, clear everything
             clearTokens();
             dispatch({ type: "AUTH_LOGOUT" });
           }
         } catch {
-          // Error getting profile, clear auth
           clearTokens();
           dispatch({ type: "AUTH_LOGOUT" });
         }
