@@ -38,6 +38,7 @@ const initialState: AuthState = {
   tokens: null,
   verificationPending: false,
   verificationEmail: null,
+  isInitialized: false,
 };
 
 // Auth reducer
@@ -58,6 +59,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        isInitialized: true,
       };
 
     case "AUTH_FAILURE":
@@ -68,11 +70,13 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
+        isInitialized: true,
       };
 
     case "AUTH_LOGOUT":
       return {
         ...initialState,
+        isInitialized: true,
       };
 
     case "SET_USER":
@@ -80,6 +84,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         user: action.payload,
         isAuthenticated: true,
+        isInitialized: true,
       };
 
     case "SET_TOKENS":
@@ -87,6 +92,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         ...state,
         tokens: action.payload,
         isAuthenticated: true,
+        isInitialized: true,
       };
 
     case "SET_LOADING":
@@ -117,6 +123,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case "TOKEN_REFRESH_FAILURE":
       return {
         ...initialState,
+        isInitialized: true,
       };
 
     case "VERIFICATION_PENDING":
@@ -206,6 +213,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           clearTokens();
           dispatch({ type: "AUTH_LOGOUT" });
         }
+      } else {
+        // Not authenticated at startup; mark initialized so consumers can gate on it
+        dispatch({ type: "SET_INITIALIZED", payload: true });
       }
     };
 

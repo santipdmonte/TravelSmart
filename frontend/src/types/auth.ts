@@ -86,6 +86,7 @@ export interface AuthState {
   tokens: TokenData | null;
   verificationPending: boolean;
   verificationEmail: string | null;
+  isInitialized?: boolean;
 }
 
 // Authentication error interface
@@ -133,4 +134,5 @@ export type AuthAction =
   | { type: "TOKEN_REFRESH_FAILURE" }
   | { type: "VERIFICATION_PENDING"; payload: string }
   | { type: "VERIFICATION_SUCCESS" }
-  | { type: "VERIFICATION_FAILURE"; payload: string };
+  | { type: "VERIFICATION_FAILURE"; payload: string }
+  | { type: "SET_INITIALIZED"; payload: boolean };

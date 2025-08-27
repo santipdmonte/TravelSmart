@@ -10,11 +10,12 @@ import { Button } from '@/components';
 export default function ItinerariesPage() {
   const { itineraries, loading, error } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, isInitialized } = useAuth();
 
   useEffect(() => {
+    if (!isInitialized || isLoading) return;
     fetchAllItineraries();
-  }, [fetchAllItineraries]);
+  }, [isInitialized, isLoading, isAuthenticated, fetchAllItineraries]);
 
   if (loading) {
     return (
