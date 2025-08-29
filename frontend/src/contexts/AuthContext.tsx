@@ -38,6 +38,7 @@ const initialState: AuthState = {
   tokens: null,
   verificationPending: false,
   verificationEmail: null,
+  showWelcomePopup: false,
   isInitialized: false,
 };
 
@@ -153,10 +154,21 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         error: action.payload,
       };
 
+
+    case "SHOW_WELCOME_POPUP":
+      console.log(
+        "AuthContext [reducer]: Recibida acción SHOW_WELCOME_POPUP. El nuevo estado será:",
+        { ...state, showWelcomePopup: action.payload }
+      );
+      return {
+        ...state,
+        showWelcomePopup: action.payload,
+
     case "SET_INITIALIZED":
       return {
         ...state,
         isInitialized: action.payload,
+
       };
 
     default:
@@ -229,100 +241,124 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Login function
-  const login = useCallback(async (credentials: LoginRequest): Promise<boolean> => {
-    dispatch({ type: "AUTH_START" });
+  const login = useCallback(
+    async (credentials: LoginRequest): Promise<boolean> => {
+      dispatch({ type: "AUTH_START" });
 
-    try {
-      const response = await apiLogin(credentials);
+      try {
+        const response = await apiLogin(credentials);
 
-      if (response.error) {
-        dispatch({ type: "AUTH_FAILURE", payload: response.error });
-        return false;
-      }
+        if (response.error) {
+          dispatch({ type: "AUTH_FAILURE", payload: response.error });
+          return false;
+        }
 
-      if (response.data) {
-        const { user, access_token, refresh_token } = response.data;
-        const tokens: TokenData = {
-          access_token,
-          refresh_token,
-          // Set expiry to 50 minutes from now (assuming 1-hour tokens)
-          expires_at: Date.now() + 50 * 60 * 1000,
-        };
+        if (response.data) {
+          const { user, access_token, refresh_token } = response.data;
+          const tokens: TokenData = {
+            access_token,
+            refresh_token,
+            // Set expiry to 50 minutes from now (assuming 1-hour tokens)
+            expires_at: Date.now() + 50 * 60 * 1000,
+          };
 
-        // Store tokens in localStorage
-        setTokens(tokens);
+          // Store tokens in localStorage
+          setTokens(tokens);
 
-        // Update state
-        dispatch({
-          type: "AUTH_SUCCESS",
-          payload: { user, tokens },
-        });
+          // Decide welcome popup before committing user to state
+          const shouldShowPopup =
+            Number(user?.login_count ?? 0) === 1 && !user?.traveler_type_id;
+          console.log(
+            "AuthContext [login]: Verificando condición del popup...",
+            {
+              login_count: user?.login_count,
+              traveler_type_id: user?.traveler_type_id,
+              shouldShowPopup,
+            }
+          );
+          if (shouldShowPopup) {
+            console.log(
+              "AuthContext [login]: Condición cumplida. Despachando SHOW_WELCOME_POPUP."
+            );
+            dispatch({ type: "SHOW_WELCOME_POPUP", payload: true });
+          }
 
-        return true;
-      }
-
-      dispatch({ type: "AUTH_FAILURE", payload: "Login failed" });
-      return false;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Login failed";
-      dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
-      return false;
-    }
-  }, []);
-
-  // Register function
-  const register = useCallback(async (userData: RegisterRequest): Promise<boolean> => {
-    dispatch({ type: "AUTH_START" });
-
-    try {
-      const response = await apiRegister(userData);
-
-      if (response.error) {
-        dispatch({ type: "AUTH_FAILURE", payload: response.error });
-        return false;
-      }
-
-      if (response.data) {
-        // Check if user needs email verification
-        if (response.data.user && !response.data.user.email_verified) {
-          // User registered but needs email verification
+          // Update state
           dispatch({
-            type: "VERIFICATION_PENDING",
-            payload: response.data.user.email,
+            type: "AUTH_SUCCESS",
+            payload: { user, tokens },
           });
+
           return true;
         }
 
-        // User is already verified (auto-login case)
-        const { user, access_token, refresh_token } = response.data;
-        const tokens: TokenData = {
-          access_token,
-          refresh_token,
-          expires_at: Date.now() + 50 * 60 * 1000,
-        };
-
-        // Store tokens in localStorage
-        setTokens(tokens);
-
-        // Update state
-        dispatch({
-          type: "AUTH_SUCCESS",
-          payload: { user, tokens },
-        });
-
-        return true;
+        dispatch({ type: "AUTH_FAILURE", payload: "Login failed" });
+        return false;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Login failed";
+        dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
+        return false;
       }
+    },
+    []
+  );
 
-      dispatch({ type: "AUTH_FAILURE", payload: "Registration failed" });
-      return false;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Registration failed";
-      dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
-      return false;
-    }
-  }, []);
+  // Register function
+  const register = useCallback(
+    async (userData: RegisterRequest): Promise<boolean> => {
+      dispatch({ type: "AUTH_START" });
+
+      try {
+        const response = await apiRegister(userData);
+
+        if (response.error) {
+          dispatch({ type: "AUTH_FAILURE", payload: response.error });
+          return false;
+        }
+
+        if (response.data) {
+          // Check if user needs email verification
+          if (response.data.user && !response.data.user.email_verified) {
+            // User registered but needs email verification
+            dispatch({
+              type: "VERIFICATION_PENDING",
+              payload: response.data.user.email,
+            });
+            return true;
+          }
+
+          // User is already verified (auto-login case)
+          const { user, access_token, refresh_token } = response.data;
+          const tokens: TokenData = {
+            access_token,
+            refresh_token,
+            expires_at: Date.now() + 50 * 60 * 1000,
+          };
+
+          // Store tokens in localStorage
+          setTokens(tokens);
+
+          // Update state
+          dispatch({
+            type: "AUTH_SUCCESS",
+            payload: { user, tokens },
+          });
+
+          return true;
+        }
+
+        dispatch({ type: "AUTH_FAILURE", payload: "Registration failed" });
+        return false;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Registration failed";
+        dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
+        return false;
+      }
+    },
+    []
+  );
 
   // Logout function
   const logout = useCallback(async (): Promise<void> => {
@@ -376,6 +412,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (response.data) {
         // Email verified successfully, user is now logged in
         const { user, access_token, refresh_token, expires_in } = response.data;
+
+        // Decide welcome popup based on verifyEmail login flow
+        const shouldShowPopup =
+          Number(user?.login_count ?? 0) === 1 && !user?.traveler_type_id;
+        if (shouldShowPopup) {
+          console.log(
+            "AuthContext [verifyEmail]: ¡Condición cumplida! Mostrando el pop-up."
+          );
+          dispatch({ type: "SHOW_WELCOME_POPUP", payload: true });
+        } else {
+          console.log("AuthContext [verifyEmail]: Condición no cumplida.", {
+            login_count: user?.login_count,
+            has_traveler_type: !!user?.traveler_type_id,
+          });
+        }
+
         const tokens: TokenData = {
           access_token,
           refresh_token,
@@ -408,29 +460,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   // Resend verification email function
-  const resendVerification = useCallback(async (email: string): Promise<boolean> => {
-    dispatch({ type: "AUTH_START" });
+  const resendVerification = useCallback(
+    async (email: string): Promise<boolean> => {
+      dispatch({ type: "AUTH_START" });
 
-    try {
-      const response = await apiResendVerification(email);
+      try {
+        const response = await apiResendVerification(email);
 
-      if (response.error) {
-        dispatch({ type: "AUTH_FAILURE", payload: response.error });
+        if (response.error) {
+          dispatch({ type: "AUTH_FAILURE", payload: response.error });
+          return false;
+        }
+
+        // Success - verification email sent
+        dispatch({ type: "VERIFICATION_SUCCESS" });
+        return true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to resend verification email";
+        dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
         return false;
       }
-
-      // Success - verification email sent
-      dispatch({ type: "VERIFICATION_SUCCESS" });
-      return true;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to resend verification email";
-      dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
-      return false;
-    }
-  }, []);
+    },
+    []
+  );
 
   const contextValue: AuthContextType = {
     state,

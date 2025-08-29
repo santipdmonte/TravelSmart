@@ -44,7 +44,9 @@ export default function TravelerTestContainer() {
         } else {
           const testResponse = await startTravelerTest();
           if (testResponse.error || !testResponse.data) {
-            throw new Error(testResponse.error || "Failed to start test.");
+            throw new Error(
+              testResponse.error || "No se pudo iniciar el test."
+            );
           }
           activeTestId = testResponse.data.id;
         }
@@ -53,7 +55,7 @@ export default function TravelerTestContainer() {
         const questionsResponse = await getTestQuestions();
         if (questionsResponse.error || !questionsResponse.data) {
           throw new Error(
-            questionsResponse.error || "Failed to load questions."
+            questionsResponse.error || "No se pudieron cargar las preguntas."
           );
         }
 
@@ -64,7 +66,7 @@ export default function TravelerTestContainer() {
         setStatus("taking");
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "An unknown error occurred."
+          err instanceof Error ? err.message : "Ocurrió un error desconocido."
         );
         setStatus("error");
       }
@@ -97,7 +99,7 @@ export default function TravelerTestContainer() {
 
   const handleSubmit = async () => {
     if (!testId || Object.keys(answers).length !== questions.length) {
-      setError("Please answer all questions before submitting.");
+      setError("Por favor, responde todas las preguntas antes de enviar.");
       return;
     }
 
@@ -112,7 +114,7 @@ export default function TravelerTestContainer() {
 
       const submitResponse = await submitUserAnswers(answerData);
       if (submitResponse.error || !submitResponse.data) {
-        throw new Error(submitResponse.error || "Submission failed.");
+        throw new Error(submitResponse.error || "Error al enviar.");
       }
 
       // Cache the result for the result page to use instantly
@@ -130,7 +132,7 @@ export default function TravelerTestContainer() {
       router.push(`/traveler-test/results/${testId}`);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to submit the test."
+        err instanceof Error ? err.message : "No se pudo enviar el test."
       );
       setStatus("error");
     }
@@ -138,8 +140,8 @@ export default function TravelerTestContainer() {
 
   if (status === "loading") {
     return (
-      <div className="text-center p-12">
-        <LoadingSpinner size="lg" />{" "}
+      <div className="min-h-screen w-full flex flex-col items-center justify-center text-center p-12">
+        <LoadingSpinner size="lg" />
         <p className="mt-4">Loading Traveler Test...</p>
       </div>
     );
@@ -173,10 +175,10 @@ export default function TravelerTestContainer() {
   return (
     <div className="max-w-2xl mx-auto py-8">
       <h1 className="text-3xl font-bold text-center mb-2">
-        Discover Your Travel Personality
+        Descubre tu personalidad viajera
       </h1>
       <p className="text-center text-gray-600 mb-6">
-        Answer these questions to get a personalized travel profile.
+        Responde estas preguntas para obtener un perfil de viaje personalizado.
       </p>
 
       <TestProgressBar
@@ -194,7 +196,7 @@ export default function TravelerTestContainer() {
       ) : (
         <div className="mt-6">
           <p className="text-center text-gray-600">
-            No questions available right now.
+            No hay preguntas disponibles en este momento.
           </p>
         </div>
       )}
@@ -208,7 +210,7 @@ export default function TravelerTestContainer() {
             }
             disabled={currentQuestionIndex === 0}
           >
-            Previous
+            Anterior
           </Button>
 
           {isLastQuestion ? (
@@ -219,10 +221,10 @@ export default function TravelerTestContainer() {
             >
               {status === "submitting" ? (
                 <>
-                  <LoadingSpinner size="sm" className="mr-2" /> Submitting...
+                  <LoadingSpinner size="sm" className="mr-2" /> Enviando...
                 </>
               ) : (
-                "See My Results"
+                "Ver mis resultados"
               )}
             </Button>
           ) : (
@@ -234,7 +236,7 @@ export default function TravelerTestContainer() {
               }
               disabled={!currentQuestion || !canGoNext}
             >
-              Next
+              Siguiente
             </Button>
           )}
         </div>
