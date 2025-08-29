@@ -138,8 +138,8 @@ export default function TravelerTestContainer() {
 
   if (status === "loading") {
     return (
-      <div className="text-center p-12">
-        <LoadingSpinner size="lg" />{" "}
+      <div className="min-h-screen w-full flex flex-col items-center justify-center text-center p-12">
+        <LoadingSpinner size="lg" />
         <p className="mt-4">Loading Traveler Test...</p>
       </div>
     );
