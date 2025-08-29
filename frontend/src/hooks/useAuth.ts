@@ -30,6 +30,7 @@ export function useAuth() {
     isLoading: state.isLoading,
     error: state.error,
     tokens: state.tokens,
+    isInitialized: state.isInitialized ?? false,
 
     // Computed state
     isEmailVerified: state.user?.email_verified ?? false,

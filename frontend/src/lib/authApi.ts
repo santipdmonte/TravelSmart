@@ -47,6 +47,21 @@ export function getAccessToken(): string | null {
   return tokens?.access_token || null;
 }
 
+// Ensure only one refresh happens at a time across the app
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshWithLock(providedRefreshToken?: string): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const result = await refreshToken(providedRefreshToken);
+      return !result.error && !!result.data;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return await refreshInFlight;
+}
+
 // Base fetch wrapper for auth and other root-mounted endpoints
 async function authApiRequest<T>(
   endpoint: string,
@@ -67,7 +82,7 @@ async function authApiRequest<T>(
     // Handle different response types
     if (response.status === 204) {
       // No content responses (like logout)
-      return { data: {} as T };
+      return { data: {} as T, status: 204 };
     }
 
     const data = await response.json();
@@ -77,14 +92,16 @@ async function authApiRequest<T>(
         error:
           (data && (data.message || data.detail)) ||
           `HTTP error! status: ${response.status}`,
+        status: response.status,
       };
     }
 
-    return { data };
+    return { data, status: response.status };
   } catch (error) {
     console.error("Auth API request failed:", error);
     return {
       error: error instanceof Error ? error.message : "Network error occurred",
+      status: undefined,
     };
   }
 }
@@ -94,19 +111,33 @@ async function authenticatedRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const accessToken = getAccessToken();
-
-  if (!accessToken) {
+  // Preflight: ensure token is present and valid (refresh if expired)
+  const preflightOk = await ensureValidToken();
+  if (!preflightOk) {
     return { error: "No access token available" };
   }
 
-  return authApiRequest<T>(endpoint, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...options.headers,
-    },
-  });
+  const perform = () =>
+    authApiRequest<T>(endpoint, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+        ...options.headers,
+      },
+    });
+
+  // First attempt
+  let result = await perform();
+
+  // If unauthorized, try refreshing once and retry
+  if (result.status === 401) {
+    const ok = await refreshWithLock();
+    if (ok) {
+      result = await perform();
+    }
+  }
+
+  return result;
 }
 
 // Authentication API functions
@@ -161,12 +192,11 @@ export async function refreshToken(
   if (!tokenToUse) {
     return { error: "No refresh token available" };
   }
-  // Backend expects POST /auth/refresh-token with form or body param `refresh_token`
+
   const result = await authApiRequest<RefreshTokenResponse>(
-    `/auth/refresh-token`,
+    `/auth/refresh-token?refresh_token=${encodeURIComponent(tokenToUse)}`,
     {
       method: "POST",
-      body: JSON.stringify({ refresh_token: tokenToUse }),
     }
   );
 
@@ -280,15 +310,11 @@ export async function ensureValidToken(): Promise<boolean> {
 
   // If we have an expires_at and it's expired, try to refresh
   if (tokens.expires_at && Date.now() >= tokens.expires_at) {
-    const refreshResult = await refreshToken();
-
-    if (refreshResult.error || !refreshResult.data) {
+    const ok = await refreshWithLock();
+    if (!ok) {
       clearTokens();
-      return false;
     }
-
-    setTokens(refreshResult.data);
-    return true;
+    return ok;
   }
 
   return true;
