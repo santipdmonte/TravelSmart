@@ -57,7 +57,9 @@ export default function TestResult({ testId }: TestResultProps) {
 
       const response = await getTestResult(testId);
       if (response.error || !response.data) {
-        setError(response.error || "Could not fetch test results.");
+        setError(
+          response.error || "No se pudieron obtener los resultados del test."
+        );
         setStatus("error");
       } else {
         setResult(response.data);
@@ -118,7 +120,7 @@ export default function TestResult({ testId }: TestResultProps) {
   if (status === "error" || !result || !result.traveler_type) {
     return (
       <ErrorMessage
-        message={error || "An error occurred while fetching your results."}
+        message={error || "Ocurrió un error al obtener tus resultados."}
       />
     );
   }

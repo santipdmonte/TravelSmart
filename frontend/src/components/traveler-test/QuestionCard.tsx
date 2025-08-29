@@ -46,7 +46,7 @@ export default function QuestionCard({
         */}
         {isMultiSelect && (
           <CardDescription className="text-indigo-600 font-medium mt-1">
-            You can select more than one option
+            Puedes seleccionar más de una opción
           </CardDescription>
         )}
       </CardHeader>
