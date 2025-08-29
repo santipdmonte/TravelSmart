@@ -6,18 +6,26 @@ interface OptionProps {
   isSelected: boolean;
   onClick: () => void;
   multi?: boolean;
+  className?: string;
 }
 
-export default function Option({ option, isSelected, onClick }: OptionProps) {
+export default function Option({
+  option,
+  isSelected,
+  onClick,
+  className,
+}: OptionProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "p-4 border rounded-lg text-left transition-all duration-200 flex flex-col items-center text-center overflow-hidden",
+        // Fill parent height and center content vertically
+        "p-4 border rounded-lg text-left transition-all duration-200 flex flex-col items-center justify-center text-center overflow-hidden h-full w-full",
         isSelected
           ? "bg-indigo-100 border-indigo-500 ring-2 ring-indigo-500"
-          : "bg-white hover:bg-gray-50 hover:border-gray-300"
+          : "bg-white hover:bg-gray-50 hover:border-gray-300",
+        className
       )}
     >
       {/*

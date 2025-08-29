@@ -36,7 +36,9 @@ export default function QuestionCard({
           </div>
         )}
         */}
-        <CardTitle className="text-xl">{question.question}</CardTitle>
+        <CardTitle className="text-xl text-center">
+          {question.question}
+        </CardTitle>
         {/*
         {question.category && (
           <CardDescription>Category: {question.category}</CardDescription>
@@ -49,16 +51,31 @@ export default function QuestionCard({
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {question.question_options.map((option) => (
-            <Option
-              key={option.id}
-              option={option}
-              isSelected={selectedOptionIds.includes(option.id)}
-              onClick={() => onAnswer(question.id, option.id)}
-              multi={isMultiSelect}
-            />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          {question.question_options.map((option, idx) => {
+            const isLastSingle =
+              question.question_options.length % 2 === 1 &&
+              idx === question.question_options.length - 1;
+
+            return (
+              <div
+                key={option.id}
+                className={
+                  isLastSingle
+                    ? "h-full md:col-span-2 flex justify-center"
+                    : "h-full"
+                }
+              >
+                <Option
+                  option={option}
+                  isSelected={selectedOptionIds.includes(option.id)}
+                  onClick={() => onAnswer(question.id, option.id)}
+                  multi={isMultiSelect}
+                  className={isLastSingle ? "md:w-1/2" : undefined}
+                />
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
