@@ -154,7 +154,6 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         error: action.payload,
       };
 
-
     case "SHOW_WELCOME_POPUP":
       console.log(
         "AuthContext [reducer]: Recibida acción SHOW_WELCOME_POPUP. El nuevo estado será:",
@@ -163,12 +162,12 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return {
         ...state,
         showWelcomePopup: action.payload,
+      };
 
     case "SET_INITIALIZED":
       return {
         ...state,
         isInitialized: action.payload,
-
       };
 
     default:

@@ -139,5 +139,5 @@ export type AuthAction =
   | { type: "VERIFICATION_PENDING"; payload: string }
   | { type: "VERIFICATION_SUCCESS" }
   | { type: "VERIFICATION_FAILURE"; payload: string }
-  | { type: "SHOW_WELCOME_POPUP"; payload: boolean };
+  | { type: "SHOW_WELCOME_POPUP"; payload: boolean }
   | { type: "SET_INITIALIZED"; payload: boolean };
