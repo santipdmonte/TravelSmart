@@ -1,6 +1,10 @@
 # TravelSmart 🌎✈️
 
-TravelSmart es una plataforma innovadora diseñada para revolucionar la manera en que planificamos nuestros viajes. Combinando la potencia de la inteligencia artificial con la flexibilidad de la planificación manual, TravelSmart ofrece una experiencia única para crear itinerarios de viaje personalizados.
+TravelSmart es una plataforma innovadora diseñada para revolucionar la manera en que planificamos nuestros viajes. Combinando la potencia de la inteligencia artificial con la flexibilidad de la planificación manual, TravelSmart ofrece una experiencia única para crear itinerarios de viaje personalizados. Entendemos que cada viajero es único, y por eso, hemos puesto la personalización en el corazón de nuestra herramienta.
+
+Podrás descubrir tu perfil de viajero a través de un innovador "test". Este breve cuestionario nos permite conocer tus gustos, intereses y el tipo de experiencias que buscas. Con esta información, nuestro motor de Inteligencia Artificial no solo genera un itinerario, sino que crea un viaje a tu medida, sugiriendo actividades, lugares y ritmos que se alinean con tu personalidad.
+
+Para quienes aman tener el control, nuestro planificador manual sigue ofreciendo una flexibilidad total. Y gracias a un completo sistema de autenticación, puedes guardar todos tus viajes y acceder a ellos desde cualquier dispositivo.
 
 ![image](https://github.com/user-attachments/assets/d614d642-1134-4c4b-9c54-867641ee46de)
 
@@ -26,13 +30,16 @@ Para aquellos que prefieren un control total sobre su itinerario, ofrecemos una 
 
 - **Interfaz Intuitiva**: Diseño moderno y fácil de usar que hace la planificación de viajes una experiencia agradable
 - **Flexibilidad**: Libertad para elegir entre planificación automática, manual o híbrida
-- **Personalización**: Adaptación completa a las preferencias del viajero
-- **Itinerarios Inteligentes**: Sugerencias basadas en datos reales y experiencias de viaje
-- **Diseño Responsivo**: Experiencia perfecta en cualquier dispositivo
+- **Perfiles de Viajero Personalizados**: Realiza nuestro "Traveler Test" para descubrir tu estilo de viaje (ej. "El Aventurero Curioso", "El Explorador Relajado") y recibe recomendaciones que realmente conectan contigo
+- **Itinerarios Inteligentes y a Medida**: La IA utiliza tu perfil de viajero para crear itinerarios únicos, optimizando rutas y sugiriendo joyas ocultas que se adaptan a tus intereses
+- **Autenticación Segura**: Crea tu cuenta para guardar, gestionar y revisitar todos tus itinerarios de viaje en un solo lugar
+- **Gestión por Sesión y por Usuario**: Comienza a planificar como invitado sin necesidad de registrarte y, cuando quieras, crea una cuenta para no perder tu progreso
+- **Interfaz Intuitiva y Responsiva**: Disfruta de una experiencia de usuario fluida y agradable en cualquier dispositivo, haciendo que la planificación sea un placer
+
 
 ## 💡 Visión
 
-TravelSmart busca transformar la manera en que las personas planifican sus viajes, combinando la eficiencia de la tecnología moderna con la personalización que cada viajero necesita. Nuestro objetivo es hacer que la planificación de viajes sea tan emocionante como el viaje mismo.
+Nuestra visión es transformar la planificación de viajes de una tarea logística a un acto de autodescubrimiento. Queremos que TravelSmart sea la herramienta que te ayude a entender qué tipo de viajero eres para que cada viaje sea una experiencia inolvidable y auténtica. Aspiramos a que el proceso de planificar tu próxima aventura sea tan emocionante y personal como el viaje mismo.
 
 ---
 
@@ -43,22 +50,14 @@ Desarrollado con ❤️ para viajeros por viajeros
 ```
 travelsmart-frontend/
 ├── src/
-│   ├── assets/       # Imágenes, fuentes y otros archivos estáticos
-│   ├── components/   # Componentes reutilizables
-│   ├── hooks/        # Custom hooks
-│   ├── pages/        # Componentes de página
-│   ├── services/     # Servicios para API y otras funcionalidades externas
-│   ├── types/        # Definiciones de tipos TypeScript
-│   ├── utils/        # Utilidades y helpers
-│   ├── App.tsx       # Componente principal
-│   ├── main.tsx      # Punto de entrada
-│   └── index.css     # Estilos globales con Tailwind
-├── public/           # Archivos accesibles públicamente
-├── index.html        # Plantilla HTML
-├── tailwind.config.js # Configuración de Tailwind CSS
-├── postcss.config.js # Configuración de PostCSS
-├── tsconfig.json     # Configuración de TypeScript
-└── vite.config.ts    # Configuración de Vite
+│   ├── app/                # Páginas con App Router de Next.js
+│   ├── components/         # Componentes reutilizables (UI, auth, chat)
+│   ├── contexts/           # React Context (Auth, Itinerary, Agent)
+│   ├── hooks/              # Custom hooks (useAuth, useItineraryActions)
+│   ├── lib/                # Utilidades y lógica de API (api.ts, authApi.ts)
+│   └── types/              # Definiciones de TypeScript
+├── next.config.ts          # Configuración de Next.js
+└── tailwind.config.ts      # Configuración de Tailwind CSS
 ```
 
 ## Instalación
@@ -107,104 +106,76 @@ npm run dev
 ```mermaid
 erDiagram
     Users {
-        int id PK
-        string auth0_sub UK "Unique identifier from Auth0"
+        UUID id PK
         string email UK
-        string name
-        int role_id FK
+        string password_hash
+        string username UK
+        string display_name
+        UUID traveler_type_id FK
+        string status
+        string role
+        bool email_verified
     }
 
-    Roles {
-        int id PK
-        string name UK "e.g., 'traveler', 'admin'"
+    TravelerTypes {
+        UUID id PK
+        string name UK
+        string description
+        string prompt_description
+    }
+
+    UserTravelerTests {
+        UUID id PK
+        UUID user_id FK
+        UUID traveler_type_id FK
+        datetime started_at
+        datetime completed_at
+    }
+
+    Questions {
+        UUID id PK
+        string question
+        int order
+        string category
+        bool multi_select
+    }
+
+    QuestionOptions {
+        UUID id PK
+        UUID question_id FK
+        string option
+    }
+
+    UserAnswers {
+        UUID id PK
+        UUID user_traveler_test_id FK
+        UUID question_option_id FK
+    }
+
+    QuestionOptionScores {
+        UUID id PK
+        UUID question_option_id FK
+        UUID traveler_type_id FK
+        int score
     }
 
     Itineraries {
-        int id PK
-        int user_id FK "Nullable"
-        string session_key "Nullable, for anonymous users"
+        UUID itinerary_id PK
+        string user_id FK "Nullable"
+        UUID session_id "Nullable"
         string trip_name
-        string general_destination "e.g., 'Italy', 'Southeast Asia'"
-        int total_days
-        date start_date "Nullable"
-        int num_adults "Nullable"
-        int num_children "Nullable"
-        string status "e.g., 'draft', 'confirmed'"
-        string creation_source "e.g., 'manual', 'ai'"
-        string conversation_id "Nullable, for HIL thread_id"
+        json details_itinerary
+        string status
+        string visibility
     }
 
-    ItineraryDestinations {
-        int id PK
-        int itinerary_id FK
-        string destination_name "e.g., 'Rome', 'Florence'"
-        int days_in_destination
-        int order "To sequence destinations within the trip"
-    }
-
-    Days {
-        int id PK
-        int itinerary_destination_id FK
-        int day_number "Day number within that destination"
-        date date
-    }
-
-    Activities {
-        int id PK
-        int day_id FK
-        string name
-        text description
-        time start_time "Nullable, for ordering"
-        int category_id FK "Nullable"
-    }
-
-    ActivityCategories {
-        int id PK
-        string name UK "e.g., 'Gastronomy', 'Museum', 'Adventure'"
-    }
-
-    Transports {
-        int id PK
-        int itinerary_id FK
-        int origin_destination_id FK "FK to ItineraryDestinations"
-        int destination_destination_id FK "FK to ItineraryDestinations"
-        string type "e.g., 'Flight', 'Train'"
-        text description "Nullable"
-    }
-
-    TransportSuggestions {
-        int id PK
-        int transport_id FK
-        string provider_name "e.g., 'Skyscanner', 'Omio', 'Booking.com'"
-        string affiliate_link
-    }
-
-    AccommodationSuggestions {
-        int id PK
-        int itinerary_destination_id FK
-        string suggestion_name "e.g., 'Colosseum Hotel'"
-        string type "e.g., 'Hotel', 'Airbnb', 'Hostel'"
-        string affiliate_link
-        string price_range "e.g., 'low', 'medium', 'high'"
-    }
-
-    UserPreferences {
-        int id PK
-        int user_id FK
-        string interest_type "e.g., 'culture', 'relax'"
-        string budget_level
-    }
-
+    Users ||--o{ UserTravelerTests : "takes"
     Users ||--o{ Itineraries : "creates"
-    Roles ||--|{ Users : "has a"
-    Itineraries ||--|{ ItineraryDestinations : "contains"
-    Itineraries ||--o{ Transports : "has"
-    ItineraryDestinations ||--|{ Days : "is_composed_of"
-    ItineraryDestinations ||--o{ AccommodationSuggestions : "has"
-    Transports ||--o{ TransportSuggestions : "has"
-    Days ||--|{ Activities : "includes"
-    ActivityCategories ||--o{ Activities : "categorizes"
-    Users ||--o{ UserPreferences : "defines"
-    ItineraryDestinations }|--o{ Transports : "is_origin_of"
-    ItineraryDestinations }|--o{ Transports : "is_destination_of"
+    TravelerTypes ||--|{ Users : "has a"
+    TravelerTypes ||--o{ UserTravelerTests : "results in"
+    UserTravelerTests ||--|{ UserAnswers : "is composed of"
+    Questions ||--|{ QuestionOptions : "has"
+    QuestionOptions ||--|{ UserAnswers : "is chosen in"
+    QuestionOptions ||--o{ QuestionOptionScores : "has"
+    TravelerTypes ||--o{ QuestionOptionScores : "is scored by"
 ```
