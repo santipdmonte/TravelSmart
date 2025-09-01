@@ -6,7 +6,7 @@ Podrás descubrir tu perfil de viajero a través de un innovador "test". Este br
 
 Para quienes aman tener el control, nuestro planificador manual sigue ofreciendo una flexibilidad total. Y gracias a un completo sistema de autenticación, puedes guardar todos tus viajes y acceder a ellos desde cualquier dispositivo.
 
-![image](https://github.com/user-attachments/assets/d614d642-1134-4c4b-9c54-867641ee46de)
+![image_TravelSmart_UI](https://github.com/user-attachments/assets/0cd76251-37b5-4ddb-91cd-b3aba65c9962)
 
 ## 🎯 Sobre el Proyecto
 
