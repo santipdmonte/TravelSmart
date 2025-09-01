@@ -85,21 +85,30 @@ npm run dev
 - `npm run lint` - Ejecuta el linter para verificar la calidad del código
 - `npm run preview` - Vista previa de la build de producción localmente
 
-## Buenas Prácticas Implementadas
+## 🚀 Buenas Prácticas Implementadas
 
-- **Estructura de carpetas organizada** - Código organizado por funcionalidad
-- **Componentes reutilizables** - Componentes como Button diseñados para ser utilizados en toda la aplicación
-- **Custom hooks** - Hooks personalizados como useLocalStorage para lógica reutilizable
-- **TypeScript** - Tipado estático para reducir errores y mejorar la documentación
-- **Tailwind CSS** - Utilidades CSS para un diseño consistente y eficiente
-- **Persistencia de datos** - Uso del localStorage para almacenar datos entre sesiones
+-   **Arquitectura Frontend/Backend Desacoplada**: Una API RESTful en FastAPI sirve los datos a un cliente independiente en Next.js, permitiendo escalabilidad y mantenibilidad.
+-   **Estructura de Carpetas Funcional**: El código está organizado siguiendo las convenciones de Next.js 15 (App Router), separando componentes, lógica de API, contextos y tipos.
+-   **Gestión de Estado Centralizada**: Se utiliza **React Context** para manejar el estado global de la aplicación (como la autenticación y el itinerario), proveyendo un flujo de datos predecible.
+-   **Componentes Reutilizables con `shadcn/ui`**: Se aprovecha una librería de componentes de alta calidad para construir una interfaz de usuario consistente y accesible.
+-   **Custom Hooks para Lógica Reutilizable**: Hooks personalizados como `useAuth` y `useItineraryActions` encapsulan y simplifican la lógica de negocio en el frontend.
+-   **TypeScript de Extremo a Extremo**: El tipado estático se usa tanto en el frontend como en el backend, lo que garantiza la integridad de los datos y reduce errores en tiempo de ejecución.
+-   **Estilos con Tailwind CSS**: Se utiliza un enfoque *utility-first* para un desarrollo de UI rápido, consistente y personalizable.
 
-## Tecnologías Utilizadas
+## 🛠️ Tecnologías Utilizadas
 
-- [React](https://react.dev/) - Biblioteca de UI
-- [TypeScript](https://www.typescriptlang.org/) - Superset tipado de JavaScript
-- [Vite](https://vitejs.dev/) - Herramienta de compilación rápida
-- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utility-first
+### Frontend
+-   **[Next.js 15](https://nextjs.org/)**: Framework de React para construir aplicaciones renderizadas en el servidor (SSR) y estáticas (SSG).
+-   **[React](https://react.dev/)**: Biblioteca para construir interfaces de usuario.
+-   **[TypeScript](https://www.typescriptlang.org/)**: Superset de JavaScript que añade tipado estático.
+-   **[Tailwind CSS](https://tailwindcss.com/)**: Framework CSS *utility-first* para diseños rápidos y modernos.
+-   **[shadcn/ui](https://ui.shadcn.com/)**: Colección de componentes de UI reutilizables.
+
+### Backend
+-   **[FastAPI](https://fastapi.tiangolo.com/)**: Framework moderno y de alto rendimiento para construir APIs con Python.
+-   **[SQLAlchemy](https://www.sqlalchemy.org/)**: ORM de Python para interactuar con la base de datos de forma robusta.
+-   **[LangChain](https://www.langchain.com/) & [LangGraph](https://langchain-ai.github.io/langgraph/)**: Frameworks para desarrollar aplicaciones impulsadas por modelos de lenguaje, gestionando la lógica del agente de IA.
+-   **[PostgreSQL](https://www.postgresql.org/)**: Sistema de base de datos relacional open-source.
 
 ## Esquema base de datos
 
