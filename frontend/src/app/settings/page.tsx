@@ -1,23 +1,29 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { EmailVerificationBanner } from '@/components/auth/EmailVerificationBanner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import { 
-  Settings, 
-  ArrowLeft, 
-  Bell, 
-  Shield, 
-  Globe, 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import {
+  Settings,
+  ArrowLeft,
+  Bell,
+  Shield,
+  Globe,
   CreditCard,
   User,
-  MapPin
-} from 'lucide-react';
+  MapPin,
+} from "lucide-react";
 
 export default function SettingsPage() {
   const { user, isLoading } = useAuth();
@@ -25,7 +31,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [user, isLoading, router]);
 
@@ -44,29 +50,34 @@ export default function SettingsPage() {
   const comingSoonFeatures = [
     {
       icon: Bell,
-      title: 'Notification Preferences',
-      description: 'Manage email and push notifications for your trips and account updates'
+      title: "Preferencias de notificaciones",
+      description:
+        "Administra las notificaciones por correo y push para tus viajes y actualizaciones de cuenta",
     },
     {
       icon: Shield,
-      title: 'Privacy & Security',
-      description: 'Control your profile visibility, data sharing, and account security settings'
+      title: "Privacidad y seguridad",
+      description:
+        "Controla la visibilidad de tu perfil, el intercambio de datos y la seguridad de tu cuenta",
     },
     {
       icon: Globe,
-      title: 'Language & Region',
-      description: 'Set your preferred language, currency, and regional preferences'
+      title: "Idioma y región",
+      description:
+        "Configura tu idioma preferido, moneda y preferencias regionales",
     },
     {
       icon: MapPin,
-      title: 'Travel Preferences',
-      description: 'Configure your travel style, dietary restrictions, and accessibility needs'
+      title: "Preferencias de viaje",
+      description:
+        "Configura tu estilo de viaje, restricciones alimentarias y necesidades de accesibilidad",
     },
     {
       icon: CreditCard,
-      title: 'Subscription Management',
-      description: 'Manage your subscription plan and billing information'
-    }
+      title: "Gestión de suscripción",
+      description:
+        "Administra tu plan de suscripción e información de facturación",
+    },
   ];
 
   return (
@@ -83,8 +94,10 @@ export default function SettingsPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-            <p className="text-gray-600">Manage your account preferences and privacy settings</p>
+            <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
+            <p className="text-gray-600">
+              Administra tus preferencias de cuenta y privacidad
+            </p>
           </div>
         </div>
 
@@ -94,9 +107,12 @@ export default function SettingsPage() {
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
               <Settings className="h-8 w-8 text-blue-600" />
             </div>
-            <CardTitle className="text-xl">Advanced Settings Coming Soon</CardTitle>
+            <CardTitle className="text-xl">
+              Próximamente: Configuración avanzada
+            </CardTitle>
             <CardDescription>
-              We&apos;re working on building comprehensive settings to give you full control over your TravelSmart experience.
+              Estamos trabajando en configuraciones completas para darte control
+              total sobre tu experiencia en TravelSmart.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -111,8 +127,12 @@ export default function SettingsPage() {
                       <feature.icon className="h-6 w-6 text-gray-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-600">{feature.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
+                      <h3 className="font-medium text-gray-600">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {feature.description}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -121,19 +141,18 @@ export default function SettingsPage() {
 
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-600 mb-4">
-                In the meantime, you can manage your basic profile information from your profile page.
+                Mientras tanto, puedes administrar tu información básica desde
+                tu perfil.
               </p>
               <div className="flex justify-center space-x-4">
                 <Button asChild>
                   <Link href="/profile">
                     <User className="h-4 w-4 mr-2" />
-                    Back to Profile
+                    Volver al perfil
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/">
-                    Go to Dashboard
-                  </Link>
+                  <Link href="/">Ir al panel</Link>
                 </Button>
               </div>
             </div>
@@ -143,51 +162,52 @@ export default function SettingsPage() {
         {/* Current Basic Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Available Now</CardTitle>
+            <CardTitle className="text-lg">Disponible ahora</CardTitle>
             <CardDescription>
-              Basic settings you can manage today
+              Configuraciones básicas que puedes administrar hoy
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div>
-                  <h4 className="font-medium">Profile Information</h4>
-                  <p className="text-sm text-gray-600">Update your name, username, bio, and basic details</p>
+                  <h4 className="font-medium">Información del perfil</h4>
+                  <p className="text-sm text-gray-600">
+                    Actualiza tu nombre, usuario, biografía y detalles básicos
+                  </p>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/profile">
-                    Manage
-                  </Link>
+                  <Link href="/profile">Administrar</Link>
                 </Button>
               </div>
 
               <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div>
-                  <h4 className="font-medium">Email Verification</h4>
+                  <h4 className="font-medium">Verificación de correo</h4>
                   <p className="text-sm text-gray-600">
-                    Verify your email address to access all features
+                    Verifica tu correo para acceder a todas las funciones
                     {user.email_verified && (
-                      <span className="text-green-600 ml-1">✓ Verified</span>
+                      <span className="text-green-600 ml-1">✓ Verificado</span>
                     )}
                   </p>
                 </div>
                 {!user.email_verified && (
                   <Button variant="outline" size="sm" disabled>
-                    Check Email
+                    Revisar correo
                   </Button>
                 )}
               </div>
 
               <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                 <div>
-                  <h4 className="font-medium">Account Status</h4>
+                  <h4 className="font-medium">Estado de la cuenta</h4>
                   <p className="text-sm text-gray-600">
-                    Your account is currently <span className="font-medium">{user.status}</span>
+                    Tu cuenta está actualmente{" "}
+                    <span className="font-medium">{user.status}</span>
                   </p>
                 </div>
                 <Button variant="outline" size="sm" disabled>
-                  Active
+                  Activa
                 </Button>
               </div>
             </div>
@@ -196,4 +216,4 @@ export default function SettingsPage() {
       </div>
     </div>
   );
-} 
+}

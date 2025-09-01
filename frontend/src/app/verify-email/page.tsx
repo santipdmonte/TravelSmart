@@ -45,12 +45,12 @@ function VerifyEmailPageInner() {
         } else {
           setVerificationStatus("error");
           setErrorMessage(
-            "Email verification failed. The link may be expired or invalid."
+            "La verificación de correo falló. El enlace puede estar expirado o ser inválido."
           );
         }
       } catch {
         setVerificationStatus("error");
-        setErrorMessage("An unexpected error occurred during verification.");
+        setErrorMessage("Ocurrió un error inesperado durante la verificación.");
       }
     },
     [verifyEmail, router]
@@ -73,7 +73,9 @@ function VerifyEmailPageInner() {
         verificationStatus === "loading"
       ) {
         setVerificationStatus("error");
-        setErrorMessage("Invalid verification link. No token provided.");
+        setErrorMessage(
+          "Enlace de verificación inválido. No se proporcionó token."
+        );
       }
       return;
     }
@@ -105,9 +107,11 @@ function VerifyEmailPageInner() {
               <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Verifying your email
+              Verificando tu correo
             </h2>
-            <p className="text-sm text-muted-foreground">Please wait...</p>
+            <p className="text-sm text-muted-foreground">
+              Por favor, espera...
+            </p>
           </div>
         );
       case "success":
@@ -117,20 +121,20 @@ function VerifyEmailPageInner() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Email verified successfully!
+              ¡Correo verificado con éxito!
             </h2>
             <p className="text-sm text-muted-foreground">
-              Welcome to TravelSmart! You&apos;re ready to start planning.
+              ¡Bienvenido a TravelSmart! Ya puedes empezar a planear.
             </p>
             {isRedirecting && (
-              <p className="text-sm text-blue-600">Redirecting you...</p>
+              <p className="text-sm text-blue-600">Redirigiéndote...</p>
             )}
             <Button
               onClick={() => router.push("/")}
               className="mt-4"
               disabled={isRedirecting}
             >
-              {isRedirecting ? "Redirecting..." : "Go to Dashboard"}
+              {isRedirecting ? "Redirigiendo..." : "Ir al inicio"}
             </Button>
           </div>
         );
@@ -141,14 +145,14 @@ function VerifyEmailPageInner() {
               <XCircle className="h-8 w-8 text-red-600" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Verification Failed
+              Verificación fallida
             </h2>
             <Alert variant="destructive">
               <XCircle className="h-4 w-4" />
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
             <Button variant="outline" asChild className="w-full">
-              <Link href="/login">Go to Login</Link>
+              <Link href="/login">Ir a Iniciar sesión</Link>
             </Button>
           </div>
         );
@@ -175,8 +179,10 @@ function VerifyEmailPageInner() {
         <div className="w-full max-w-md">
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Email Verification</CardTitle>
-              <CardDescription>Complete your account setup</CardDescription>
+              <CardTitle className="text-xl">Verificación de correo</CardTitle>
+              <CardDescription>
+                Completa la configuración de tu cuenta
+              </CardDescription>
             </CardHeader>
             <CardContent>{renderContent()}</CardContent>
           </Card>
@@ -185,7 +191,7 @@ function VerifyEmailPageInner() {
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2025 TravelSmart. All rights reserved.
+            © 2025 TravelSmart. Todos los derechos reservados.
           </p>
         </div>
       </footer>
@@ -201,10 +207,10 @@ export default function VerifyEmailPage() {
           <div className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
               {/* simple fallback spinner text to avoid importing icons here */}
-              <span className="text-blue-600 animate-pulse">Loading…</span>
+              <span className="text-blue-600 animate-pulse">Cargando…</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Preparing verification…
+              Preparando verificación…
             </p>
           </div>
         </div>

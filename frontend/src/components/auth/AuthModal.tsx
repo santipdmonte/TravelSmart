@@ -66,7 +66,7 @@ export default function AuthModal({
       <DialogContent className="sm:max-w-md">
         {/* Radix A11y: DialogContent requires a DialogTitle. We provide a visually-hidden one. */}
         <DialogHeader>
-          <DialogTitle className="sr-only">Authentication</DialogTitle>
+          <DialogTitle className="sr-only">Autenticación</DialogTitle>
         </DialogHeader>
 
         {showRegistrationSuccess ? (
@@ -76,10 +76,11 @@ export default function AuthModal({
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <h2 className="text-xl font-semibold">
-                Account created successfully!
+                ¡Cuenta creada con éxito!
               </h2>
               <p className="text-sm text-gray-600 mt-2">
-                Welcome to TravelSmart! Please verify your email to get started.
+                ¡Bienvenido a TravelSmart! Por favor, verifica tu correo para
+                comenzar.
               </p>
             </div>
 
@@ -88,16 +89,15 @@ export default function AuthModal({
               <AlertDescription className="text-blue-800">
                 <div className="space-y-2">
                   <p className="font-medium">
-                    Check your email for verification
+                    Revisa tu correo para verificar tu cuenta
                   </p>
                   <p className="text-sm">
-                    We&apos;ve sent a verification email to your inbox. Click
-                    the link in the email or copy the token to verify your
-                    account.
+                    Te enviamos un correo de verificación. Haz clic en el enlace
+                    del correo o copia el token para verificar tu cuenta.
                   </p>
                   <p className="text-sm">
-                    Once verified, you can access all TravelSmart features
-                    including creating and managing your itineraries.
+                    Una vez verificado, podrás acceder a todas las funciones de
+                    TravelSmart, incluyendo crear y gestionar tus itinerarios.
                   </p>
                 </div>
               </AlertDescription>
@@ -105,7 +105,7 @@ export default function AuthModal({
 
             <div className="flex space-x-3 mt-6">
               <Button onClick={handleClose} className="flex-1">
-                Continue to App
+                Continuar a la app
               </Button>
               <Button
                 variant="outline"
@@ -115,7 +115,7 @@ export default function AuthModal({
                 }}
                 className="flex-1"
               >
-                Sign In
+                Iniciar sesión
               </Button>
             </div>
           </div>
@@ -130,8 +130,8 @@ export default function AuthModal({
             onValueChange={(value) => setView(value as "login" | "register")}
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="register">Sign Up</TabsTrigger>
+              <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
+              <TabsTrigger value="register">Registrarse</TabsTrigger>
             </TabsList>
             <TabsContent value="login" className="mt-6">
               <LoginForm

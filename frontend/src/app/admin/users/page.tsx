@@ -19,7 +19,7 @@ export default function AdminUsersPage() {
       const res = await getUsersWithProfiles({ limit: 100 });
       if (!mounted) return;
       if (res.error || !res.data) {
-        setError(res.error || "Failed to load users");
+        setError(res.error || "No se pudieron cargar los usuarios");
       } else {
         setUsers(res.data);
       }
@@ -34,21 +34,21 @@ export default function AdminUsersPage() {
   if (!isAdmin) {
     return (
       <div className="max-w-5xl mx-auto p-6">
-        <h1 className="text-2xl font-semibold mb-4">Admin Only</h1>
-        <p>You don’t have access to this page.</p>
+        <h1 className="text-2xl font-semibold mb-4">Solo administradores</h1>
+        <p>No tienes acceso a esta página.</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Users</h1>
+      <h1 className="text-2xl font-bold mb-4">Usuarios</h1>
       {loading ? (
-        <p>Loading…</p>
+        <p>Cargando…</p>
       ) : error ? (
         <p className="text-red-600">{error}</p>
       ) : users.length === 0 ? (
-        <p>No users found.</p>
+        <p>No se encontraron usuarios.</p>
       ) : (
         <div className="overflow-x-auto rounded border">
           <table className="min-w-full divide-y divide-gray-200">
@@ -58,13 +58,13 @@ export default function AdminUsersPage() {
                   ID
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
+                  Nombre
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
+                  Correo
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Traveler Type
+                  Tipo de viajero
                 </th>
                 <th className="px-4 py-2" />
               </tr>

@@ -61,7 +61,7 @@ export default function PasswordResetConfirmForm({
       setError(
         err instanceof Error
           ? err.message
-          : "An unexpected error occurred. Please try again."
+          : "Ocurrió un error inesperado. Intenta nuevamente."
       );
     } finally {
       setIsLoading(false);
@@ -74,13 +74,13 @@ export default function PasswordResetConfirmForm({
         <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
           <CheckCircle className="h-6 w-6 text-green-600" />
         </div>
-        <h3 className="text-lg font-semibold">Password Reset!</h3>
+        <h3 className="text-lg font-semibold">¡Contraseña restablecida!</h3>
         <p className="text-sm text-muted-foreground">
-          Your password has been successfully reset. You will be redirected to
-          the login page shortly.
+          Tu contraseña ha sido restablecida correctamente. Serás redirigido a
+          la página de inicio de sesión en breve.
         </p>
         <Button onClick={() => router.push("/login")} className="w-full">
-          Sign In Now
+          Iniciar sesión ahora
         </Button>
       </div>
     );
@@ -90,10 +90,10 @@ export default function PasswordResetConfirmForm({
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-bold tracking-tight">
-          Set a New Password
+          Establecer una nueva contraseña
         </h2>
         <p className="text-sm text-muted-foreground">
-          Create a new, strong password for your account.
+          Crea una contraseña nueva y segura para tu cuenta.
         </p>
       </div>
 
@@ -110,13 +110,13 @@ export default function PasswordResetConfirmForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>Nueva contraseña</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter new password"
+                      placeholder="Ingresa la nueva contraseña"
                       disabled={isLoading}
                     />
                     <Button
@@ -143,12 +143,12 @@ export default function PasswordResetConfirmForm({
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm New Password</FormLabel>
+                <FormLabel>Confirmar nueva contraseña</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder="Confirma tu contraseña"
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -160,10 +160,10 @@ export default function PasswordResetConfirmForm({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Resetting...
+                Restableciendo...
               </>
             ) : (
-              "Reset Password"
+              "Restablecer contraseña"
             )}
           </Button>
         </form>

@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TravelSmart - AI-Powered Travel Itineraries",
-  description: "Create personalized travel itineraries with AI assistance",
+  title: "TravelSmart - Itinerarios de viaje impulsados por IA",
+  description: "Crea itinerarios de viaje personalizados con ayuda de IA",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
   // Log in server console when the app renders and the env var is missing
   __warnMissingApiBaseIfNeeded({ when: "onLoad" });
   return (
-    <html lang="en">
+    <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

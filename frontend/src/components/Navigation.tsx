@@ -19,9 +19,9 @@ const Navigation = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   const navigation = [
-    { name: "Home", href: "/", icon: null },
-    { name: "Create Itinerary", href: "/create", icon: Plus },
-    { name: "My Itineraries", href: "/itineraries", icon: MapPin },
+    { name: "Inicio", href: "/", icon: null },
+    { name: "Crear Itinerario", href: "/create", icon: Plus },
+    { name: "Mis Itinerarios", href: "/itineraries", icon: MapPin },
     // { name: "Traveler Test", href: "/traveler-test", icon: Wand2 },
   ];
 
@@ -99,14 +99,14 @@ const Navigation = () => {
                     onClick={openLoginModal}
                     disabled={isLoading}
                   >
-                    Sign in
+                    Iniciar sesión
                   </Button>
                   <Button
                     onClick={openRegisterModal}
                     disabled={isLoading}
                     className="bg-sky-500 hover:bg-sky-700 rounded-full h-10 px-6 font-semibold shadow-md"
                   >
-                    Sign up
+                    Registrarse
                   </Button>
                 </div>
               ) : (
@@ -122,7 +122,7 @@ const Navigation = () => {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2"
               >
-                <span className="sr-only">Open main menu</span>
+                <span className="sr-only">Abrir menú principal</span>
                 {isMobileMenuOpen ? (
                   <X className="h-6 w-6" />
                 ) : (
@@ -169,14 +169,14 @@ const Navigation = () => {
                       disabled={isLoading}
                     >
                       <User className="h-5 w-5 mr-3" />
-                      Sign in
+                      Iniciar sesión
                     </Button>
                     <Button
                       className="w-full bg-sky-500 hover:bg-sky-700 rounded-full h-10 font-semibold shadow-md"
                       onClick={openRegisterModal}
                       disabled={isLoading}
                     >
-                      Sign up
+                      Registrarse
                     </Button>
                   </div>
                 ) : (
