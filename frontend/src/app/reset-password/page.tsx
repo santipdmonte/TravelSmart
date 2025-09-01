@@ -37,9 +37,11 @@ function ResetPasswordContent() {
         <div className="w-full max-w-md">
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-xl">Reset Your Password</CardTitle>
+              <CardTitle className="text-xl">
+                Restablece tu contraseña
+              </CardTitle>
               <CardDescription>
-                Enter a new password for your account.
+                Ingresa una nueva contraseña para tu cuenta.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -48,7 +50,8 @@ function ResetPasswordContent() {
               ) : (
                 <Alert variant="destructive">
                   <AlertDescription>
-                    Invalid password reset link. Please request a new one.
+                    Enlace para restablecer la contraseña inválido. Por favor,
+                    solicita uno nuevo.
                   </AlertDescription>
                 </Alert>
               )}
@@ -62,7 +65,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Cargando...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

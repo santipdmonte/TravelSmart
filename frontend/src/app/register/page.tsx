@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { RegisterForm } from '@/components/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin } from 'lucide-react';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { RegisterForm } from "@/components/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { MapPin } from "lucide-react";
 
 export default function RegisterPage() {
   const { user, isLoading } = useAuth();
@@ -15,7 +21,7 @@ export default function RegisterPage() {
   useEffect(() => {
     if (!isLoading && user) {
       // Redirect authenticated users to home
-      router.replace('/');
+      router.replace("/");
     }
   }, [user, isLoading, router]);
 
@@ -39,14 +45,16 @@ export default function RegisterPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center space-x-2">
               <MapPin className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">TravelSmart</span>
+              <span className="text-xl font-bold text-gray-900">
+                TravelSmart
+              </span>
             </Link>
             <nav className="flex space-x-4">
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Sign in
+                Iniciar sesión
               </Link>
             </nav>
           </div>
@@ -58,21 +66,24 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <Card className="shadow-lg">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Crea tu cuenta
+              </CardTitle>
               <CardDescription>
-                Join TravelSmart today and start planning amazing adventures
+                Únete a TravelSmart hoy y comienza a planear aventuras
+                increíbles
               </CardDescription>
             </CardHeader>
             <CardContent>
               <RegisterForm />
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Already have an account?{' '}
-                  <Link 
-                    href="/login" 
+                  ¿Ya tienes una cuenta?{" "}
+                  <Link
+                    href="/login"
                     className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                   >
-                    Sign in here
+                    Inicia sesión aquí
                   </Link>
                 </p>
               </div>
@@ -85,10 +96,10 @@ export default function RegisterPage() {
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2025 TravelSmart. All rights reserved.
+            © 2025 TravelSmart. Todos los derechos reservados.
           </p>
         </div>
       </footer>
     </div>
   );
-} 
+}

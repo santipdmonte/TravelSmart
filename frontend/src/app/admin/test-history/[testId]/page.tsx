@@ -39,7 +39,7 @@ export default function AdminTestHistoryPage() {
       if (!testId) return;
       const res = await getAdminTestHistory(testId);
       if (res.error || !res.data) {
-        setError(res.error || "Failed to fetch history.");
+        setError(res.error || "No se pudo obtener el historial.");
         setStatus("error");
       } else {
         setData(res.data);
@@ -60,7 +60,9 @@ export default function AdminTestHistoryPage() {
   if (status === "error" || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <ErrorMessage message={error || "Unable to load test history."} />
+        <ErrorMessage
+          message={error || "No se puede cargar el historial del test."}
+        />
       </div>
     );
   }
@@ -70,7 +72,7 @@ export default function AdminTestHistoryPage() {
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Traveler Test History</CardTitle>
+            <CardTitle>Historial del Traveler Test</CardTitle>
             <CardDescription>
               Test ID: <code>{data.test_id}</code>
             </CardDescription>
@@ -78,22 +80,22 @@ export default function AdminTestHistoryPage() {
           <CardContent>
             <div className="flex items-center gap-4 mb-4 text-sm text-gray-700">
               <div>
-                <span className="font-medium">User ID:</span>{" "}
+                <span className="font-medium">ID de usuario:</span>{" "}
                 <code>{data.user_id}</code>
               </div>
               {data.traveler_type_name && (
                 <div>
-                  <span className="font-medium">Traveler Type:</span>{" "}
+                  <span className="font-medium">Tipo de viajero:</span>{" "}
                   {data.traveler_type_name}
                 </div>
               )}
               <div>
                 <Badge variant="outline">
                   {data.completed_at
-                    ? `Completed: ${new Date(
+                    ? `Completado: ${new Date(
                         data.completed_at
                       ).toLocaleString()}`
-                    : "Not Completed"}
+                    : "No completado"}
                 </Badge>
               </div>
             </div>
@@ -107,13 +109,13 @@ export default function AdminTestHistoryPage() {
                     </CardTitle>
                     {a.created_at && (
                       <CardDescription>
-                        Answered: {new Date(a.created_at).toLocaleString()}
+                        Respondido: {new Date(a.created_at).toLocaleString()}
                       </CardDescription>
                     )}
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm">
-                      <span className="font-medium">Selected:</span>{" "}
+                      <span className="font-medium">Seleccionado:</span>{" "}
                       {a.selected_option_text}
                     </div>
                   </CardContent>

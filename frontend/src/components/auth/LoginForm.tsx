@@ -71,9 +71,11 @@ export default function LoginForm({
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight">Welcome back</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Bienvenido de nuevo
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Enter your credentials to access your account
+          Ingresa tus credenciales para acceder a tu cuenta
         </p>
       </div>
 
@@ -95,7 +97,7 @@ export default function LoginForm({
                   <Input
                     {...field}
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Ingresa tu email"
                     disabled={isLoading}
                     onChange={(e) => {
                       field.onChange(e);
@@ -113,13 +115,13 @@ export default function LoginForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Contraseña</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder="Ingresa tu contraseña"
                       disabled={isLoading}
                       onChange={(e) => {
                         field.onChange(e);
@@ -140,7 +142,9 @@ export default function LoginForm({
                         <Eye className="h-4 w-4" />
                       )}
                       <span className="sr-only">
-                        {showPassword ? "Hide password" : "Show password"}
+                        {showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"}
                       </span>
                     </Button>
                   </div>
@@ -158,7 +162,7 @@ export default function LoginForm({
               disabled={isLoading}
               onClick={onSwitchToForgotPassword}
             >
-              Forgot your password?
+              ¿Olvidaste tu contraseña?
             </Button>
           </div>
 
@@ -166,10 +170,10 @@ export default function LoginForm({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                Iniciando sesión...
               </>
             ) : (
-              "Sign in"
+              "Iniciar sesión"
             )}
           </Button>
         </form>
@@ -177,9 +181,7 @@ export default function LoginForm({
 
       {onSwitchToRegister && (
         <div className="text-center text-sm">
-          <span className="text-muted-foreground">
-            Don&apos;t have an account?{" "}
-          </span>
+          <span className="text-muted-foreground">¿No tienes una cuenta? </span>
           <Button
             type="button"
             variant="link"
@@ -187,7 +189,7 @@ export default function LoginForm({
             onClick={onSwitchToRegister}
             disabled={isLoading}
           >
-            Sign up
+            Regístrate
           </Button>
         </div>
       )}

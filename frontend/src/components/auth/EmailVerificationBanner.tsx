@@ -40,7 +40,9 @@ export function EmailVerificationBanner({
       if (user?.email) {
         await resendVerification(user.email);
       } else {
-        throw new Error("No email available to resend verification");
+        throw new Error(
+          "No hay un correo disponible para reenviar la verificación"
+        );
       }
       setResendSuccess(true);
       // Auto-hide success message after 5 seconds
@@ -51,7 +53,7 @@ export function EmailVerificationBanner({
       setResendError(
         error instanceof Error
           ? error.message
-          : "Failed to resend verification email"
+          : "No se pudo reenviar el correo de verificación"
       );
     } finally {
       setIsResending(false);
@@ -64,7 +66,7 @@ export function EmailVerificationBanner({
 
   const handleVerifyToken = async () => {
     if (!verificationToken.trim()) {
-      setVerifyError("Please enter a verification token");
+      setVerifyError("Por favor, ingresa un token de verificación");
       return;
     }
 
@@ -89,7 +91,9 @@ export function EmailVerificationBanner({
       }
     } catch (error) {
       setVerifyError(
-        error instanceof Error ? error.message : "Failed to verify email"
+        error instanceof Error
+          ? error.message
+          : "No se pudo verificar el correo"
       );
     } finally {
       setIsVerifying(false);
@@ -108,7 +112,7 @@ export function EmailVerificationBanner({
         <CheckCircle className="h-4 w-4 text-green-600" />
         <AlertDescription className="text-green-800">
           <div className="flex items-center justify-between">
-            <span>Email verified successfully! 🎉</span>
+            <span>¡Correo verificado con éxito! 🎉</span>
             <Button
               variant="ghost"
               size="sm"
@@ -130,8 +134,8 @@ export function EmailVerificationBanner({
         <AlertDescription className="text-green-800">
           <div className="flex items-center justify-between">
             <span>
-              Verification email sent successfully! Check your inbox or enter
-              your token below.
+              ¡Correo de verificación enviado con éxito! Revisa tu bandeja de
+              entrada o ingresa tu token abajo.
             </span>
             <Button
               variant="ghost"
@@ -154,10 +158,11 @@ export function EmailVerificationBanner({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="font-medium">Email verification required</p>
+              <p className="font-medium">Se requiere verificación de correo</p>
               <p className="text-sm mt-1">
-                Please verify your email address to access all features. Check
-                your inbox for a verification link.
+                Por favor, verifica tu dirección de correo para acceder a todas
+                las funciones. Revisa tu bandeja de entrada para el enlace de
+                verificación.
               </p>
               {resendError && (
                 <p className="text-sm text-red-600 mt-1">{resendError}</p>
@@ -174,12 +179,12 @@ export function EmailVerificationBanner({
                 {isResending ? (
                   <>
                     <div className="animate-spin rounded-full h-3 w-3 border-b border-current mr-1" />
-                    Sending...
+                    Enviando...
                   </>
                 ) : (
                   <>
                     <Mail className="h-3 w-3 mr-1" />
-                    Resend
+                    Reenviar
                   </>
                 )}
               </Button>
@@ -190,7 +195,7 @@ export function EmailVerificationBanner({
                 className="text-amber-700 border-amber-300 hover:bg-amber-100"
               >
                 <Key className="h-3 w-3 mr-1" />
-                {showTokenInput ? "Hide" : "Enter Token"}
+                {showTokenInput ? "Ocultar" : "Ingresar token"}
               </Button>
               <Button
                 variant="ghost"
@@ -207,11 +212,11 @@ export function EmailVerificationBanner({
             <div className="border-t border-amber-200 pt-3">
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  Enter your verification token:
+                  Ingresa tu token de verificación:
                 </p>
                 <div className="flex space-x-2">
                   <Input
-                    placeholder="Enter token from your email..."
+                    placeholder="Ingresa el token de tu correo..."
                     value={verificationToken}
                     onChange={(e) => setVerificationToken(e.target.value)}
                     className="flex-1 bg-white border-amber-300 focus:border-amber-500"
@@ -230,10 +235,10 @@ export function EmailVerificationBanner({
                     {isVerifying ? (
                       <>
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-current mr-1" />
-                        Verifying...
+                        Verificando...
                       </>
                     ) : (
-                      "Verify"
+                      "Verificar"
                     )}
                   </Button>
                 </div>
@@ -241,7 +246,7 @@ export function EmailVerificationBanner({
                   <p className="text-sm text-red-600">{verifyError}</p>
                 )}
                 <p className="text-xs text-amber-700">
-                  Copy the token from the verification email and paste it here.
+                  Copia el token del correo de verificación y pégalo aquí.
                 </p>
               </div>
             </div>

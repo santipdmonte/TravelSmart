@@ -292,11 +292,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return true;
         }
 
-        dispatch({ type: "AUTH_FAILURE", payload: "Login failed" });
+        dispatch({ type: "AUTH_FAILURE", payload: "Error al iniciar sesión" });
         return false;
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Login failed";
+          error instanceof Error ? error.message : "Error al iniciar sesión";
         dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
         return false;
       }
@@ -348,11 +348,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return true;
         }
 
-        dispatch({ type: "AUTH_FAILURE", payload: "Registration failed" });
+        dispatch({ type: "AUTH_FAILURE", payload: "Error en el registro" });
         return false;
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Registration failed";
+          error instanceof Error ? error.message : "Error en el registro";
         dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
         return false;
       }
@@ -448,12 +448,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       dispatch({
         type: "VERIFICATION_FAILURE",
-        payload: "Email verification failed",
+        payload: "La verificación de correo falló",
       });
       return false;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Email verification failed";
+        error instanceof Error
+          ? error.message
+          : "La verificación de correo falló";
       dispatch({ type: "VERIFICATION_FAILURE", payload: errorMessage });
       return false;
     }
@@ -479,7 +481,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to resend verification email";
+            : "No se pudo reenviar el correo de verificación";
         dispatch({ type: "AUTH_FAILURE", payload: errorMessage });
         return false;
       }

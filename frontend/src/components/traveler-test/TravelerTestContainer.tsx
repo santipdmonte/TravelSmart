@@ -142,7 +142,7 @@ export default function TravelerTestContainer() {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center text-center p-12">
         <LoadingSpinner size="lg" />
-        <p className="mt-4">Loading Traveler Test...</p>
+        <p className="mt-4">Cargando Traveler Test...</p>
       </div>
     );
   }

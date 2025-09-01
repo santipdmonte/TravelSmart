@@ -152,7 +152,9 @@ export default function ProfilePage() {
         setErrors(fieldErrors);
       } else {
         const errorMessage =
-          error instanceof Error ? error.message : "Failed to update profile";
+          error instanceof Error
+            ? error.message
+            : "No se pudo actualizar el perfil";
         setSaveError(errorMessage);
       }
     } finally {
@@ -198,7 +200,7 @@ export default function ProfilePage() {
             <div className="flex items-center">
               <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
               <span className="text-green-800 font-medium">
-                Profile updated successfully!
+                ¡Perfil actualizado correctamente!
               </span>
             </div>
           </div>
@@ -229,7 +231,7 @@ export default function ProfilePage() {
                   </CardDescription>
                   {resolvedTravelerType && (
                     <div className="mt-2 text-sm text-gray-700">
-                      <span className="font-medium">Traveler Type:</span>{" "}
+                      <span className="font-medium">Tipo de viajero:</span>{" "}
                       <span>{resolvedTravelerType.name}</span>
                       {resolvedTravelerType.description && (
                         <p className="text-gray-600 mt-1">
@@ -255,8 +257,8 @@ export default function ProfilePage() {
         {/* Profile Content */}
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="profile">Profile Information</TabsTrigger>
-            <TabsTrigger value="account">Account Details</TabsTrigger>
+            <TabsTrigger value="profile">Información del perfil</TabsTrigger>
+            <TabsTrigger value="account">Detalles de la cuenta</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -264,9 +266,9 @@ export default function ProfilePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Personal Information</CardTitle>
+                    <CardTitle>Información personal</CardTitle>
                     <CardDescription>
-                      Manage your personal details and preferences
+                      Administra tus datos personales y preferencias
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
@@ -278,18 +280,18 @@ export default function ProfilePage() {
                           disabled={isSaving}
                         >
                           <X className="h-4 w-4 mr-1" />
-                          Cancel
+                          Cancelar
                         </Button>
                         <Button onClick={handleSave} disabled={isSaving}>
                           {isSaving ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b border-current mr-1" />
-                              Saving...
+                              Guardando...
                             </>
                           ) : (
                             <>
                               <Save className="h-4 w-4 mr-1" />
-                              Save Changes
+                              Guardar cambios
                             </>
                           )}
                         </Button>
@@ -297,7 +299,7 @@ export default function ProfilePage() {
                     ) : (
                       <Button onClick={() => setIsEditing(true)}>
                         <Edit2 className="h-4 w-4 mr-1" />
-                        Edit Profile
+                        Editar perfil
                       </Button>
                     )}
                   </div>
@@ -308,7 +310,7 @@ export default function ProfilePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="first_name">First Name</Label>
+                    <Label htmlFor="first_name">Nombre</Label>
                     {isEditing ? (
                       <div>
                         <Input
@@ -327,13 +329,13 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <p className="mt-1 text-gray-900">
-                        {user.first_name || "Not set"}
+                        {user.first_name || "Sin definir"}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="last_name">Last Name</Label>
+                    <Label htmlFor="last_name">Apellido</Label>
                     {isEditing ? (
                       <div>
                         <Input
@@ -352,14 +354,14 @@ export default function ProfilePage() {
                       </div>
                     ) : (
                       <p className="mt-1 text-gray-900">
-                        {user.last_name || "Not set"}
+                        {user.last_name || "Sin definir"}
                       </p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="display_name">Display Name</Label>
+                  <Label htmlFor="display_name">Nombre para mostrar</Label>
                   {isEditing ? (
                     <div>
                       <Input
@@ -378,13 +380,13 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {user.display_name || "Not set"}
+                      {user.display_name || "Sin definir"}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">Usuario</Label>
                   {isEditing ? (
                     <div>
                       <Input
@@ -403,13 +405,13 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {user.username || "Not set"}
+                      {user.username || "Sin definir"}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio">Biografía</Label>
                   {isEditing ? (
                     <div>
                       <Textarea
@@ -420,7 +422,7 @@ export default function ProfilePage() {
                         }
                         className={errors.bio ? "border-red-500" : ""}
                         rows={4}
-                        placeholder="Tell us about yourself..."
+                        placeholder="Cuéntanos sobre ti..."
                       />
                       {errors.bio && (
                         <p className="text-sm text-red-600 mt-1">
@@ -430,7 +432,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <p className="mt-1 text-gray-900">
-                      {user.bio || "No bio provided"}
+                      {user.bio || "Sin biografía"}
                     </p>
                   )}
                 </div>
@@ -444,16 +446,17 @@ export default function ProfilePage() {
                         variant="default"
                         className="ml-2 bg-green-100 text-green-800"
                       >
-                        Verified
+                        Verificado
                       </Badge>
                     ) : (
                       <Badge variant="destructive" className="ml-2">
-                        Not Verified
+                        No verificado
                       </Badge>
                     )}
                   </div>
                   <p className="text-sm text-gray-500 mt-1">
-                    Email cannot be changed here. Contact support if needed.
+                    El correo no se puede cambiar aquí. Contacta soporte si es
+                    necesario.
                   </p>
                 </div>
               </CardContent>
@@ -463,13 +466,13 @@ export default function ProfilePage() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Traveler Type</CardTitle>
+                      <CardTitle>Tipo de viajero</CardTitle>
                       <CardDescription>
-                        Discover your travel personality
+                        Descubre tu personalidad de viaje
                       </CardDescription>
                     </div>
                     <Button onClick={() => router.push("/traveler-test")}>
-                      Do the traveler test
+                      Hacer el Traveler Test
                     </Button>
                   </div>
                 </CardHeader>
@@ -487,7 +490,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <p className="text-gray-600">
-                      You haven&apos;t taken the traveler test yet.
+                      Aún no has realizado el Traveler Test.
                     </p>
                   )}
                 </CardContent>
@@ -498,16 +501,16 @@ export default function ProfilePage() {
           <TabsContent value="account">
             <Card>
               <CardHeader>
-                <CardTitle>Account Information</CardTitle>
+                <CardTitle>Información de la cuenta</CardTitle>
                 <CardDescription>
-                  View your account details and statistics
+                  Consulta los detalles y estadísticas de tu cuenta
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <Label>Account Status</Label>
+                      <Label>Estado de la cuenta</Label>
                       <div className="flex items-center mt-1">
                         <Badge
                           variant={
@@ -520,7 +523,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <Label>Role</Label>
+                      <Label>Rol</Label>
                       <div className="flex items-center mt-1">
                         <Shield className="h-4 w-4 mr-2 text-gray-500" />
                         <span className="text-gray-900">{user.role}</span>
@@ -528,16 +531,16 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <Label>Subscription Type</Label>
+                      <Label>Tipo de suscripción</Label>
                       <div className="flex items-center mt-1">
                         <Badge variant="outline">
-                          {user.subscription_type || "Free"}
+                          {user.subscription_type || "Gratis"}
                         </Badge>
                       </div>
                     </div>
 
                     <div>
-                      <Label>Member Since</Label>
+                      <Label>Miembro desde</Label>
                       <div className="flex items-center mt-1">
                         <Calendar className="h-4 w-4 mr-2 text-gray-500" />
                         <span className="text-gray-900">
@@ -549,11 +552,11 @@ export default function ProfilePage() {
 
                   <div className="space-y-4">
                     <div>
-                      <Label>Travel Statistics</Label>
+                      <Label>Estadísticas de viaje</Label>
                       <div className="mt-2 space-y-2">
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">
-                            Trips Created:
+                            Viajes creados:
                           </span>
                           <span className="font-medium">
                             {user.total_trips_created || 0}
@@ -561,7 +564,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-gray-600">
-                            Trips Completed:
+                            Viajes completados:
                           </span>
                           <span className="font-medium">
                             {user.total_trips_completed || 0}
@@ -571,26 +574,26 @@ export default function ProfilePage() {
                     </div>
 
                     <div>
-                      <Label>Onboarding Status</Label>
+                      <Label>Estado de onboarding</Label>
                       <div className="flex items-center mt-1">
                         {user.onboarding_completed ? (
                           <Badge
                             variant="default"
                             className="bg-green-100 text-green-800"
                           >
-                            Completed
+                            Completado
                           </Badge>
                         ) : (
-                          <Badge variant="secondary">In Progress</Badge>
+                          <Badge variant="secondary">En progreso</Badge>
                         )}
                       </div>
                     </div>
 
                     <div>
-                      <Label>Profile Visibility</Label>
+                      <Label>Visibilidad del perfil</Label>
                       <div className="flex items-center mt-1">
                         <Badge variant="outline">
-                          {user.is_public_profile ? "Public" : "Private"}
+                          {user.is_public_profile ? "Público" : "Privado"}
                         </Badge>
                       </div>
                     </div>

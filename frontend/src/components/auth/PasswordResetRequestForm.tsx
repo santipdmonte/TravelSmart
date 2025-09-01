@@ -56,7 +56,7 @@ export default function PasswordResetRequestForm({
       setError(
         err instanceof Error
           ? err.message
-          : "An unexpected error occurred. Please try again."
+          : "Ocurrió un error inesperado. Intenta nuevamente."
       );
     } finally {
       setIsLoading(false);
@@ -69,13 +69,13 @@ export default function PasswordResetRequestForm({
         <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
           <CheckCircle className="h-6 w-6 text-green-600" />
         </div>
-        <h3 className="text-lg font-semibold">Email Sent!</h3>
+        <h3 className="text-lg font-semibold">¡Correo enviado!</h3>
         <p className="text-sm text-muted-foreground">
-          If an account with that email exists, we&apos;ve sent a link to reset
-          your password.
+          Si existe una cuenta con ese correo, te hemos enviado un enlace para
+          restablecer tu contraseña.
         </p>
         <Button variant="outline" onClick={onSwitchToLogin} className="w-full">
-          Back to Sign In
+          Volver a Iniciar sesión
         </Button>
       </div>
     );
@@ -84,9 +84,11 @@ export default function PasswordResetRequestForm({
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight">Forgot Password</h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Olvidé mi contraseña
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Enter your email to receive a password reset link.
+          Ingresa tu email para recibir un enlace de restablecimiento.
         </p>
       </div>
 
@@ -108,7 +110,7 @@ export default function PasswordResetRequestForm({
                   <Input
                     {...field}
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Ingresa tu email"
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -121,10 +123,10 @@ export default function PasswordResetRequestForm({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                Enviando...
               </>
             ) : (
-              "Send Reset Link"
+              "Enviar enlace de restablecimiento"
             )}
           </Button>
         </form>
@@ -136,7 +138,7 @@ export default function PasswordResetRequestForm({
           onClick={onSwitchToLogin}
           disabled={isLoading}
         >
-          Back to Sign In
+          Volver a Iniciar sesión
         </Button>
       </div>
     </div>

@@ -108,11 +108,9 @@ export default function RegisterForm({
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Create your account
-        </h2>
+        <h2 className="text-2xl font-bold tracking-tight">Crea tu cuenta</h2>
         <p className="text-sm text-muted-foreground">
-          Join TravelSmart and start planning your perfect trips
+          Únete a TravelSmart y comienza a planear tus viajes perfectos
         </p>
       </div>
 
@@ -134,7 +132,7 @@ export default function RegisterForm({
                   <Input
                     {...field}
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Ingresa tu email"
                     disabled={isLoading}
                     onChange={(e) => {
                       field.onChange(e);
@@ -152,13 +150,13 @@ export default function RegisterForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Contraseña</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
                       {...field}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
+                      placeholder="Crea una contraseña"
                       disabled={isLoading}
                       onChange={(e) => {
                         field.onChange(e);
@@ -179,14 +177,16 @@ export default function RegisterForm({
                         <Eye className="h-4 w-4" />
                       )}
                       <span className="sr-only">
-                        {showPassword ? "Hide password" : "Show password"}
+                        {showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"}
                       </span>
                     </Button>
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Must be at least 8 characters with uppercase, lowercase, and
-                  number
+                  Debe tener al menos 8 caracteres con mayúsculas, minúsculas y
+                  números
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -197,35 +197,35 @@ export default function RegisterForm({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                Creando cuenta...
               </>
             ) : (
-              "Create account"
+              "Crear cuenta"
             )}
           </Button>
         </form>
       </Form>
 
       <div className="text-center text-sm">
-        <span className="text-muted-foreground">Already have an account? </span>
+        <span className="text-muted-foreground">¿Ya tienes una cuenta? </span>
         <Button
           variant="link"
           className="p-0 h-auto font-normal"
           onClick={onSwitchToLogin}
           disabled={isLoading}
         >
-          Sign in
+          Iniciar sesión
         </Button>
       </div>
 
       <div className="text-xs text-muted-foreground text-center">
-        By creating an account, you agree to our{" "}
+        Al crear una cuenta, aceptas nuestros{" "}
         <a href="/terms" className="underline hover:text-foreground">
-          Terms of Service
+          Términos de servicio
         </a>{" "}
-        and{" "}
+        y{" "}
         <a href="/privacy" className="underline hover:text-foreground">
-          Privacy Policy
+          Política de privacidad
         </a>
       </div>
     </div>

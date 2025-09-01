@@ -54,7 +54,7 @@ export default function LoginPage() {
                 href="/register"
                 className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Sign up
+                Registrarse
               </Link>
             </nav>
           </div>
@@ -66,22 +66,24 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <Card className="shadow-lg">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Bienvenido de nuevo
+              </CardTitle>
               <CardDescription>
-                Sign in to your TravelSmart account to continue planning your
-                adventures
+                Inicia sesión en tu cuenta de TravelSmart para seguir
+                planificando tus aventuras
               </CardDescription>
             </CardHeader>
             <CardContent>
               <LoginForm />
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
-                  Don&apos;t have an account?{" "}
+                  ¿No tienes una cuenta?{" "}
                   <Link
                     href="/register"
                     className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                   >
-                    Sign up here
+                    Regístrate aquí
                   </Link>
                 </p>
               </div>
@@ -94,7 +96,7 @@ export default function LoginPage() {
       <footer className="bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2024 TravelSmart. All rights reserved.
+            © 2024 TravelSmart. Todos los derechos reservados.
           </p>
         </div>
       </footer>

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { User, Settings, LogOut, MapPin, Shield } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { User, Settings, LogOut, MapPin, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function UserMenu() {
   const router = useRouter();
@@ -22,15 +22,15 @@ export default function UserMenu() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    router.push("/");
   };
 
   const handleProfileClick = () => {
-    router.push('/profile');
+    router.push("/profile");
   };
 
   const handleItinerariesClick = () => {
-    router.push('/itineraries');
+    router.push("/itineraries");
   };
 
   return (
@@ -55,38 +55,41 @@ export default function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
-        {hasRole('admin') && (
-          <DropdownMenuItem onClick={() => router.push('/admin/users')}>
+
+        {hasRole("admin") && (
+          <DropdownMenuItem onClick={() => router.push("/admin/users")}>
             <Shield className="mr-2 h-4 w-4" />
-            Admin
+            Administrador
           </DropdownMenuItem>
         )}
 
         <DropdownMenuItem onClick={handleProfileClick}>
           <User className="mr-2 h-4 w-4" />
-          Profile
+          Perfil
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem onClick={handleItinerariesClick}>
           <MapPin className="mr-2 h-4 w-4" />
-          My Itineraries
+          Mis Itinerarios
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem>
           <Settings className="mr-2 h-4 w-4" />
-          Settings
+          Configuración
         </DropdownMenuItem>
-        
+
         <DropdownMenuSeparator />
-        
-        <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="text-red-600 focus:text-red-600"
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          Log out
+          Cerrar sesión
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}
