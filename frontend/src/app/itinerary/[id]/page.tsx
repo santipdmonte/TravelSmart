@@ -617,11 +617,11 @@ export default function ItineraryDetailsPage() {
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
-                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                  // <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                     <div className="space-y-4">
                       {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
                         (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
-                          <div key={`transport-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                          <div key={`transport-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors">
                             <div className="flex items-center mb-3">
                               <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
                                 {(() => {
@@ -650,8 +650,8 @@ export default function ItineraryDetailsPage() {
                                 {t.tipo_transporte}
                               </span>
                               <div className="h-px bg-gray-200"></div>
-                              <div className="text-gray-700">{t.justificacion}</div>
-                              <div className="text-gray-700"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
+                              <div className="text-gray-900">{t.justificacion}</div>
+                              <div className="text-gray-500"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
                             </div>
                           </div>
                         ))
@@ -667,7 +667,7 @@ export default function ItineraryDetailsPage() {
                         ))
                       )}
                     </div>
-                  </div>
+                  // </div>
                 ) : (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
                     <p>Agrega más de un destino para ver las conexiones de transporte.</p>
