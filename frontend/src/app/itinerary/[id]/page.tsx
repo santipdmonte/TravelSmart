@@ -439,6 +439,7 @@ export default function ItineraryDetailsPage() {
                             body: JSON.stringify(payload),
                           });
                           await fetchItinerary(itineraryId);
+                          await fetchAccommodationLinks();
                           setIsTripDetailsOpen(false);
                         } finally {
                           setSavingTripDetails(false);
