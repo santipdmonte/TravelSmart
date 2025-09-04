@@ -1,19 +1,30 @@
-export interface DayActivity {
-  posicion_dia: number;
-  actividades: string;
+export type TransportType = 'Avión' | 'Tren' | 'Colectivo' | 'Auto' | 'Barco' | 'Otro';
+
+export interface TransporteEntreDestinos {
+  ciudad_origen: string;
+  ciudad_destino: string;
+  tipo_transporte: TransportType;
+  justificacion: string;
+  alternativas: string;
 }
 
-export interface Destination {
-  nombre_destino: string;
-  cantidad_dias_en_destino: number;
-  dias_destino: DayActivity[];
+export interface Destino {
+  ciudad: string;
+  pais: string;
+  pais_codigo: string;
+  coordenadas: string;
+  dias_en_destino: number;
+  actividades_sugeridas: string;
 }
 
 export interface ItineraryDetails {
   nombre_viaje: string;
   cantidad_dias: number;
   destino_general: string;
-  destinos: Destination[];
+  resumen_viaje: string;
+  justificacion_ruta_elegida: string;
+  destinos: Destino[];
+  transportes_entre_destinos?: TransporteEntreDestinos[] | null;
 }
 
 // Base itinerary interface (for list views)

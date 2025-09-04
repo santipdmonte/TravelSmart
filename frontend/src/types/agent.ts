@@ -34,14 +34,23 @@ export interface AgentState {
     nombre_viaje: string;
     cantidad_dias: number;
     destino_general: string;
+    resumen_viaje: string;
+    justificacion_ruta_elegida: string;
     destinos: Array<{
-      nombre_destino: string;
-      cantidad_dias_en_destino: number;
-      dias_destino: Array<{
-        posicion_dia: number;
-        actividades: string;
-      }>;
+      ciudad: string;
+      pais: string;
+      pais_codigo: string;
+      coordenadas: string;
+      dias_en_destino: number;
+      actividades_sugeridas: string;
     }>;
+    transportes_entre_destinos?: Array<{
+      ciudad_origen: string;
+      ciudad_destino: string;
+      tipo_transporte: 'Avión' | 'Tren' | 'Colectivo' | 'Auto' | 'Barco' | 'Otro';
+      justificacion: string;
+      alternativas: string;
+    }> | null;
   };
   user_name: string;
   user_id: string;

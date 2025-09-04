@@ -85,7 +85,7 @@ export default function ItineraryDetailsPage() {
       return;
     }
     const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
-      const q = encodeURIComponent(d.nombre_destino ?? '');
+      const q = encodeURIComponent(d.ciudad ?? '');
       return [`https://www.booking.com/searchresults.html?ss=${q}`];
     });
     setAccommodationsByDest(seeded);
@@ -93,8 +93,8 @@ export default function ItineraryDetailsPage() {
     // Seed route segments from itinerary
     setRouteSegments(
       currentItinerary.details_itinerary.destinos.map((d) => ({
-        name: d.nombre_destino,
-        days: d.cantidad_dias_en_destino,
+        name: d.ciudad,
+        days: d.dias_en_destino,
       }))
     );
   }, [currentItinerary]);
@@ -339,32 +339,27 @@ export default function ItineraryDetailsPage() {
                   {details_itinerary.destinos.map((destination, destIndex) => (
                     <div key={destIndex} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                       <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                        {destination.nombre_destino}
+                        {destination.ciudad}
                       </h2>
                       <p className="text-gray-700 mb-6">
-                        {destination.cantidad_dias_en_destino} días en este destino
+                        {destination.dias_en_destino} días en este destino
                       </p>
 
-                      {/* Days */}
+                      {/* Suggested activities */}
                       <div className="space-y-4">
-                        {destination.dias_destino.map((day, dayIndex) => (
-                          <div
-                            key={dayIndex}
-                            className="border-l-4 border-sky-200 pl-6 py-4"
-                          >
-                            <div className="flex items-center mb-2">
-                              <div className="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3 shadow">
-                                {day.posicion_dia}
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                Día {day.posicion_dia}
-                              </h3>
+                        <div className="border-l-4 border-sky-200 pl-6 py-4">
+                          <div className="flex items-center mb-2">
+                            <div className="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3 shadow">
+                              i
                             </div>
-                            <p className="text-gray-700 leading-relaxed ml-11">
-                              {day.actividades}
-                            </p>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              Actividades sugeridas
+                            </h3>
                           </div>
-                        ))}
+                          <p className="text-gray-700 leading-relaxed ml-11 whitespace-pre-line">
+                            {destination.actividades_sugeridas}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -623,21 +618,34 @@ export default function ItineraryDetailsPage() {
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    {details_itinerary.destinos.map((dest, idx) => (
-                      <div key={`transport-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
-                        <div className="flex items-center mb-2">
-                          <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
-                          <h2 className="text-2xl font-bold text-gray-900">
-                            {dest.nombre_destino}
-                          </h2>
-                        </div>
-                        {idx < details_itinerary.destinos.length - 1 && (
-                          <div className="ml-6 text-gray-700">
-                            <div className="font-medium text-gray-900">Avión • 1 h 20 min • US$ 120</div>
+                    {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
+                      (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
+                        <div key={`transport-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
+                          <div className="flex items-center mb-2">
+                            <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
+                            <h3 className="text-xl font-semibold text-gray-900">
+                              {t.ciudad_origen} → {t.ciudad_destino}
+                            </h3>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          <div className="ml-6 text-gray-700 space-y-1">
+                            <div className="font-medium text-gray-900">{t.tipo_transporte}</div>
+                            <div className="text-gray-700"><span className="font-medium">Justificación:</span> {t.justificacion}</div>
+                            <div className="text-gray-700"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      details_itinerary.destinos.map((dest, idx) => (
+                        <div key={`transport-fallback-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
+                          <div className="flex items-center mb-2">
+                            <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                              {dest.ciudad}
+                            </h2>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 ) : (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
@@ -652,8 +660,8 @@ export default function ItineraryDetailsPage() {
                     <div key={`stay-${idx}`} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                          <h2 className="text-2xl font-bold text-gray-900">{dest.nombre_destino}</h2>
-                          <p className="text-gray-700 ml-1">• {dest.cantidad_dias_en_destino} días</p>
+                          <h2 className="text-2xl font-bold text-gray-900">{dest.ciudad}</h2>
+                          <p className="text-gray-700 ml-1">• {dest.dias_en_destino} días</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
@@ -661,7 +669,7 @@ export default function ItineraryDetailsPage() {
                             <span className="text-sm text-gray-600">Generando enlaces...</span>
                           )}
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.airbnb ?? 'https://www.airbnb.com'}
+                            href={accommodationLinks[dest.ciudad]?.airbnb ?? 'https://www.airbnb.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
@@ -676,7 +684,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.booking ?? 'https://www.booking.com'}
+                            href={accommodationLinks[dest.ciudad]?.booking ?? 'https://www.booking.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
@@ -690,7 +698,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.expedia ?? 'https://www.expedia.com'}
+                            href={accommodationLinks[dest.ciudad]?.expedia ?? 'https://www.expedia.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
