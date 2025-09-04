@@ -106,7 +106,7 @@ export default function ItineraryDetailsPage() {
       return;
     }
     const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
-      const q = encodeURIComponent(d.ciudad ?? '');
+      const q = encodeURIComponent(`${d.ciudad ?? ''}, ${d.pais ?? ''}`.trim());
       return [`https://www.booking.com/searchresults.html?ss=${q}`];
     });
     setAccommodationsByDest(seeded);
@@ -525,7 +525,7 @@ export default function ItineraryDetailsPage() {
                             <span className="text-sm text-gray-600">Generando enlaces...</span>
                           )}
                           <a
-                            href={accommodationLinks[dest.ciudad]?.airbnb ?? 'https://www.airbnb.com'}
+                            href={accommodationLinks[`${dest.ciudad}, ${dest.pais}`]?.airbnb ?? 'https://www.airbnb.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
@@ -540,7 +540,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.ciudad]?.booking ?? 'https://www.booking.com'}
+                            href={accommodationLinks[`${dest.ciudad}, ${dest.pais}`]?.booking ?? 'https://www.booking.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
@@ -554,7 +554,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.ciudad]?.expedia ?? 'https://www.expedia.com'}
+                            href={accommodationLinks[`${dest.ciudad}, ${dest.pais}`]?.expedia ?? 'https://www.expedia.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
