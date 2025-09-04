@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { CalendarIcon, PlaneIcon, TrainIcon, BusIcon, CarIcon, ShipIcon, CircleHelpIcon } from 'lucide-react';
+import { CalendarIcon, PlaneIcon, TrainIcon, BusIcon, CarIcon, ShipIcon, CircleHelpIcon, MapPinIcon } from 'lucide-react';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -335,31 +335,23 @@ export default function ItineraryDetailsPage() {
 
               <TabsContent value="itinerary">
                 {/* Destinations */}
-                <div className="space-y-8">
+                <div className="space-y-4">
                   {details_itinerary.destinos.map((destination, destIndex) => (
-                    <div key={destIndex} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                        {destination.ciudad}
-                      </h2>
-                      <p className="text-gray-700 mb-6">
-                        {destination.dias_en_destino} días en este destino
-                      </p>
-
-                      {/* Suggested activities */}
-                      <div className="space-y-4">
-                        <div className="border-l-4 border-sky-200 pl-6 py-4">
-                          <div className="flex items-center mb-2">
-                            <div className="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3 shadow">
-                              i
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Actividades sugeridas
-                            </h3>
+                    <div key={destIndex} className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                            <MapPinIcon className="w-4 h-4" />
                           </div>
-                          <p className="text-gray-700 leading-relaxed ml-11 whitespace-pre-line">
-                            {destination.actividades_sugeridas}
-                          </p>
+                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">{destination.ciudad}</h2>
                         </div>
+                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                          {destination.dias_en_destino} días
+                        </span>
+                      </div>
+                      <div className="ml-11">
+                        <div className="h-px bg-gray-200 mb-2"></div>
+                        <div className="text-gray-900 whitespace-pre-line">{destination.actividades_sugeridas}</div>
                       </div>
                     </div>
                   ))}
