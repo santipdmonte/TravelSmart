@@ -455,8 +455,9 @@ export default function ItineraryDetailsPage() {
                       {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
                         (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
                           <div key={`transport-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors">
-                            <div className="flex items-center mb-3">
-                              <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center">
+                                <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
                                 {(() => {
                                   switch (t.tipo_transporte) {
                                     case 'Avión':
@@ -473,15 +474,16 @@ export default function ItineraryDetailsPage() {
                                       return <CircleHelpIcon className="w-4 h-4" />;
                                   }
                                 })()}
+                                </div>
+                                <h3 className="text-lg md:text-xl font-semibold text-gray-900">
+                                  {t.ciudad_origen} → {t.ciudad_destino}
+                                </h3>
                               </div>
-                              <h3 className="text-lg md:text-xl font-semibold text-gray-900">
-                                {t.ciudad_origen} → {t.ciudad_destino}
-                              </h3>
-                            </div>
-                            <div className="ml-11 text-gray-700 space-y-2">
                               <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
                                 {t.tipo_transporte}
                               </span>
+                            </div>
+                            <div className="ml-11 text-gray-700 space-y-2">
                               <div className="h-px bg-gray-200"></div>
                               <div className="text-gray-900">{t.justificacion}</div>
                               <div className="text-gray-500"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
