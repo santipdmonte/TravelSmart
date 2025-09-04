@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, PlaneIcon, TrainIcon, BusIcon, CarIcon, ShipIcon, CircleHelpIcon, MapPinIcon } from 'lucide-react';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -28,13 +28,7 @@ export default function ItineraryDetailsPage() {
   // Mock state for accommodations per destination
   const [accommodationsByDest, setAccommodationsByDest] = useState<string[][]>([]);
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
-  // Mock state for Route tab (destinations + days)
-  type RouteSegment = { name: string; days: number };
-  const [routeSegments, setRouteSegments] = useState<RouteSegment[]>([]);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  const [isAddDestOpen, setIsAddDestOpen] = useState<boolean>(false);
-  const [newDestName, setNewDestName] = useState<string>('');
-  const [newDestDays, setNewDestDays] = useState<number>(2);
+  // Route tab no longer supports editing or reordering
   const [activeTab, setActiveTab] = useState<string>('itinerary');
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
   const [tripStartDate, setTripStartDate] = useState<string>('');
@@ -43,16 +37,44 @@ export default function ItineraryDetailsPage() {
   const [accommodationLinks, setAccommodationLinks] = useState<Record<string, { airbnb: string; booking: string; expedia: string }>>({});
   const [loadingAccommodationLinks, setLoadingAccommodationLinks] = useState<boolean>(false);
 
-  // Compute mock map points for the Route tab
+  // Compute mock map points for the Route tab from itinerary destinations
   const routePoints = useMemo(() => {
-    const count = routeSegments.length;
+    const count = currentItinerary?.details_itinerary?.destinos?.length ?? 0;
     if (count < 2) return [] as { x: number; y: number }[];
-    return routeSegments.map((_, i) => {
+    return Array.from({ length: count }, (_, i) => {
       const x = 60 + (i * (280 / (count - 1)));
       const y = 110 + ((i % 2) * 120);
       return { x, y };
     });
-  }, [routeSegments]);
+  }, [currentItinerary?.details_itinerary?.destinos?.length]);
+
+  // Helper to format short dates for display in the Ruta list
+  const formatDateShort = (date: Date) =>
+    date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+
+  // Compute per-destination date ranges if a trip start date exists
+  const destinationDateRanges = useMemo(() => {
+    const results: { start: Date; end: Date }[] = [];
+    const startDateStr = currentItinerary?.start_date;
+    const destinos = currentItinerary?.details_itinerary?.destinos ?? [];
+    if (!startDateStr || destinos.length === 0) return results;
+    try {
+      let cursor = new Date(startDateStr);
+      for (const dest of destinos) {
+        const start = new Date(cursor);
+        const end = new Date(cursor);
+        const days = Number(dest.dias_en_destino) || 1;
+        end.setDate(end.getDate() + Math.max(1, days) - 1);
+        results.push({ start, end });
+        // Move cursor to the next day after end
+        cursor = new Date(end);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    } catch (_) {
+      return results;
+    }
+    return results;
+  }, [currentItinerary?.start_date, currentItinerary?.details_itinerary?.destinos]);
 
   useEffect(() => {
     if (itineraryId) {
@@ -81,22 +103,14 @@ export default function ItineraryDetailsPage() {
     if (!currentItinerary?.details_itinerary?.destinos) {
       setAccommodationsByDest([]);
       setNewLinkByDest([]);
-      setRouteSegments([]);
       return;
     }
     const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
-      const q = encodeURIComponent(d.nombre_destino ?? '');
+      const q = encodeURIComponent(d.ciudad ?? '');
       return [`https://www.booking.com/searchresults.html?ss=${q}`];
     });
     setAccommodationsByDest(seeded);
     setNewLinkByDest(currentItinerary.details_itinerary.destinos.map(() => ''));
-    // Seed route segments from itinerary
-    setRouteSegments(
-      currentItinerary.details_itinerary.destinos.map((d) => ({
-        name: d.nombre_destino,
-        days: d.cantidad_dias_en_destino,
-      }))
-    );
   }, [currentItinerary]);
 
   // Fetch accommodation links from backend for 'stays' tab
@@ -170,75 +184,6 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
 
-  // Actions for Route tab (mock)
-  const incrementDays = (index: number) =>
-    setRouteSegments((prev) => prev.map((s, i) => (i === index ? { ...s, days: s.days + 1 } : s)));
-  const decrementDaysOrDelete = (index: number) =>
-    setRouteSegments((prev) => {
-      const copy = [...prev];
-      const seg = copy[index];
-      if (!seg) return prev;
-      if (seg.days <= 1) {
-        copy.splice(index, 1);
-        return copy;
-      }
-      copy[index] = { ...seg, days: seg.days - 1 };
-      return copy;
-    });
-  // Removed unused route reordering/add/remove helpers
-
-  const handleConfirmAddDestination = () => {
-    const name = newDestName.trim();
-    const daysParsed = Number(newDestDays);
-    const days = Number.isFinite(daysParsed) && daysParsed > 0 ? Math.floor(daysParsed) : 1;
-    if (!name) return;
-    setRouteSegments((prev) => [...prev, { name, days }]);
-    setNewDestName('');
-    setNewDestDays(2);
-    setIsAddDestOpen(false);
-  };
-
-  
-  // DnD handlers for reordering route segments (native HTML5)
-  const onDragStart = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number
-  ) => {
-    e.dataTransfer.setData('text/plain', String(index));
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const onDragOver = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number
-  ) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (dragOverIndex !== index) {
-      setDragOverIndex(index);
-    }
-  };
-
-  const onDrop = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number
-  ) => {
-    e.preventDefault();
-    const fromIndexString = e.dataTransfer.getData('text/plain');
-    const fromIndex = parseInt(fromIndexString, 10);
-    setDragOverIndex(null);
-    if (Number.isNaN(fromIndex) || fromIndex === index) return;
-    setRouteSegments((prev) => {
-      const updated = [...prev];
-      const [moved] = updated.splice(fromIndex, 1);
-      updated.splice(index, 0, moved);
-      return updated;
-    });
-  };
-
-  const onDragEnd = () => {
-    setDragOverIndex(null);
-  };
 
   const handleAddLink = (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || '').trim();
@@ -335,36 +280,23 @@ export default function ItineraryDetailsPage() {
 
               <TabsContent value="itinerary">
                 {/* Destinations */}
-                <div className="space-y-8">
+                <div className="space-y-4">
                   {details_itinerary.destinos.map((destination, destIndex) => (
-                    <div key={destIndex} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                        {destination.nombre_destino}
-                      </h2>
-                      <p className="text-gray-700 mb-6">
-                        {destination.cantidad_dias_en_destino} días en este destino
-                      </p>
-
-                      {/* Days */}
-                      <div className="space-y-4">
-                        {destination.dias_destino.map((day, dayIndex) => (
-                          <div
-                            key={dayIndex}
-                            className="border-l-4 border-sky-200 pl-6 py-4"
-                          >
-                            <div className="flex items-center mb-2">
-                              <div className="bg-sky-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3 shadow">
-                                {day.posicion_dia}
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                Día {day.posicion_dia}
-                              </h3>
-                            </div>
-                            <p className="text-gray-700 leading-relaxed ml-11">
-                              {day.actividades}
-                            </p>
+                    <div key={destIndex} className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                            <MapPinIcon className="w-4 h-4" />
                           </div>
-                        ))}
+                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">{destination.ciudad}</h2>
+                        </div>
+                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                          {destination.dias_en_destino} días
+                        </span>
+                      </div>
+                      <div className="ml-11">
+                        <div className="h-px bg-gray-200 mb-2"></div>
+                        <div className="text-gray-900 whitespace-pre-line">{destination.actividades_sugeridas}</div>
                       </div>
                     </div>
                   ))}
@@ -375,94 +307,33 @@ export default function ItineraryDetailsPage() {
                 <TabsContent value="route">
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-                      {/* Left: Destination steps */}
-                      <div className="md:col-span-2 space-y-5">
-                        {routeSegments.map((seg, idx) => (
-                          <div
-                            key={`route-left-${idx}`}
-                            className={`flex justify-between gap-2 ${dragOverIndex === idx ? 'bg-sky-50 rounded-xl' : ''}`}
-                            onDragOver={(e) => onDragOver(e, idx)}
-                            onDragEnter={(e) => onDragOver(e, idx)}
-                            onDrop={(e) => onDrop(e, idx)}
-                          >
-                            
-                            <div className="flex items-center gap-2">
-                              {/* {idx < routeSegments.length - 1 && (
-                                <span className="absolute left-10 top-6 bottom-[-14px] w-px bg-sky-200"></span>
-                              )} */}
-                              {/* Drag handle to the left */}
-                              <div
-                                className="text-gray-400 cursor-grab"
-                                title="Reordenar"
-                                draggable
-                                onDragStart={(e) => onDragStart(e, idx)}
-                                onDragEnd={onDragEnd}
-                              >
-                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M5 6h10M5 10h10M5 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                </svg>
-                              </div>
-                              {/* Step number */}
-                              <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
-                                {idx + 1}
-                              </div>
-                              <div className="flex-1 pl-1">
-                                <h3 className="text-lg font-semibold text-gray-900">{seg.name}</h3>
-                              </div>
-                            </div>
-
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-2">
-                                {/* subtract/delete */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="rounded-full"
-                                  onClick={() => decrementDaysOrDelete(idx)}
-                                  aria-label={seg.days <= 1 ? 'Eliminar destino' : 'Restar día'}
-                                >
-                                  {seg.days <= 1 ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-                                    </svg>
-                                  )}
-                                </Button>
-                                {/* days */}
-                                <div>
-                                  <div className="text-xl font-semibold w-8 text-center">{seg.days}</div>
-                                  <div className="text-gray-500 text-sm">días</div>
+                      {/* Left: Destination steps (read-only, richer layout) */}
+                      <div className="md:col-span-2 space-y-4">
+                        {details_itinerary.destinos.map((dest, idx) => {
+                          const range = destinationDateRanges[idx];
+                          return (
+                            <div key={`route-left-${idx}`} className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
+                              <div className="flex items-start gap-3">
+                                <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
+                                  {idx + 1}
                                 </div>
-                                {/* add */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="rounded-full"
-                                  onClick={() => incrementDays(idx)}
-                                  aria-label="Sumar día"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-                                  </svg>
-                                </Button>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <h3 className="text-lg font-semibold text-gray-900">{dest.ciudad}</h3>
+                                    <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                                      {dest.dias_en_destino} días
+                                    </span>
+                                  </div>
+                                  {range && (
+                                    <div className="text-gray-500 text-sm mt-1">
+                                      {formatDateShort(range.start)} — {formatDateShort(range.end)}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-
-                        {/* Add new destination row */}
-                        <button onClick={() => setIsAddDestOpen(true)} className="flex pl-6 w-full text-left py-3 hover:bg-sky-50 rounded-xl">
-                          {/* Plus circle in the step position */}
-                          <div className="flex items-center gap-2">
-                            <div className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-sky-600 border border-sky-400 text-sm font-semibold shadow">
-                                +
-                            </div>
-                            <h3 className="text-sky-700 font-semibold pl-1">Agregar destino</h3>
-                          </div>
-                        </button>
+                          );
+                        })}
                       </div>
 
                       {/* Right: Mock map with route */}
@@ -486,6 +357,9 @@ export default function ItineraryDetailsPage() {
                                   <g key={`pt-${i}`}>
                                     <circle cx={p.x} cy={p.y} r="16" fill="#ffffff" stroke="#0ea5e9" strokeWidth="3" />
                                     <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize="12" fontWeight="700" fill="#0ea5e9">{i + 1}</text>
+                                    {details_itinerary.destinos[i] && (
+                                      <text x={p.x} y={p.y + 26} textAnchor="middle" fontSize="10" fill="#0f172a">{details_itinerary.destinos[i].ciudad}</text>
+                                    )}
                                   </g>
                                 ))}
                               </g>
@@ -506,53 +380,7 @@ export default function ItineraryDetailsPage() {
                 </TabsContent>
               )}
 
-              {/* Add Destination Modal */}
-              <Dialog open={isAddDestOpen} onOpenChange={setIsAddDestOpen}>
-                <DialogContent className="sm:max-w-[480px]">
-                  <DialogHeader>
-                    <DialogTitle>Agregar nuevo destino</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="new-dest-name">Nombre del destino</Label>
-                      <Input
-                        id="new-dest-name"
-                        value={newDestName}
-                        onChange={(e) => setNewDestName(e.target.value)}
-                        placeholder="Ej: Barcelona"
-                        className="rounded-full"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="new-dest-days">Días</Label>
-                      <Input
-                        id="new-dest-days"
-                        type="number"
-                        min={1}
-                        value={newDestDays}
-                        onChange={(e) => setNewDestDays(parseInt(e.target.value || '1', 10))}
-                        className="rounded-full"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => setIsAddDestOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      className="rounded-full bg-sky-500 hover:bg-sky-700"
-                      onClick={handleConfirmAddDestination}
-                      disabled={!newDestName.trim()}
-                    >
-                      Agregar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              {/* Add Destination Modal removed */}
 
               {/* Trip details modal: start date and travelers */}
               <Dialog open={isTripDetailsOpen} onOpenChange={setIsTripDetailsOpen}>
@@ -622,23 +450,59 @@ export default function ItineraryDetailsPage() {
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
-                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    {details_itinerary.destinos.map((dest, idx) => (
-                      <div key={`transport-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
-                        <div className="flex items-center mb-2">
-                          <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
-                          <h2 className="text-2xl font-bold text-gray-900">
-                            {dest.nombre_destino}
-                          </h2>
-                        </div>
-                        {idx < details_itinerary.destinos.length - 1 && (
-                          <div className="ml-6 text-gray-700">
-                            <div className="font-medium text-gray-900">Avión • 1 h 20 min • US$ 120</div>
+                  // <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                    <div className="space-y-4">
+                      {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
+                        (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
+                          <div key={`transport-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center">
+                                <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                                {(() => {
+                                  switch (t.tipo_transporte) {
+                                    case 'Avión':
+                                      return <PlaneIcon className="w-4 h-4" />;
+                                    case 'Tren':
+                                      return <TrainIcon className="w-4 h-4" />;
+                                    case 'Colectivo':
+                                      return <BusIcon className="w-4 h-4" />;
+                                    case 'Auto':
+                                      return <CarIcon className="w-4 h-4" />;
+                                    case 'Barco':
+                                      return <ShipIcon className="w-4 h-4" />;
+                                    default:
+                                      return <CircleHelpIcon className="w-4 h-4" />;
+                                  }
+                                })()}
+                                </div>
+                                <h3 className="text-lg md:text-xl font-semibold text-gray-900">
+                                  {t.ciudad_origen} → {t.ciudad_destino}
+                                </h3>
+                              </div>
+                              <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                                {t.tipo_transporte}
+                              </span>
+                            </div>
+                            <div className="ml-11 text-gray-700 space-y-2">
+                              <div className="h-px bg-gray-200"></div>
+                              <div className="text-gray-900">{t.justificacion}</div>
+                              <div className="text-gray-500"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                        ))
+                      ) : (
+                        details_itinerary.destinos.map((dest, idx) => (
+                          <div key={`transport-fallback-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-gray-50">
+                            <div className="flex items-center">
+                              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                                {dest.ciudad}
+                              </h2>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  // </div>
                 ) : (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
                     <p>Agrega más de un destino para ver las conexiones de transporte.</p>
@@ -652,8 +516,8 @@ export default function ItineraryDetailsPage() {
                     <div key={`stay-${idx}`} className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                          <h2 className="text-2xl font-bold text-gray-900">{dest.nombre_destino}</h2>
-                          <p className="text-gray-700 ml-1">• {dest.cantidad_dias_en_destino} días</p>
+                          <h2 className="text-2xl font-bold text-gray-900">{dest.ciudad}</h2>
+                          <p className="text-gray-700 ml-1">• {dest.dias_en_destino} días</p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
@@ -661,7 +525,7 @@ export default function ItineraryDetailsPage() {
                             <span className="text-sm text-gray-600">Generando enlaces...</span>
                           )}
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.airbnb ?? 'https://www.airbnb.com'}
+                            href={accommodationLinks[dest.ciudad]?.airbnb ?? 'https://www.airbnb.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
@@ -676,7 +540,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.booking ?? 'https://www.booking.com'}
+                            href={accommodationLinks[dest.ciudad]?.booking ?? 'https://www.booking.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
@@ -690,7 +554,7 @@ export default function ItineraryDetailsPage() {
                           </a>
 
                           <a
-                            href={accommodationLinks[dest.nombre_destino]?.expedia ?? 'https://www.expedia.com'}
+                            href={accommodationLinks[dest.ciudad]?.expedia ?? 'https://www.expedia.com'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
