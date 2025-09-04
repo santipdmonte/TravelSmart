@@ -113,10 +113,9 @@ export default function ItineraryDetailsPage() {
     setNewLinkByDest(currentItinerary.details_itinerary.destinos.map(() => ''));
   }, [currentItinerary]);
 
-  // Fetch accommodation links from backend for 'stays' tab
+  // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
   const fetchAccommodationLinks = useCallback(async () => {
     if (!itineraryId) return;
-    if (!currentItinerary?.start_date || !currentItinerary?.travelers_count) return;
     try {
       setLoadingAccommodationLinks(true);
       const res = await apiRequest<Record<string, { airbnb: string; booking: string; expedia: string }>>(
@@ -124,11 +123,16 @@ export default function ItineraryDetailsPage() {
       );
       if (res.data) {
         setAccommodationLinks(res.data);
+      } else {
+        setAccommodationLinks({});
       }
+    } catch (err) {
+      // Silently keep fallbacks in the UI links
+      setAccommodationLinks({});
     } finally {
       setLoadingAccommodationLinks(false);
     }
-  }, [itineraryId, currentItinerary?.start_date, currentItinerary?.travelers_count]);
+  }, [itineraryId]);
 
   useEffect(() => {
     fetchAccommodationLinks();
