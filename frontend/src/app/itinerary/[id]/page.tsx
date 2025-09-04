@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, PlaneIcon, TrainIcon, BusIcon, CarIcon, ShipIcon, CircleHelpIcon } from 'lucide-react';
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -618,34 +618,55 @@ export default function ItineraryDetailsPage() {
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
-                      (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
-                        <div key={`transport-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
-                          <div className="flex items-center mb-2">
-                            <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
-                            <h3 className="text-xl font-semibold text-gray-900">
-                              {t.ciudad_origen} → {t.ciudad_destino}
-                            </h3>
+                    <div className="space-y-4">
+                      {(details_itinerary.transportes_entre_destinos ?? []).length > 0 ? (
+                        (details_itinerary.transportes_entre_destinos ?? []).map((t, idx) => (
+                          <div key={`transport-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                            <div className="flex items-center mb-3">
+                              <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                                {(() => {
+                                  switch (t.tipo_transporte) {
+                                    case 'Avión':
+                                      return <PlaneIcon className="w-4 h-4" />;
+                                    case 'Tren':
+                                      return <TrainIcon className="w-4 h-4" />;
+                                    case 'Colectivo':
+                                      return <BusIcon className="w-4 h-4" />;
+                                    case 'Auto':
+                                      return <CarIcon className="w-4 h-4" />;
+                                    case 'Barco':
+                                      return <ShipIcon className="w-4 h-4" />;
+                                    default:
+                                      return <CircleHelpIcon className="w-4 h-4" />;
+                                  }
+                                })()}
+                              </div>
+                              <h3 className="text-lg md:text-xl font-semibold text-gray-900">
+                                {t.ciudad_origen} → {t.ciudad_destino}
+                              </h3>
+                            </div>
+                            <div className="ml-11 text-gray-700 space-y-2">
+                              <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                                {t.tipo_transporte}
+                              </span>
+                              <div className="h-px bg-gray-200"></div>
+                              <div className="text-gray-700">{t.justificacion}</div>
+                              <div className="text-gray-700"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
+                            </div>
                           </div>
-                          <div className="ml-6 text-gray-700 space-y-1">
-                            <div className="font-medium text-gray-900">{t.tipo_transporte}</div>
-                            <div className="text-gray-700"><span className="font-medium">Justificación:</span> {t.justificacion}</div>
-                            <div className="text-gray-700"><span className="font-medium">Alternativas:</span> {t.alternativas}</div>
+                        ))
+                      ) : (
+                        details_itinerary.destinos.map((dest, idx) => (
+                          <div key={`transport-fallback-${idx}`} className="rounded-2xl border border-gray-100 p-5 bg-gray-50">
+                            <div className="flex items-center">
+                              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                                {dest.ciudad}
+                              </h2>
+                            </div>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      details_itinerary.destinos.map((dest, idx) => (
-                        <div key={`transport-fallback-${idx}`} className="border-l-4 border-sky-200 pl-6 py-3">
-                          <div className="flex items-center mb-2">
-                            <div className="bg-sky-500 text-white rounded-full w-3 h-3 flex items-center justify-center mr-3 shadow"></div>
-                            <h2 className="text-2xl font-bold text-gray-900">
-                              {dest.ciudad}
-                            </h2>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                        ))
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-gray-600">
