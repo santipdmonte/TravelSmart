@@ -213,6 +213,7 @@
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
+  align-items: center;
   gap: .5rem;
   padding: .6rem;
   border-radius: 9999px;
@@ -245,7 +246,7 @@
   border: 1px solid oklch(0.35 0.06 265 / .25);
   border-radius: 9999px;
   outline: none;
-  transition: max-width .25s ease, opacity .2s ease, padding .25s ease;
+  transition: width .25s ease, opacity .2s ease, padding .25s ease;
 }
 
 .ai-composer input[type="text"]::placeholder { color: oklch(0.75 0 265 / .7); }
@@ -258,6 +259,9 @@
   background: linear-gradient(135deg, oklch(0.7 0.14 275) 0%, oklch(0.65 0.18 255) 50%, oklch(0.6 0.2 245) 100%);
   color: white;
   font-weight: 700;
+  width: 9.5rem; /* fixed width to avoid jitter */
+  min-width: 9.5rem;
+  justify-content: center;
   box-shadow:
     0 10px 22px -10px oklch(0.65 0.18 255 / 0.65),
     inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.2);
@@ -269,9 +273,10 @@
 
 /* Collapsed state */
 .ai-collapsed.ai-composer-wrap { width: min(560px, calc(100vw - 32px)); }
-.ai-collapsed .ai-composer { grid-template-columns: 0 auto; padding: .4rem; }
-.ai-collapsed .ai-composer input[type="text"] { max-width: 0; opacity: 0; padding: 0; border-width: 0; pointer-events: none; }
-.ai-collapsed .ai-send { padding-inline: 1.1rem; }
+/* Keep two columns but make input compact */
+.ai-collapsed .ai-composer { padding: .4rem; }
+.ai-collapsed .ai-composer input[type="text"] { width: 320px; opacity: .95; padding: 0 1rem; border-width: 1px; pointer-events: auto; justify-self: start; }
+.ai-collapsed .ai-send { width: 9.5rem; min-width: 9.5rem; }
 
 /* Expanded state */
 .ai-expanded.ai-composer-wrap { width: min(920px, calc(100vw - 32px)); }
