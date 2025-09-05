@@ -19,11 +19,6 @@ export default function FloatingEditButton({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Don't render if chat is open
-  if (isChatOpen) {
-    return null;
-  }
-
   // Collapse on outside click when empty
   useEffect(() => {
     const onDocMouseDown = (e: MouseEvent) => {
@@ -36,6 +31,11 @@ export default function FloatingEditButton({
     document.addEventListener("mousedown", onDocMouseDown);
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, [value]);
+
+  // Don't render if chat is open
+  if (isChatOpen) {
+    return null;
+  }
 
   return (
     <div
