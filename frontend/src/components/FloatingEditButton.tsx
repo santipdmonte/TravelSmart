@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
 import { Button } from "./ui/button";
@@ -12,40 +13,84 @@ export default function FloatingEditButton({
   itineraryId,
 }: FloatingEditButtonProps) {
   const { isOpen: isChatOpen } = useChat();
-  const { openChat } = useChatActions();
-
-  const handleEditWithAI = async () => {
-    if (itineraryId) {
-      await openChat(itineraryId);
-    }
-  };
+  const { openChat, sendMessage } = useChatActions();
+  const [value, setValue] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Don't render if chat is open
   if (isChatOpen) {
     return null;
   }
 
+  // Collapse on outside click when empty
+  useEffect(() => {
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (!wrapRef.current) return;
+      if (wrapRef.current.contains(e.target as Node)) return;
+      if (value.trim().length === 0) {
+        setExpanded(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [value]);
+
   return (
-    <Button
-      onClick={handleEditWithAI}
-      className="fixed bottom-[25px] right-[25px] bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 lg:px-6 lg:py-4 rounded-xl hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105 z-40 h-auto gap-2 lg:gap-3"
-      size="lg"
-      aria-label="Editar con IA"
+    <div
+      ref={wrapRef}
+      className={`ai-composer-wrap ${expanded ? 'ai-expanded' : 'ai-collapsed'}`}
+      onClick={() => {
+        if (!expanded) setExpanded(true);
+        inputRef.current?.focus();
+      }}
+      onMouseMove={(e) => {
+        const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+        const mx = ((e.clientX - rect.left) / rect.width) * 100;
+        const my = ((e.clientY - rect.top) / rect.height) * 100;
+        (e.currentTarget as HTMLDivElement).style.setProperty("--mx", `${mx}%`);
+        (e.currentTarget as HTMLDivElement).style.setProperty("--my", `${my}%`);
+      }}
     >
-      <svg
-        className="w-5 h-5 lg:w-6 lg:h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+      <div className="ai-composer-shadow" />
+      <form
+        className="ai-composer"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const message = value.trim();
+          if (!message) return;
+          const ok = await openChat(itineraryId);
+          if (ok) {
+            await sendMessage(itineraryId, message);
+          }
+          setValue("");
+          setExpanded(true);
+        }}
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Edita este itinerario con IA..."
+          value={value}
+          onFocus={() => setExpanded(true)}
+          onChange={(e) => {
+            const next = e.target.value;
+            setValue(next);
+            if (next.length > 0) setExpanded(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && value.trim().length === 0) {
+              setExpanded(false);
+              (e.currentTarget as HTMLInputElement).blur();
+            }
+          }}
+          aria-label="Mensaje para el asistente"
         />
-      </svg>
-      <span className="text-sm lg:text-base">Editar con IA</span>
-    </Button>
+        <Button type="submit" className="ai-send">
+          Enviar
+        </Button>
+      </form>
+    </div>
   );
 }
