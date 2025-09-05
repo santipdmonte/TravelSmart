@@ -100,26 +100,7 @@ async function agentApiRequest<T>(
   }
 }
 
-// Initialize agent for itinerary (using itinerary_id as thread_id)
-export async function initializeAgent(
-  itineraryId: string
-): Promise<ApiResponse<AgentState>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/${itineraryId}/agent/${itineraryId}`, {
-    method: 'POST',
-  });
-
-  if (response.error) {
-    return { error: response.error };
-  }
-
-  // Extract the AgentState from the response array structure
-  if (response.data) {
-    const agentState = response.data[0]; // First element is the AgentState
-    return { data: agentState };
-  }
-
-  return { error: 'Invalid response format' };
-}
+// initializeAgent deprecated – backend initializes on first message
 
 // Send message to agent
 export async function sendAgentMessage(

@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { initializeAgent, sendAgentMessage, getAgentState } from '@/lib/agentApi';
+import { sendAgentMessage, getAgentState } from '@/lib/agentApi';
 
 export function useChatActions() {
   const { dispatch } = useChat();
@@ -29,17 +29,8 @@ export function useChatActions() {
         // Use existing chat history
         dispatch({ type: 'SET_AGENT_STATE', payload: existingState.data });
       } else {
-        // Initialize new agent
-        const response = await initializeAgent(itineraryId);
-        
-        if (response.error) {
-          dispatch({ type: 'SET_ERROR', payload: response.error });
-          return false;
-        }
-
-        if (response.data) {
-          dispatch({ type: 'SET_AGENT_STATE', payload: response.data });
-        }
+        // No history yet; backend will initialize on first message
+        dispatch({ type: 'SET_INITIALIZING', payload: false });
       }
 
       return true;
