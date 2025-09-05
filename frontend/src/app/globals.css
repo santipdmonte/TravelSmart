@@ -120,3 +120,69 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AI Futuristic button style */
+.ai-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 3.5rem; /* 56px similar to h-14 */
+  width: 100%;
+  border-radius: 9999px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, oklch(0.7 0.14 275) 0%, oklch(0.65 0.18 255) 40%, oklch(0.6 0.2 245) 100%);
+  box-shadow:
+    0 10px 30px -10px oklch(0.65 0.18 255 / 0.65),
+    inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.2);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.ai-button:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: radial-gradient(1200px 1200px at var(--mx,50%) var(--my,50%), oklch(0.85 0.14 265 / .35), transparent 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.ai-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 38px -12px oklch(0.65 0.18 255 / 0.75),
+    0 0 0 4px oklch(0.7 0.14 245.83 / .15) inset;
+  filter: saturate(1.05);
+}
+
+.ai-button:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 0%, oklch(0.98 0 0 / .65) 45%, transparent 55%)
+              no-repeat;
+  background-size: 200% 200%;
+  animation: aiShine 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes aiShine {
+  0% { background-position: 120% 0; }
+  60% { background-position: -20% 0; }
+  100% { background-position: -20% 0; }
+}
+
+/* Small sparkle icon style for the AI button */
+.ai-sparkle {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  filter: drop-shadow(0 0 6px oklch(0.85 0.14 265 / .8));
+}
