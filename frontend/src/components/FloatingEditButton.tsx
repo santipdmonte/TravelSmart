@@ -32,65 +32,87 @@ export default function FloatingEditButton({
     return () => document.removeEventListener("mousedown", onDocMouseDown);
   }, [value]);
 
-  // Don't render if chat is open
+  // Don't render composer if chat is open
   if (isChatOpen) {
     return null;
   }
 
   return (
-    <div
-      ref={wrapRef}
-      className={`ai-composer-wrap ${expanded ? 'ai-expanded' : 'ai-collapsed'}`}
-      onClick={() => {
-        if (!expanded) setExpanded(true);
-        inputRef.current?.focus();
-      }}
-      onMouseMove={(e) => {
-        const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-        const mx = ((e.clientX - rect.left) / rect.width) * 100;
-        const my = ((e.clientY - rect.top) / rect.height) * 100;
-        (e.currentTarget as HTMLDivElement).style.setProperty("--mx", `${mx}%`);
-        (e.currentTarget as HTMLDivElement).style.setProperty("--my", `${my}%`);
-      }}
-    >
-      <div className="ai-composer-shadow" />
-      <form
-        className="ai-composer"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const message = value.trim();
-          if (!message) return;
-          const ok = await openChat(itineraryId);
-          if (ok) {
-            await sendMessage(itineraryId, message);
-          }
-          setValue("");
-          setExpanded(true);
+    <>
+      <div
+        ref={wrapRef}
+        className={`ai-composer-wrap ${expanded ? 'ai-expanded' : 'ai-collapsed'}`}
+        onClick={() => {
+          if (!expanded) setExpanded(true);
+          inputRef.current?.focus();
+        }}
+        onMouseMove={(e) => {
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+          const mx = ((e.clientX - rect.left) / rect.width) * 100;
+          const my = ((e.clientY - rect.top) / rect.height) * 100;
+          (e.currentTarget as HTMLDivElement).style.setProperty("--mx", `${mx}%`);
+          (e.currentTarget as HTMLDivElement).style.setProperty("--my", `${my}%`);
         }}
       >
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Edita este itinerario con IA..."
-          value={value}
-          onFocus={() => setExpanded(true)}
-          onChange={(e) => {
-            const next = e.target.value;
-            setValue(next);
-            if (next.length > 0) setExpanded(true);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && value.trim().length === 0) {
-              setExpanded(false);
-              (e.currentTarget as HTMLInputElement).blur();
+        <div className="ai-composer-shadow" />
+        <form
+          className="ai-composer"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const message = value.trim();
+            if (!message) return;
+            const ok = await openChat(itineraryId);
+            if (ok) {
+              await sendMessage(itineraryId, message);
             }
+            setValue("");
+            setExpanded(true);
           }}
-          aria-label="Mensaje para el asistente"
-        />
-        <Button type="submit" className="ai-send">
-          Enviar
-        </Button>
-      </form>
-    </div>
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Edita este itinerario con IA..."
+            value={value}
+            onFocus={() => setExpanded(true)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setValue(next);
+              if (next.length > 0) setExpanded(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" && value.trim().length === 0) {
+                setExpanded(false);
+                (e.currentTarget as HTMLInputElement).blur();
+              }
+            }}
+            aria-label="Mensaje para el asistente"
+          />
+          <Button type="submit" className="ai-send">
+            Enviar
+          </Button>
+        </form>
+      </div>
+
+      {/* FAB to open chat when closed */}
+      {!expanded && (
+        <div className="ai-fab-wrap">
+          <div className="ai-fab-shadow" />
+          <button
+            type="button"
+            aria-label="Abrir chat"
+            className="ai-fab"
+            onClick={async () => {
+              await openChat(itineraryId);
+            }}
+          >
+            {/* Leftward open icon */}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 12l6-6v4h6v4h-6v4l-6-6z" fill="currentColor" opacity=".9"/>
+            </svg>
+          </button>
+        </div>
+      )}
+    </>
   );
 }
