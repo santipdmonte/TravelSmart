@@ -88,7 +88,7 @@ export default function MessageList() {
   }
 
   return (
-    <div className="h-full overflow-y-auto" ref={scrollContainerRef}>
+    <div className="h-full overflow-y-auto overscroll-contain" ref={scrollContainerRef}>
       <div className="p-4">
         {error && <ErrorMessage message={error} onRetry={clearError} />}
 
