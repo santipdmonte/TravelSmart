@@ -19,7 +19,7 @@ export default function Message({ message }: MessageProps) {
         {isAI && (
           <div className="flex items-center mb-1">
             <span className="text-xs font-medium text-indigo-600">
-              Asistente IA
+              Asistente
             </span>
           </div>
         )}
