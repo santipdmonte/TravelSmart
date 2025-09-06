@@ -133,6 +133,78 @@ export async function sendAgentMessage(
   return { error: 'Invalid response format' };
 }
 
+// Stream message to agent (SSE-like via fetch body stream)
+export async function sendAgentMessageStream(
+  itineraryId: string,
+  threadId: string,
+  message: string,
+  onToken: (token: string) => void
+): Promise<ApiResponse<true>> {
+  const sessionId = getSessionId();
+  const encodedMessage = encodeURIComponent(message);
+  const url = `${API_BASE_URL}/api/itineraries/${itineraryId}/agent/${threadId}/messages/stream?message=${encodedMessage}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'text/event-stream',
+        'X-Session-ID': sessionId,
+      },
+    });
+
+    if (!response.ok || !response.body) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    // Read and parse SSE chunks: events are separated by double newlines. Each event line starts with 'data: '
+    // Backend yields JSON tokens as: data: {"token": "..."}\n\n and completion as: data: [DONE]\n\n
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let eventEndIndex;
+      // Process complete events in the buffer
+      while ((eventEndIndex = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, eventEndIndex);
+        buffer = buffer.slice(eventEndIndex + 2);
+
+        const lines = rawEvent.split('\n');
+        for (const line of lines) {
+          const prefix = 'data: ';
+          if (!line.startsWith(prefix)) continue;
+          const dataStr = line.slice(prefix.length).trim();
+          if (dataStr === '[DONE]') {
+            // Completed
+            return { data: true };
+          }
+          try {
+            const parsed = JSON.parse(dataStr) as { token?: string };
+            if (parsed.token) {
+              onToken(parsed.token);
+            }
+          } catch (e) {
+            console.error('Failed to parse stream chunk:', e, dataStr);
+          }
+        }
+      }
+    }
+
+    // If stream ended without explicit [DONE], still consider successful
+    return { data: true };
+  } catch (error) {
+    console.error('Agent stream request failed:', error);
+    return {
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
+  }
+}
+
 // Get current agent state (using itinerary_id as thread_id)
 export async function getAgentState(
   itineraryId: string
@@ -151,3 +223,22 @@ export async function getAgentState(
 
   return { error: 'Invalid response format' };
 } 
+
+// Get current agent state including HIL parsing
+export async function getAgentStateWithHIL(
+  itineraryId: string
+): Promise<ApiResponse<{ agentState: AgentState; hilResponse: HILResponse }>> {
+  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+
+  if (response.error) {
+    return { error: response.error };
+  }
+
+  if (response.data) {
+    const agentState = response.data[0];
+    const hilResponse = parseHILResponse(response.data);
+    return { data: { agentState, hilResponse } };
+  }
+
+  return { error: 'Invalid response format' };
+}
