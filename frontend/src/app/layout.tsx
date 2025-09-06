@@ -31,8 +31,9 @@ export default function RootLayout({
   // Log in server console when the app renders and the env var is missing
   __warnMissingApiBaseIfNeeded({ when: "onLoad" });
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>

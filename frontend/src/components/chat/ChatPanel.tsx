@@ -9,32 +9,24 @@ export default function ChatPanel() {
   const { isOpen } = useChat();
   const { closeChat } = useChatActions();
 
-  if (!isOpen) return null;
-
   return (
     <>
       {/* Mobile overlay */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+        className={`fixed inset-0 z-30 lg:hidden transition-opacity duration-300 ${
+          isOpen ? "bg-black bg-opacity-50 opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={closeChat}
       />
 
       {/* Chat panel - Fixed positioned with card styling */}
       <div
-        className={`
-        fixed
-        top-16 lg:top-20 right-0 lg:right-4 bottom-0 lg:bottom-4 left-0 lg:left-auto
-        w-full lg:w-1/3
-        lg:max-w-md
-        bg-white
-        lg:rounded-lg
-        lg:shadow-lg
-        z-40
-        flex flex-col
-        transform transition-transform duration-300 ease-in-out
+        className={`fixed top-16 lg:top-20 right-0 lg:right-4 bottom-0 lg:bottom-4 left-0 lg:left-auto
+        w-full lg:w-1/3 lg:max-w-md bg-white lg:rounded-lg lg:shadow-lg z-40 flex flex-col
+        transform transition-transform duration-400 ease-out will-change-transform
         ${isOpen ? "translate-x-0" : "translate-x-full"}
-        overscroll-contain
-      `}
+        overscroll-contain`}
+        aria-hidden={!isOpen}
       >
         {/* Header - Fixed */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 lg:rounded-t-lg">

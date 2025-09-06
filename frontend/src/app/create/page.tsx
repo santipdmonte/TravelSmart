@@ -846,8 +846,15 @@ export default function CreateItineraryPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-14 rounded-full bg-sky-500 hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-70 text-white text-base font-semibold shadow-md transition"
+                  className="ai-button disabled:opacity-60 disabled:cursor-not-allowed"
                   size="lg"
+                  onMouseMove={(e) => {
+                    const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                    const mx = ((e.clientX - rect.left) / rect.width) * 100;
+                    const my = ((e.clientY - rect.top) / rect.height) * 100;
+                    (e.currentTarget as HTMLButtonElement).style.setProperty("--mx", `${mx}%`);
+                    (e.currentTarget as HTMLButtonElement).style.setProperty("--my", `${my}%`);
+                  }}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
@@ -874,7 +881,14 @@ export default function CreateItineraryPage() {
                       Creando tu itinerario...
                     </span>
                   ) : (
-                    "Generar itinerario"
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="ai-sparkle" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2l1.9 4.6L18.5 8 13.9 9.4 12 14l-1.9-4.6L6 8l4.6-1.4L12 2z" fill="currentColor" opacity=".95"/>
+                        <path d="M6 16l.9 2.2L9 19l-2.1.6L6 22l-.9-2.4L3 19l2.1-.8L6 16z" fill="currentColor" opacity=".9"/>
+                        <path d="M18 14l1.2 2.8L22 18l-2.8.8L18 22l-1.2-3.2L14 18l2.8-1.2L18 14z" fill="currentColor" opacity=".9"/>
+                      </svg>
+                      Generar itinerario
+                    </span>
                   )}
                 </Button>
                 <TravelerTestPromptModal

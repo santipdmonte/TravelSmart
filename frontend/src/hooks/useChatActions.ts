@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { initializeAgent, sendAgentMessage, getAgentState } from '@/lib/agentApi';
+import { sendAgentMessage, getAgentState } from '@/lib/agentApi';
 
 export function useChatActions() {
   const { dispatch } = useChat();
@@ -29,17 +29,8 @@ export function useChatActions() {
         // Use existing chat history
         dispatch({ type: 'SET_AGENT_STATE', payload: existingState.data });
       } else {
-        // Initialize new agent
-        const response = await initializeAgent(itineraryId);
-        
-        if (response.error) {
-          dispatch({ type: 'SET_ERROR', payload: response.error });
-          return false;
-        }
-
-        if (response.data) {
-          dispatch({ type: 'SET_AGENT_STATE', payload: response.data });
-        }
+        // No history yet; backend will initialize on first message
+        dispatch({ type: 'SET_INITIALIZING', payload: false });
       }
 
       return true;
@@ -76,22 +67,17 @@ export function useChatActions() {
 
       if (response.data) {
         const { agentState, hilResponse } = response.data;
-        
+
         // Update with complete agent state (includes AI response) - this will set loading to false
         dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-        
-        // Handle HIL response
+
+        // If HIL (human-in-the-loop) requested, show confirmation UI
         if (hilResponse.isHIL) {
           dispatch({ type: 'SET_HIL_STATE', payload: hilResponse });
-        } else {
-          // Check if the itinerary was updated and refresh it
-          const currentAgentItinerary = agentState.itinerary;
-          if (currentAgentItinerary) {
-            // Refetch the full itinerary to get the latest version
-            await fetchItinerary(itineraryId);
-          }
         }
-        
+
+        // Avoid refetching the full itinerary here to prevent a full page rerender.
+        // We already refresh the itinerary after explicit user confirmation in confirmChanges.
         return true;
       }
 
@@ -136,7 +122,7 @@ export function useChatActions() {
         // Update with complete agent state (this will show the agent's response)
         dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
         
-        // Refresh the itinerary since changes were confirmed
+        // Refresh the itinerary since changes were confirmed (allowed to re-render page)
         await fetchItinerary(itineraryId);
         
         return true;

@@ -63,13 +63,19 @@ export default function MessageList() {
     useChat();
   const { clearError } = useChatActions();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // After new messages or when opening, jump to bottom without visible animation
+    // to avoid large scroll movement from top.
+    const node = scrollContainerRef.current;
+    if (node) {
+      node.scrollTop = node.scrollHeight;
+    }
   }, [messages, loading, hilState, initializing]);
 
   // Show loading skeleton during initialization
@@ -82,7 +88,7 @@ export default function MessageList() {
   }
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto overscroll-contain" ref={scrollContainerRef}>
       <div className="p-4">
         {error && <ErrorMessage message={error} onRetry={clearError} />}
 

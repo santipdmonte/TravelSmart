@@ -120,3 +120,229 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AI Futuristic button style */
+.ai-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 3.5rem; /* 56px similar to h-14 */
+  width: 100%;
+  border-radius: 9999px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, oklch(0.7 0.14 275) 0%, oklch(0.65 0.18 255) 40%, oklch(0.6 0.2 245) 100%);
+  box-shadow:
+    0 10px 30px -10px oklch(0.65 0.18 255 / 0.65),
+    inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.2);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.ai-button:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: radial-gradient(1200px 1200px at var(--mx,50%) var(--my,50%), oklch(0.85 0.14 265 / .35), transparent 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.ai-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 38px -12px oklch(0.65 0.18 255 / 0.75),
+    0 0 0 4px oklch(0.7 0.14 245.83 / .15) inset;
+  filter: saturate(1.05);
+}
+
+.ai-button:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 0%, oklch(0.98 0 0 / .65) 45%, transparent 55%)
+              no-repeat;
+  background-size: 200% 200%;
+  animation: aiShine 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes aiShine {
+  0% { background-position: 120% 0; }
+  60% { background-position: -20% 0; }
+  100% { background-position: -20% 0; }
+}
+
+/* Small sparkle icon style for the AI button */
+.ai-sparkle {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  filter: drop-shadow(0 0 6px oklch(0.85 0.14 265 / .8));
+}
+
+/* Bottom-centered AI composer styles */
+.ai-composer-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(920px, calc(100vw - 32px));
+  transition: width .25s ease, transform .25s ease;
+}
+
+.ai-composer-shadow {
+  position: absolute;
+  inset: -24px -18px -30px -18px;
+  border-radius: 9999px;
+  background:
+    radial-gradient(80% 100% at 50% 100%, oklch(0.65 0.14 275 / .26), transparent 60%),
+    radial-gradient(60% 100% at 50% 0%, oklch(0.72 0.16 245 / .18), transparent 70%);
+  filter: blur(32px);
+  opacity: .95;
+  pointer-events: none;
+}
+
+.ai-composer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem;
+  width: 100%;
+  border-radius: 9999px;
+  /* Glassmorphism surface with a very light blue tint */
+  background:
+    linear-gradient(180deg, oklch(0.96 0.045 250 / .18), oklch(0.94 0.035 250 / .10));
+  border: 1px solid oklch(0.92 0.06 250 / .26);
+  box-shadow:
+    inset 0 1px 0 oklch(0.98 0.02 250 / .16),
+    inset 0 -1px 0 oklch(0.98 0.02 250 / .08),
+    0 18px 48px -14px oklch(0 0 0 / .42),
+    /* stronger blue ambient shadow */
+    0 20px 56px -12px oklch(0.78 0.15 250 / .46);
+  backdrop-filter: blur(14px) saturate(1.25);
+  transition: padding .25s ease, background .25s ease, box-shadow .25s ease;
+}
+
+.ai-composer:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(1200px 1200px at var(--mx,50%) var(--my,50%), oklch(0.95 0.06 250 / .28), transparent 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* subtle diagonal sheen */
+.ai-composer:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, oklch(0.98 0.03 250 / .14) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.ai-composer input[type="text"] {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 1rem 0 1rem;
+  color: oklch(0.1 0 0); /* near-black for readability */
+  background:
+    linear-gradient(180deg, oklch(0.96 0.04 250 / .14), oklch(0.94 0.03 250 / .08));
+  border: 1px solid oklch(0.92 0.05 250 / .22);
+  border-radius: 9999px;
+  outline: none;
+  transition: width .25s ease, opacity .2s ease, padding .25s ease;
+}
+
+.ai-composer input[type="text"]::placeholder { color: oklch(0.4 0 250 / .8); }
+
+.ai-composer .ai-send {
+  white-space: nowrap;
+  padding: 0 .9rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background:
+    linear-gradient(135deg, oklch(0.7 0.14 275) 0%, oklch(0.65 0.18 255) 50%, oklch(0.6 0.2 245) 100%);
+  color: white;
+  font-weight: 700;
+  width: 6.5rem;
+  min-width: 6.5rem;
+  justify-content: center;
+  box-shadow:
+    0 10px 22px -10px oklch(0.65 0.18 255 / 0.55),
+    inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.22),
+    inset 0 1px 0 oklch(1 0 0 / .12);
+}
+
+.ai-composer .ai-send:hover { filter: saturate(1.1); transform: translateY(-1px); }
+
+.ai-composer .ai-send:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Collapsed state */
+.ai-collapsed.ai-composer-wrap { width: min(440px, calc(100vw - 32px)); }
+/* Keep two columns but make input compact */
+.ai-collapsed .ai-composer { padding: .4rem; }
+.ai-collapsed .ai-composer input[type="text"] { opacity: .95; padding: 0 1rem; border-width: 1px; pointer-events: auto; justify-self: start; }
+.ai-collapsed .ai-send { width: 6.5rem; min-width: 6.5rem; }
+
+/* Expanded state */
+.ai-expanded.ai-composer-wrap { width: min(920px, calc(100vw - 32px)); }
+
+/* Small circular FAB to open chat */
+.ai-fab-wrap {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+}
+
+.ai-fab-shadow {
+  position: absolute;
+  inset: -16px;
+  border-radius: 9999px;
+  background:
+    radial-gradient(80% 100% at 50% 100%, oklch(0.65 0.14 275 / .28), transparent 60%),
+    radial-gradient(60% 100% at 50% 0%, oklch(0.72 0.16 245 / .2), transparent 70%);
+  filter: blur(26px);
+  opacity: .9;
+  pointer-events: none;
+}
+
+.ai-fab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  color: white;
+  background: linear-gradient(180deg, oklch(0.96 0.045 250 / .22), oklch(0.94 0.035 250 / .12));
+  border: 1px solid oklch(0.92 0.06 250 / .28);
+  box-shadow:
+    inset 0 1px 0 oklch(0.98 0.02 250 / .16),
+    inset 0 -1px 0 oklch(0.98 0.02 250 / .08),
+    0 18px 48px -14px oklch(0 0 0 / .42),
+    0 20px 56px -12px oklch(0.78 0.15 250 / .46);
+  backdrop-filter: blur(14px) saturate(1.25);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.ai-fab:hover { transform: translateY(-2px) scale(1.03); filter: saturate(1.05); }
