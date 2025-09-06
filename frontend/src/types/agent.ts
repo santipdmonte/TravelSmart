@@ -1,6 +1,6 @@
 export interface Message {
   content: string;
-  type: 'ai' | 'human';
+  type: 'ai' | 'human' | 'tool';
   id: string;
   name?: string | null;
   example?: boolean;

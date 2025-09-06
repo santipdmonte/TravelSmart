@@ -6,6 +6,9 @@ interface MessageProps {
 
 export default function Message({ message }: MessageProps) {
   const isAI = message.type === "ai";
+  if (message.type === 'tool') {
+    return null;
+  }
   const isEmptyAIPlaceholder = isAI && (!message.content || message.content.trim().length === 0);
 
   if (isEmptyAIPlaceholder) {
