@@ -6,6 +6,11 @@ interface MessageProps {
 
 export default function Message({ message }: MessageProps) {
   const isAI = message.type === "ai";
+  const isEmptyAIPlaceholder = isAI && (!message.content || message.content.trim().length === 0);
+
+  if (isEmptyAIPlaceholder) {
+    return null;
+  }
 
   return (
     <div className={`flex ${isAI ? "justify-start" : "justify-end"} mb-4`}>
