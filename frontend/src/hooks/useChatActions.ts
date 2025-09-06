@@ -67,9 +67,20 @@ export function useChatActions() {
       dispatch({ type: 'SET_LOADING', payload: true });
 
       // Stream tokens
-      const streamResult = await sendAgentMessageStream(itineraryId, itineraryId, message, (token: string) => {
-        dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
-      });
+      let firstTokenSeen = false;
+      const streamResult = await sendAgentMessageStream(
+        itineraryId,
+        itineraryId,
+        message,
+        (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            // Hide loading indicator once tokens start arriving
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+          dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
+        }
+      );
 
       if (streamResult.error) {
         dispatch({ type: 'SET_LOADING', payload: false });
@@ -122,9 +133,19 @@ export function useChatActions() {
       const aiMessageId = crypto.randomUUID();
       dispatch({ type: 'ADD_MESSAGE', payload: { id: aiMessageId, type: 'ai' as const, content: '' } });
 
-      const streamResult = await sendAgentMessageStream(itineraryId, itineraryId, 's', (token: string) => {
-        dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
-      });
+      let firstTokenSeen = false;
+      const streamResult = await sendAgentMessageStream(
+        itineraryId,
+        itineraryId,
+        's',
+        (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+          dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
+        }
+      );
 
       if (streamResult.error) {
         dispatch({ type: 'SET_ERROR', payload: streamResult.error });
@@ -170,11 +191,16 @@ export function useChatActions() {
       const aiMessageId = crypto.randomUUID();
       dispatch({ type: 'ADD_MESSAGE', payload: { id: aiMessageId, type: 'ai' as const, content: '' } });
 
+      let firstTokenSeen = false;
       const streamResult = await sendAgentMessageStream(
         itineraryId,
         itineraryId,
         'El usuario no acepto los cambios sugeridos',
         (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
           dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
         }
       );
