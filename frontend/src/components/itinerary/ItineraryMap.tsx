@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useCallback, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import Map, { Source, Layer, Popup } from "react-map-gl/mapbox";
 import type { GeoJSONFeature, Map as MbMap } from "mapbox-gl";
 import type { Feature, FeatureCollection, LineString, Point } from "geojson";
@@ -42,6 +48,23 @@ export default function ItineraryMap({
     hovered: boolean;
   }
 
+  // Minimal fog options type (Mapbox types missing)
+  interface FogOptions {
+    range?: [number, number];
+    color?: string;
+    "horizon-blend"?: number;
+  }
+
+  // Transport color map (extend when backend adds transport types between destinations)
+  const transportColor: Record<string, string> = {
+    car: "#ff2a6d",
+    walk: "#626663ff",
+    bike: "#0ea5e9",
+    train: "#8b5cf6",
+    plane: "#f59e0b",
+    default: "#0ea5e9",
+  };
+
   const destinos = useMemo(
     () => itinerary.details_itinerary.destinos || [],
     [itinerary.details_itinerary.destinos]
@@ -62,16 +85,35 @@ export default function ItineraryMap({
     }, []);
   }, [destinos]);
 
+  const itineraryKey = itinerary.itinerary_id || itinerary.itinerary_id; // stable key
+  const STORAGE_KEY = `itinerary_map_view_${itineraryKey}`;
+  const styleLoadedRef = useRef(false);
+  const skipInitialFitRef = useRef(false);
+
+  // Load persisted view state if any
+  const persistedView = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.longitude === "number") return parsed;
+    } catch {}
+    return null;
+  }, [STORAGE_KEY]);
+
   const initialViewState = useMemo(
     () =>
       ({
-        longitude: destinationPoints[0]?.coord[0] ?? 0,
-        latitude: destinationPoints[0]?.coord[1] ?? 20,
-        zoom: destinationPoints.length > 1 ? 2 : 3,
-        bearing: 0,
-        pitch: 0,
+        longitude:
+          persistedView?.longitude ?? destinationPoints[0]?.coord[0] ?? 0,
+        latitude:
+          persistedView?.latitude ?? destinationPoints[0]?.coord[1] ?? 20,
+        zoom: persistedView?.zoom ?? (destinationPoints.length > 1 ? 2 : 3),
+        bearing: persistedView?.bearing ?? 0,
+        pitch: persistedView?.pitch ?? 0,
       } as const),
-    [destinationPoints]
+    [persistedView, destinationPoints]
   );
 
   // Great-circle interpolation between two lon/lat points
@@ -133,7 +175,7 @@ export default function ItineraryMap({
     [destinationPoints, hoveredDestinationIndex]
   );
 
-  // Build simple great-circle legs
+  // Build simple great-circle legs with placeholder transport (currently unknown)
   const routesGeoJSON = useMemo<FeatureCollection<LineString>>(
     () => ({
       type: "FeatureCollection",
@@ -148,11 +190,19 @@ export default function ItineraryMap({
               96
             ),
           },
-          properties: { from: item.index, to: destinationPoints[i + 1].index },
+          properties: {
+            from: item.index,
+            to: destinationPoints[i + 1].index,
+            transport: "default",
+            // Mark leg hovered if either endpoint hovered
+            hovered:
+              hoveredDestinationIndex === item.index ||
+              hoveredDestinationIndex === destinationPoints[i + 1].index,
+          },
         })
       ),
     }),
-    [destinationPoints, greatCircle]
+    [destinationPoints, greatCircle, hoveredDestinationIndex]
   );
 
   const rawToken =
@@ -186,18 +236,59 @@ export default function ItineraryMap({
     }
   }, []);
 
+  // Track map instance for flyTo
+  const [mapRef, setMapRef] = useState<MbMap | null>(null);
+
+  // Fly to hovered destination
+  useEffect(() => {
+    if (!mapRef || hoveredDestinationIndex == null) return;
+    const point = destinationPoints.find(
+      (p) => p.index === hoveredDestinationIndex
+    );
+    if (!point) return;
+    mapRef.flyTo({
+      center: point.coord,
+      zoom: Math.max(mapRef.getZoom(), 3.5),
+      duration: 900,
+    });
+  }, [hoveredDestinationIndex, destinationPoints, mapRef]);
+
+  // Persist view on move end
+  useEffect(() => {
+    if (!mapRef) return;
+    const handler = () => {
+      if (!styleLoadedRef.current) return;
+      const c = mapRef.getCenter();
+      const data = {
+        longitude: c.lng,
+        latitude: c.lat,
+        zoom: mapRef.getZoom(),
+        bearing: mapRef.getBearing(),
+        pitch: mapRef.getPitch(),
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch {}
+    };
+    mapRef.on("moveend", handler);
+    return () => {
+      mapRef.off("moveend", handler);
+    };
+  }, [mapRef, STORAGE_KEY]);
+
   const handleMapLoad = useCallback(
     (e: { target: MbMap }) => {
       try {
         const map = e.target;
+        styleLoadedRef.current = true;
         map.setProjection("globe");
         map.setFog({
           range: [0.5, 10],
           color: "rgba(255,255,255,0.25)",
           "horizon-blend": 0.2,
-        } as any);
-        // Fit bounds to all points with padding when multiple points available
-        if (destinationPoints.length >= 2) {
+        } as FogOptions);
+        // Fit bounds only if no persisted view and multiple points
+        if (!skipInitialFitRef.current && destinationPoints.length >= 2) {
           const lons = destinationPoints.map((p) => p.coord[0]);
           const lats = destinationPoints.map((p) => p.coord[1]);
           const minLon = Math.min(...lons);
@@ -212,6 +303,7 @@ export default function ItineraryMap({
             { padding: 60, duration: 800 }
           );
         }
+        setMapRef(map);
       } catch {}
     },
     [destinationPoints]
@@ -290,14 +382,64 @@ export default function ItineraryMap({
           </Source>
 
           <Source id="arcs" type="geojson" data={routesGeoJSON}>
+            {/* Base lines with color by transport */}
             <Layer
               id="arcs-line"
               type="line"
               layout={{ "line-cap": "round", "line-join": "round" }}
               paint={{
-                "line-color": "#0ea5e9",
+                "line-color": [
+                  "coalesce",
+                  [
+                    "match",
+                    ["get", "transport"],
+                    "car",
+                    transportColor.car,
+                    "walk",
+                    transportColor.walk,
+                    "bike",
+                    transportColor.bike,
+                    "train",
+                    transportColor.train,
+                    "plane",
+                    transportColor.plane,
+                    transportColor.default,
+                  ],
+                  transportColor.default,
+                ],
                 "line-width": 2.5,
-                "line-opacity": 0.85,
+                "line-opacity": 0.7,
+              }}
+            />
+            {/* Highlight hovered leg */}
+            <Layer
+              id="arcs-line-hover"
+              type="line"
+              filter={["==", ["get", "hovered"], true]}
+              layout={{ "line-cap": "round", "line-join": "round" }}
+              paint={{
+                "line-color": [
+                  "coalesce",
+                  [
+                    "match",
+                    ["get", "transport"],
+                    "car",
+                    transportColor.car,
+                    "walk",
+                    transportColor.walk,
+                    "bike",
+                    transportColor.bike,
+                    "train",
+                    transportColor.train,
+                    "plane",
+                    transportColor.plane,
+                    transportColor.default,
+                  ],
+                  transportColor.default,
+                ],
+                "line-width": 4.5,
+                "line-opacity": 0.95,
+                "line-blur": 0.2,
               }}
             />
           </Source>
