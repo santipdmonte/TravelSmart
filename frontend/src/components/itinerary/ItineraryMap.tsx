@@ -59,10 +59,12 @@ export default function ItineraryMap({
   // Updated colors: default & walk share neutral gray; previous 8-digit hex removed (Mapbox expects 3/6-digit or rgba)
   const transportColor: Record<string, string> = {
     car: "#ff2a6d",
-    walk: "#6b7280", // gray solid
+    walk: "#6b7280", // gray solid (reserved if backend adds walking segments)
     bike: "#0ea5e9",
     train: "#8b5cf6",
     plane: "#f59e0b",
+    bus: "#2563eb",
+    boat: "#0d9488",
     default: "#6b7280", // gray dotted
   };
 
@@ -177,34 +179,74 @@ export default function ItineraryMap({
     [destinationPoints, hoveredDestinationIndex]
   );
 
-  // Build simple great-circle legs with placeholder transport (currently unknown)
+  // Build a lookup from backend transport segments (Spanish labels) to internal keys
+  const transportLookup = useMemo(() => {
+    const map: Record<string, string> = {};
+    const segs = itinerary.details_itinerary.transportes_entre_destinos || [];
+    const norm = (s: string) =>
+      s
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+    const mapType = (t: string): string => {
+      switch (t) {
+        case "Avión":
+          return "plane";
+        case "Tren":
+          return "train";
+        case "Auto":
+          return "car";
+        case "Colectivo":
+          return "bus";
+        case "Barco":
+          return "boat";
+        default:
+          return "default";
+      }
+    };
+    for (const s of segs) {
+      if (!s.ciudad_origen || !s.ciudad_destino) continue;
+      const key = `${norm(s.ciudad_origen)}__${norm(s.ciudad_destino)}`;
+      map[key] = mapType(s.tipo_transporte);
+    }
+    return map;
+  }, [itinerary.details_itinerary.transportes_entre_destinos]);
+
+  // Build great-circle legs with real transport data if available
   const routesGeoJSON = useMemo<FeatureCollection<LineString>>(
     () => ({
       type: "FeatureCollection",
-      features: destinationPoints.slice(0, -1).map(
-        (item, i): Feature<LineString> => ({
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: greatCircle(
-              item.coord,
-              destinationPoints[i + 1].coord,
-              96
-            ),
-          },
-          properties: {
-            from: item.index,
-            to: destinationPoints[i + 1].index,
-            transport: "default",
-            // Mark leg hovered if either endpoint hovered
-            hovered:
-              hoveredDestinationIndex === item.index ||
-              hoveredDestinationIndex === destinationPoints[i + 1].index,
-          },
-        })
-      ),
+      features: destinationPoints
+        .slice(0, -1)
+        .map((item, i): Feature<LineString> => {
+          const next = destinationPoints[i + 1];
+          const norm = (s: string) =>
+            s
+              .trim()
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/\p{Diacritic}/gu, "");
+          const key = `${norm(item.d.ciudad)}__${norm(next.d.ciudad)}`;
+          const transport = transportLookup[key] || "default";
+          return {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: greatCircle(item.coord, next.coord, 96),
+            },
+            properties: {
+              from: item.index,
+              to: next.index,
+              transport,
+              hovered:
+                hoveredDestinationIndex === item.index ||
+                hoveredDestinationIndex === next.index,
+            },
+          };
+        }),
     }),
-    [destinationPoints, greatCircle, hoveredDestinationIndex]
+    [destinationPoints, greatCircle, hoveredDestinationIndex, transportLookup]
   );
 
   const rawToken =
@@ -409,7 +451,7 @@ export default function ItineraryMap({
                 <Layer
                   id="arcs-line-default"
                   type="line"
-                  filter={["==", ["get", "transport"], "default"]}
+                  filter={["==", "transport", "default"]}
                   layout={{ "line-cap": "round", "line-join": "round" }}
                   paint={{
                     "line-color": transportColor.default,
@@ -422,7 +464,7 @@ export default function ItineraryMap({
                 <Layer
                   id="arcs-line-walk"
                   type="line"
-                  filter={["==", ["get", "transport"], "walk"]}
+                  filter={["==", "transport", "walk"]}
                   layout={{ "line-cap": "round", "line-join": "round" }}
                   paint={{
                     "line-color": transportColor.walk,
@@ -434,11 +476,8 @@ export default function ItineraryMap({
                 <Layer
                   id="arcs-line-other"
                   type="line"
-                  filter={[
-                    "all",
-                    ["!=", ["get", "transport"], "default"],
-                    ["!=", ["get", "transport"], "walk"],
-                  ]}
+                  // Exclude default & walk (handled by previous layers). Legacy filter syntax uses property name directly.
+                  filter={["all", ["!in", "transport", "default", "walk"]]}
                   layout={{ "line-cap": "round", "line-join": "round" }}
                   paint={{
                     "line-color": [
@@ -452,6 +491,10 @@ export default function ItineraryMap({
                       transportColor.train,
                       "plane",
                       transportColor.plane,
+                      "bus",
+                      transportColor.bus,
+                      "boat",
+                      transportColor.boat,
                       transportColor.default,
                     ],
                     "line-width": 2.5,
@@ -462,7 +505,7 @@ export default function ItineraryMap({
                 <Layer
                   id="arcs-line-hover"
                   type="line"
-                  filter={["==", ["get", "hovered"], true]}
+                  filter={["==", "hovered", true]}
                   layout={{ "line-cap": "round", "line-join": "round" }}
                   paint={{
                     "line-color": [
@@ -478,6 +521,10 @@ export default function ItineraryMap({
                       transportColor.train,
                       "plane",
                       transportColor.plane,
+                      "bus",
+                      transportColor.bus,
+                      "boat",
+                      transportColor.boat,
                       transportColor.default,
                     ],
                     "line-width": 4.5,
