@@ -56,13 +56,14 @@ export default function ItineraryMap({
   }
 
   // Transport color map (extend when backend adds transport types between destinations)
+  // Updated colors: default & walk share neutral gray; previous 8-digit hex removed (Mapbox expects 3/6-digit or rgba)
   const transportColor: Record<string, string> = {
     car: "#ff2a6d",
-    walk: "#626663ff",
+    walk: "#6b7280", // gray solid
     bike: "#0ea5e9",
     train: "#8b5cf6",
     plane: "#f59e0b",
-    default: "#0ea5e9",
+    default: "#6b7280", // gray dotted
   };
 
   const destinos = useMemo(
@@ -88,6 +89,7 @@ export default function ItineraryMap({
   const itineraryKey = itinerary.itinerary_id || itinerary.itinerary_id; // stable key
   const STORAGE_KEY = `itinerary_map_view_${itineraryKey}`;
   const styleLoadedRef = useRef(false);
+  const [styleReady, setStyleReady] = useState(false); // gate Sources until style is ready
   const skipInitialFitRef = useRef(false);
 
   // Load persisted view state if any
@@ -281,6 +283,7 @@ export default function ItineraryMap({
       try {
         const map = e.target;
         styleLoadedRef.current = true;
+        setStyleReady(true);
         map.setProjection("globe");
         map.setFog({
           range: [0.5, 10],
@@ -309,6 +312,24 @@ export default function ItineraryMap({
     [destinationPoints]
   );
 
+  // Extra safety: if style reloads (styledata) or coming from a transient state
+  useEffect(() => {
+    if (!mapRef) return;
+    const ensureReady = () => {
+      if (mapRef.isStyleLoaded()) {
+        styleLoadedRef.current = true;
+        setStyleReady(true);
+      }
+    };
+    // Sometimes styledata fires multiple times; keep it lightweight
+    mapRef.on("styledata", ensureReady);
+    // Immediate check (in case onLoad already fired before effect ran)
+    ensureReady();
+    return () => {
+      mapRef.off("styledata", ensureReady);
+    };
+  }, [mapRef]);
+
   return (
     <div className="w-full h-full relative">
       {token ? (
@@ -317,148 +338,172 @@ export default function ItineraryMap({
           initialViewState={initialViewState}
           projection="globe"
           mapStyle="mapbox://styles/luisalberto2003/cmf34lq88002e01s21z3o2ep0"
-          interactiveLayerIds={["points-circle"]}
+          interactiveLayerIds={styleReady ? ["points-circle"] : []}
           onClick={onMapClick}
           onLoad={handleMapLoad}
           dragRotate={false}
           style={{ width: "100%", height: "100%" }}
         >
-          <Source id="points" type="geojson" data={pointsGeoJSON}>
-            <Layer
-              id="points-shadow"
-              type="circle"
-              paint={{
-                "circle-radius": ["case", ["get", "hovered"], 14, 11],
-                "circle-color": "#000",
-                "circle-opacity": 0.12,
-                "circle-blur": 0.4,
-                "circle-translate": [0, 1],
-                "circle-translate-anchor": "viewport",
-              }}
-            />
-            <Layer
-              id="points-glow"
-              type="circle"
-              paint={{
-                "circle-radius": ["case", ["get", "hovered"], 18, 14],
-                "circle-color": "#0284c7",
-                "circle-opacity": 0.12,
-              }}
-            />
-            <Layer
-              id="points-circle"
-              type="circle"
-              paint={{
-                "circle-radius": ["case", ["get", "hovered"], 13, 10],
-                "circle-color": "#ffffff",
-                "circle-stroke-color": [
-                  "case",
-                  ["get", "hovered"],
-                  "#0284c7",
-                  "#E5E7EB",
-                ],
-                "circle-stroke-width": ["case", ["get", "hovered"], 3, 1.5],
-              }}
-            />
-            <Layer
-              id="points-labels"
-              type="symbol"
-              layout={{
-                "text-field": ["to-string", ["get", "order"]],
-                "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-                "text-size": 12,
-                "text-offset": [0, 0],
-                "text-anchor": "center",
-                "text-allow-overlap": true,
-                "text-ignore-placement": true,
-              }}
-              paint={{
-                "text-color": "#0284c7",
-                "text-halo-color": "#ffffff",
-                "text-halo-width": 2,
-                "text-halo-blur": 0.6,
-              }}
-            />
-          </Source>
+          {styleReady && (
+            <>
+              <Source id="points" type="geojson" data={pointsGeoJSON}>
+                <Layer
+                  id="points-shadow"
+                  type="circle"
+                  paint={{
+                    "circle-radius": ["case", ["get", "hovered"], 14, 11],
+                    "circle-color": "#000",
+                    "circle-opacity": 0.12,
+                    "circle-blur": 0.4,
+                    "circle-translate": [0, 1],
+                    "circle-translate-anchor": "viewport",
+                  }}
+                />
+                <Layer
+                  id="points-glow"
+                  type="circle"
+                  paint={{
+                    "circle-radius": ["case", ["get", "hovered"], 18, 14],
+                    "circle-color": "#0284c7",
+                    "circle-opacity": 0.12,
+                  }}
+                />
+                <Layer
+                  id="points-circle"
+                  type="circle"
+                  paint={{
+                    "circle-radius": ["case", ["get", "hovered"], 13, 10],
+                    "circle-color": "#ffffff",
+                    "circle-stroke-color": [
+                      "case",
+                      ["get", "hovered"],
+                      "#0284c7",
+                      "#E5E7EB",
+                    ],
+                    "circle-stroke-width": ["case", ["get", "hovered"], 3, 1.5],
+                  }}
+                />
+                <Layer
+                  id="points-labels"
+                  type="symbol"
+                  layout={{
+                    "text-field": ["to-string", ["get", "order"]],
+                    "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+                    "text-size": 12,
+                    "text-offset": [0, 0],
+                    "text-anchor": "center",
+                    "text-allow-overlap": true,
+                    "text-ignore-placement": true,
+                  }}
+                  paint={{
+                    "text-color": "#0284c7",
+                    "text-halo-color": "#ffffff",
+                    "text-halo-width": 2,
+                    "text-halo-blur": 0.6,
+                  }}
+                />
+              </Source>
 
-          <Source id="arcs" type="geojson" data={routesGeoJSON}>
-            {/* Base lines with color by transport */}
-            <Layer
-              id="arcs-line"
-              type="line"
-              layout={{ "line-cap": "round", "line-join": "round" }}
-              paint={{
-                "line-color": [
-                  "coalesce",
-                  [
-                    "match",
-                    ["get", "transport"],
-                    "car",
-                    transportColor.car,
-                    "walk",
-                    transportColor.walk,
-                    "bike",
-                    transportColor.bike,
-                    "train",
-                    transportColor.train,
-                    "plane",
-                    transportColor.plane,
-                    transportColor.default,
-                  ],
-                  transportColor.default,
-                ],
-                "line-width": 2.5,
-                "line-opacity": 0.7,
-              }}
-            />
-            {/* Highlight hovered leg */}
-            <Layer
-              id="arcs-line-hover"
-              type="line"
-              filter={["==", ["get", "hovered"], true]}
-              layout={{ "line-cap": "round", "line-join": "round" }}
-              paint={{
-                "line-color": [
-                  "coalesce",
-                  [
-                    "match",
-                    ["get", "transport"],
-                    "car",
-                    transportColor.car,
-                    "walk",
-                    transportColor.walk,
-                    "bike",
-                    transportColor.bike,
-                    "train",
-                    transportColor.train,
-                    "plane",
-                    transportColor.plane,
-                    transportColor.default,
-                  ],
-                  transportColor.default,
-                ],
-                "line-width": 4.5,
-                "line-opacity": 0.95,
-                "line-blur": 0.2,
-              }}
-            />
-          </Source>
+              <Source id="arcs" type="geojson" data={routesGeoJSON}>
+                {/* Default (unknown) transport: gray dotted */}
+                <Layer
+                  id="arcs-line-default"
+                  type="line"
+                  filter={["==", ["get", "transport"], "default"]}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                  paint={{
+                    "line-color": transportColor.default,
+                    "line-width": 2.5,
+                    "line-opacity": 0.7,
+                    "line-dasharray": [2, 2],
+                  }}
+                />
+                {/* Walk transport: same gray, solid */}
+                <Layer
+                  id="arcs-line-walk"
+                  type="line"
+                  filter={["==", ["get", "transport"], "walk"]}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                  paint={{
+                    "line-color": transportColor.walk,
+                    "line-width": 2.5,
+                    "line-opacity": 0.7,
+                  }}
+                />
+                {/* Other transports retain color mapping, solid */}
+                <Layer
+                  id="arcs-line-other"
+                  type="line"
+                  filter={[
+                    "all",
+                    ["!=", ["get", "transport"], "default"],
+                    ["!=", ["get", "transport"], "walk"],
+                  ]}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                  paint={{
+                    "line-color": [
+                      "match",
+                      ["get", "transport"],
+                      "car",
+                      transportColor.car,
+                      "bike",
+                      transportColor.bike,
+                      "train",
+                      transportColor.train,
+                      "plane",
+                      transportColor.plane,
+                      transportColor.default,
+                    ],
+                    "line-width": 2.5,
+                    "line-opacity": 0.7,
+                  }}
+                />
+                {/* Hover highlight (solid, above others) */}
+                <Layer
+                  id="arcs-line-hover"
+                  type="line"
+                  filter={["==", ["get", "hovered"], true]}
+                  layout={{ "line-cap": "round", "line-join": "round" }}
+                  paint={{
+                    "line-color": [
+                      "match",
+                      ["get", "transport"],
+                      "car",
+                      transportColor.car,
+                      "walk",
+                      transportColor.walk,
+                      "bike",
+                      transportColor.bike,
+                      "train",
+                      transportColor.train,
+                      "plane",
+                      transportColor.plane,
+                      transportColor.default,
+                    ],
+                    "line-width": 4.5,
+                    "line-opacity": 0.95,
+                    "line-blur": 0.2,
+                  }}
+                />
+              </Source>
 
-          {popup && (
-            <Popup
-              longitude={popup.lngLat[0]}
-              latitude={popup.lngLat[1]}
-              anchor="bottom-left"
-              closeOnClick={false}
-              onClose={() => setPopup(null)}
-              offset={8}
-              className="!p-0 !bg-transparent !shadow-none"
-            >
-              <div className="rounded bg-black/80 text-white text-xs shadow p-2">
-                <div className="font-semibold">{popup.city}</div>
-                <div className="text-neutral-300">Días: {popup.days}</div>
-              </div>
-            </Popup>
+              {popup && (
+                <Popup
+                  longitude={popup.lngLat[0]}
+                  latitude={popup.lngLat[1]}
+                  anchor="bottom-left"
+                  closeOnClick={false}
+                  onClose={() => setPopup(null)}
+                  offset={8}
+                  className="!p-0 !bg-transparent !shadow-none"
+                >
+                  <div className="rounded bg-black/80 text-white text-xs shadow p-2">
+                    <div className="font-semibold">{popup.city}</div>
+                    <div className="text-neutral-300">Días: {popup.days}</div>
+                  </div>
+                </Popup>
+              )}
+            </>
           )}
         </Map>
       ) : (
