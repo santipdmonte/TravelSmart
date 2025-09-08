@@ -24,6 +24,7 @@ type ChatAction =
   | { type: 'SET_HIL_STATE'; payload: HILResponse | null }
   | { type: 'SET_THREAD_ID'; payload: string }
   | { type: 'ADD_MESSAGE'; payload: Message }
+  | { type: 'APPEND_MESSAGE_CONTENT'; payload: { messageId: string; content: string } }
   | { type: 'CLEAR_CHAT' };
 
 const initialState: ChatState = {
@@ -67,6 +68,15 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         messages: [...state.messages, action.payload],
       };
+    case 'APPEND_MESSAGE_CONTENT': {
+      const { messageId, content } = action.payload;
+      return {
+        ...state,
+        messages: state.messages.map((m) =>
+          m.id === messageId ? { ...m, content: `${m.content}${content}` } : m
+        ),
+      };
+    }
     case 'CLEAR_CHAT':
       return initialState;
     default:

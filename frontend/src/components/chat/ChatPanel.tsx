@@ -32,7 +32,7 @@ export default function ChatPanel() {
         <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 lg:rounded-t-lg">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <h3 className="font-semibold text-gray-900">Asistente IA</h3>
+            <h3 className="font-semibold text-gray-900">Asistente</h3>
           </div>
           <button
             onClick={closeChat}

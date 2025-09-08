@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { sendAgentMessage, getAgentState } from '@/lib/agentApi';
+import { sendAgentMessage, getAgentState, sendAgentMessageStream, getAgentStateWithHIL } from '@/lib/agentApi';
 
 export function useChatActions() {
   const { dispatch } = useChat();
@@ -54,35 +54,55 @@ export function useChatActions() {
       };
       dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
 
-      // Set loading state AFTER adding user message
+      // Create a placeholder AI message to stream into
+      const aiMessageId = crypto.randomUUID();
+      const aiMessage = {
+        content: '',
+        type: 'ai' as const,
+        id: aiMessageId,
+      };
+      dispatch({ type: 'ADD_MESSAGE', payload: aiMessage });
+
+      // Set loading state AFTER adding messages
       dispatch({ type: 'SET_LOADING', payload: true });
 
-      const response = await sendAgentMessage(itineraryId, message);
-      
-      if (response.error) {
+      // Stream tokens
+      let firstTokenSeen = false;
+      const streamResult = await sendAgentMessageStream(
+        itineraryId,
+        itineraryId,
+        message,
+        (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            // Hide loading indicator once tokens start arriving
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+          dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
+        }
+      );
+
+      if (streamResult.error) {
         dispatch({ type: 'SET_LOADING', payload: false });
-        dispatch({ type: 'SET_ERROR', payload: response.error });
+        dispatch({ type: 'SET_ERROR', payload: streamResult.error });
         return false;
       }
 
-      if (response.data) {
-        const { agentState, hilResponse } = response.data;
-
-        // Update with complete agent state (includes AI response) - this will set loading to false
-        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-
-        // If HIL (human-in-the-loop) requested, show confirmation UI
-        if (hilResponse.isHIL) {
-          dispatch({ type: 'SET_HIL_STATE', payload: hilResponse });
-        }
-
-        // Avoid refetching the full itinerary here to prevent a full page rerender.
-        // We already refresh the itinerary after explicit user confirmation in confirmChanges.
-        return true;
+      // After stream completion, fetch latest agent state + HIL
+      const stateResult = await getAgentStateWithHIL(itineraryId);
+      if (stateResult.error || !stateResult.data) {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_ERROR', payload: stateResult.error || 'Failed to fetch agent state' });
+        return false;
       }
 
-      dispatch({ type: 'SET_LOADING', payload: false });
-      return false;
+      const { agentState, hilResponse } = stateResult.data;
+      dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+      if (hilResponse.isHIL) {
+        dispatch({ type: 'SET_HIL_STATE', payload: hilResponse });
+      }
+
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -109,26 +129,39 @@ export function useChatActions() {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const response = await sendAgentMessage(itineraryId, 's');
-      
-      if (response.error) {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
+      // Placeholder streamed AI response after confirmation
+      const aiMessageId = crypto.randomUUID();
+      dispatch({ type: 'ADD_MESSAGE', payload: { id: aiMessageId, type: 'ai' as const, content: '' } });
+
+      let firstTokenSeen = false;
+      const streamResult = await sendAgentMessageStream(
+        itineraryId,
+        itineraryId,
+        's',
+        (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+          dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
+        }
+      );
+
+      if (streamResult.error) {
+        dispatch({ type: 'SET_ERROR', payload: streamResult.error });
         return false;
       }
 
-      if (response.data) {
-        const { agentState } = response.data;
-        
-        // Update with complete agent state (this will show the agent's response)
-        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-        
-        // Refresh the itinerary since changes were confirmed (allowed to re-render page)
-        await fetchItinerary(itineraryId);
-        
-        return true;
+      const stateResult = await getAgentStateWithHIL(itineraryId);
+      if (stateResult.error || !stateResult.data) {
+        dispatch({ type: 'SET_ERROR', payload: stateResult.error || 'Failed to fetch agent state' });
+        return false;
       }
 
-      return false;
+      const { agentState } = stateResult.data;
+      dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+      await fetchItinerary(itineraryId);
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to confirm changes';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
@@ -154,23 +187,38 @@ export function useChatActions() {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      const response = await sendAgentMessage(itineraryId, 'El usuario no acepto los cambios sugeridos');
-      
-      if (response.error) {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
+      // Placeholder streamed AI response after cancellation
+      const aiMessageId = crypto.randomUUID();
+      dispatch({ type: 'ADD_MESSAGE', payload: { id: aiMessageId, type: 'ai' as const, content: '' } });
+
+      let firstTokenSeen = false;
+      const streamResult = await sendAgentMessageStream(
+        itineraryId,
+        itineraryId,
+        'El usuario no acepto los cambios sugeridos',
+        (token: string) => {
+          if (!firstTokenSeen) {
+            firstTokenSeen = true;
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+          dispatch({ type: 'APPEND_MESSAGE_CONTENT', payload: { messageId: aiMessageId, content: token } });
+        }
+      );
+
+      if (streamResult.error) {
+        dispatch({ type: 'SET_ERROR', payload: streamResult.error });
         return false;
       }
 
-      if (response.data) {
-        const { agentState } = response.data;
-        
-        // Update with complete agent state (this will show the agent's response)
-        dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
-        
-        return true;
+      const stateResult = await getAgentStateWithHIL(itineraryId);
+      if (stateResult.error || !stateResult.data) {
+        dispatch({ type: 'SET_ERROR', payload: stateResult.error || 'Failed to fetch agent state' });
+        return false;
       }
 
-      return false;
+      const { agentState } = stateResult.data;
+      dispatch({ type: 'SET_AGENT_STATE', payload: agentState });
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel changes';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
