@@ -249,10 +249,26 @@ export default function ItineraryMap({
     [destinationPoints, greatCircle, hoveredDestinationIndex, transportLookup]
   );
 
-  const rawToken =
+  // Resolve Mapbox token from env (client-safe NEXT_PUBLIC_ vars only)
+  const rawToken = (
     process.env.NEXT_PUBLIC_MAPBOX_API_TOKEN ||
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+    ""
+  )
+    .toString()
+    .trim()
+    // strip accidental quotes if committed in .env.local
+    .replace(/^['"]|['"]$/g, "");
   const token = rawToken && rawToken.startsWith("pk.") ? rawToken : null;
+
+  // Helpful warning in dev to avoid confusion when editing .env.local without restart
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" && !token) {
+      console.warn(
+        "[TravelSmart] Mapbox token no detectado. Asegúrate de definir NEXT_PUBLIC_MAPBOX_API_TOKEN (o NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) en frontend/.env.local y reinicia `npm run dev`."
+      );
+    }
+  }, [token]);
 
   const [popup, setPopup] = useState<{
     lngLat: [number, number];
@@ -555,7 +571,9 @@ export default function ItineraryMap({
         </Map>
       ) : (
         <div className="w-full h-full grid place-items-center text-sm text-neutral-500 p-4 bg-gray-100">
-          Configura NEXT_PUBLIC_MAPBOX_API_TOKEN para ver el mapa.
+          Configura NEXT_PUBLIC_MAPBOX_API_TOKEN (o
+          NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN) en frontend/.env.local y reinicia el
+          servidor para ver el mapa.
         </div>
       )}
     </div>

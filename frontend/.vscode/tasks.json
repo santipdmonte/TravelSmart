@@ -12,6 +12,13 @@
 				"$eslint - stylish"
 			],
 			"group": "build"
+		},
+		{
+			"label": "Type-check frontend",
+			"type": "shell",
+			"command": "npm run type-check",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }
