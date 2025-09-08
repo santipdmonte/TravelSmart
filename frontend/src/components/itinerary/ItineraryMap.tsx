@@ -34,19 +34,33 @@ export default function ItineraryMap({
   itinerary,
   hoveredDestinationIndex,
 }: ItineraryMapProps) {
-  const destinos = itinerary.details_itinerary.destinos || [];
+  interface PointFeatureProps {
+    id: number;
+    city: string;
+    days: number;
+    order: number;
+    hovered: boolean;
+  }
 
-  const destinationPoints = useMemo(
-    () =>
-      destinos
-        .map((d, i) => ({ d, coord: getDestinationLonLat(d), index: i }))
-        .filter((item) => item.coord !== null) as {
+  const destinos = useMemo(
+    () => itinerary.details_itinerary.destinos || [],
+    [itinerary.details_itinerary.destinos]
+  );
+
+  // Pre-normalize coordinates (single pass)
+  const destinationPoints = useMemo(() => {
+    return destinos.reduce<
+      {
         d: (typeof destinos)[number];
         coord: [number, number];
         index: number;
-      }[],
-    [destinos]
-  );
+      }[]
+    >((acc, d, i) => {
+      const coord = getDestinationLonLat(d);
+      if (coord) acc.push({ d, coord, index: i });
+      return acc;
+    }, []);
+  }, [destinos]);
 
   const initialViewState = useMemo(
     () =>
@@ -160,7 +174,7 @@ export default function ItineraryMap({
   const onMapClick = useCallback((e: ClickEvent) => {
     const feature = e.features && e.features[0];
     if (feature && feature.properties) {
-      const props = feature.properties as any;
+      const props = feature.properties as unknown as PointFeatureProps;
       setPopup({
         lngLat: [e.lngLat.lng, e.lngLat.lat],
         city: String(props.city),
@@ -172,16 +186,36 @@ export default function ItineraryMap({
     }
   }, []);
 
-  const handleMapLoad = useCallback((e: { target: MbMap }) => {
-    try {
-      e.target.setProjection("globe");
-      e.target.setFog({
-        range: [0.5, 10],
-        color: "rgba(255,255,255,0.25)",
-        "horizon-blend": 0.2,
-      } as any);
-    } catch {}
-  }, []);
+  const handleMapLoad = useCallback(
+    (e: { target: MbMap }) => {
+      try {
+        const map = e.target;
+        map.setProjection("globe");
+        map.setFog({
+          range: [0.5, 10],
+          color: "rgba(255,255,255,0.25)",
+          "horizon-blend": 0.2,
+        } as any);
+        // Fit bounds to all points with padding when multiple points available
+        if (destinationPoints.length >= 2) {
+          const lons = destinationPoints.map((p) => p.coord[0]);
+          const lats = destinationPoints.map((p) => p.coord[1]);
+          const minLon = Math.min(...lons);
+          const maxLon = Math.max(...lons);
+          const minLat = Math.min(...lats);
+          const maxLat = Math.max(...lats);
+          map.fitBounds(
+            [
+              [minLon, minLat],
+              [maxLon, maxLat],
+            ],
+            { padding: 60, duration: 800 }
+          );
+        }
+      } catch {}
+    },
+    [destinationPoints]
+  );
 
   return (
     <div className="w-full h-full relative">

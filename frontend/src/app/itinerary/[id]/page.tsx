@@ -31,6 +31,7 @@ import {
   MapPinIcon,
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
+import Image from "next/image";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -631,10 +632,12 @@ export default function ItineraryDetailsPage() {
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
                             style={{ backgroundColor: "#FF5A5F" }}
                           >
-                            <img
+                            <Image
                               src="/accommodations-ico/airbnb.avif"
                               alt="Airbnb"
-                              className="h-5 w-5 rounded-sm"
+                              width={20}
+                              height={20}
+                              className="rounded-sm h-5 w-5"
                             />
                             Airbnb
                           </a>
@@ -648,9 +651,11 @@ export default function ItineraryDetailsPage() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
                           >
-                            <img
+                            <Image
                               src="/accommodations-ico/booking.svg"
                               alt="Booking.com"
+                              width={20}
+                              height={20}
                               className="h-5 w-5"
                             />
                             Booking
@@ -665,9 +670,11 @@ export default function ItineraryDetailsPage() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
                           >
-                            <img
+                            <Image
                               src="/accommodations-ico/expedia.ico"
                               alt="Expedia"
+                              width={20}
+                              height={20}
                               className="h-5 w-5"
                             />
                             Expedia
