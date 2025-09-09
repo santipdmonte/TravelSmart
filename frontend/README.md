@@ -31,18 +31,20 @@ src/
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Backend API running on `http://localhost:8001`
 
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Set up environment variables:
+
 ```bash
 # Create .env.local file
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8001
@@ -54,6 +56,7 @@ NEXT_PUBLIC_MAPBOX_API_TOKEN=pk.YOUR_PUBLIC_TOKEN
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -91,12 +94,14 @@ The application uses React Context for state management:
 ## Key Components
 
 ### Pages
+
 - **Landing Page** (`/`): Welcome page with navigation to other sections
 - **Create Page** (`/create`): Form to generate new itineraries
 - **Itineraries Page** (`/itineraries`): List of all user itineraries
 - **Itinerary Details** (`/itinerary/[id]`): Detailed view of a specific itinerary
 
 ### Utilities
+
 - **API Client** (`lib/api.ts`): Centralized API communication
 - **Utils** (`lib/utils.ts`): Common utility functions
 - **Types** (`types/itinerary.ts`): TypeScript definitions
@@ -116,6 +121,7 @@ The application uses React Context for state management:
 - `NEXT_PUBLIC_MAPBOX_API_TOKEN` (or `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`): Mapbox public access token used on the client
 
 Notes:
+
 - When you change `.env.local`, you must stop and restart `npm run dev` so Next.js reloads env vars.
 - Do not wrap values in quotes in `.env.local`. If you did, remove the quotes or we try to strip them.
 
