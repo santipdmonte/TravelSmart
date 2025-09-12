@@ -764,15 +764,17 @@ export default function ItineraryDetailsPage() {
                           <div className="flex pb-4 gap-4">
                             {isCreatingByDest[idx] && (
                               <div className="relative w-56 flex-none">
-                                <Card className="rounded-3xl overflow-hidden">
-                                  <div className="p-3 pb-0">
-                                    <div className="relative h-40 w-full bg-gray-100 rounded-2xl overflow-hidden">
-                                      <Skeleton className="h-full w-full" />
-                                    </div>
+                                <Card className="rounded-3xl overflow-hidden pt-0">
+                                  <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
+                                    <Skeleton className="h-full w-full" />
                                   </div>
-                                  <CardContent className="pt-3 pb-4">
-                                    <Skeleton className="h-4 w-3/4 mb-2" />
-                                    <Skeleton className="h-3 w-1/2" />
+                                  <CardContent>
+                                    <CardTitle className="text-sm font-semibold truncate">
+                                      <Skeleton className="h-4 w-3/4" />
+                                    </CardTitle>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      <Skeleton className="h-3 w-1/2" />
+                                    </div>
                                   </CardContent>
                                 </Card>
                               </div>
