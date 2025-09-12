@@ -16,6 +16,7 @@ import {
 } from "@/lib/accommodationApi";
 import { AccommodationResponse } from "@/types/accommodation";
 import { FloatingEditButton, Button, Input } from "@/components";
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,8 @@ import {
   ShipIcon,
   CircleHelpIcon,
   MapPinIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
@@ -58,6 +61,8 @@ export default function ItineraryDetailsPage() {
     AccommodationResponse[][]
   >([]);
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
+  const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
+  const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
   // Route tab no longer supports editing or reordering
   const [activeTab, setActiveTab] = useState<string>("itinerary");
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
@@ -127,6 +132,7 @@ export default function ItineraryDetailsPage() {
   useEffect(() => {
     const destinos = currentItinerary?.details_itinerary?.destinos ?? [];
     setNewLinkByDest(destinos.map(() => ""));
+    setIsCreatingByDest(destinos.map(() => false));
   }, [currentItinerary?.details_itinerary?.destinos]);
 
   // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
@@ -241,18 +247,47 @@ export default function ItineraryDetailsPage() {
     if (!url || !currentItinerary) return;
     const city = currentItinerary.details_itinerary.destinos[destIndex]?.ciudad;
     if (!city) return;
-    await createAccommodation({
-      itinerary_id: currentItinerary.itinerary_id,
-      city,
-      url,
-    });
-    await fetchSavedAccommodations();
-    setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? "" : v)));
+    try {
+      setIsCreatingByDest((prev) => prev.map((v, i) => (i === destIndex ? true : v)));
+      await createAccommodation({
+        itinerary_id: currentItinerary.itinerary_id,
+        city,
+        url,
+      });
+      await fetchSavedAccommodations();
+      setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? "" : v)));
+    } finally {
+      setIsCreatingByDest((prev) => prev.map((v, i) => (i === destIndex ? false : v)));
+    }
   };
 
   const handleDeleteLink = async (accommodationId: string) => {
     await softDeleteAccommodation(accommodationId);
     await fetchSavedAccommodations();
+  };
+
+  const getCurrentImageUrl = (acc: AccommodationResponse): string | undefined => {
+    const total = acc.img_urls?.length ?? 0;
+    if (total === 0) return undefined;
+    const idx = imageIndexByAccId[acc.id] ?? 0;
+    const safeIdx = ((idx % total) + total) % total;
+    return acc.img_urls[safeIdx];
+  };
+
+  const showPrevImage = (accId: string, total: number) => {
+    if (!total || total < 2) return;
+    setImageIndexByAccId((prev) => ({
+      ...prev,
+      [accId]: ((prev[accId] ?? 0) - 1 + total) % total,
+    }));
+  };
+
+  const showNextImage = (accId: string, total: number) => {
+    if (!total || total < 2) return;
+    setImageIndexByAccId((prev) => ({
+      ...prev,
+      [accId]: ((prev[accId] ?? 0) + 1) % total,
+    }));
   };
 
   return (
@@ -725,45 +760,114 @@ export default function ItineraryDetailsPage() {
                           </Button>
                         </div>
 
-                        <ul className="mt-4 space-y-2">
-                          {(accommodationsByDest[idx] ?? []).map((acc) => (
-                            <li
-                              key={`${idx}-${acc.id}`}
-                              className="flex items-center justify-between gap-3 border border-gray-100 rounded-full px-4 py-2"
-                            >
-                              <a
-                                href={acc.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sky-700 hover:text-sky-800 hover:underline truncate"
-                              >
-                                {acc.title || acc.url}
-                              </a>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="rounded-full hover:bg-red-100"
-                                onClick={() => handleDeleteLink(acc.id)}
-                                aria-label="Eliminar alojamiento"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 text-gray-500 group-hover:text-red-600 transition-colors"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth={2}
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
-                                  />
-                                </svg>
-                              </Button>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="mt-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                          <div className="flex gap-4">
+                            {isCreatingByDest[idx] && (
+                              <div className="relative w-56 flex-none">
+                                <Card className="rounded-3xl overflow-hidden">
+                                  <div className="p-3 pb-0">
+                                    <div className="relative h-40 w-full bg-gray-100 rounded-2xl overflow-hidden">
+                                      <Skeleton className="h-full w-full" />
+                                    </div>
+                                  </div>
+                                  <CardContent className="pt-3 pb-4">
+                                    <Skeleton className="h-4 w-3/4 mb-2" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                  </CardContent>
+                                </Card>
+                              </div>
+                            )}
+                            {(accommodationsByDest[idx] ?? []).map((acc) => {
+                              const total = acc.img_urls?.length ?? 0;
+                              const currentUrl = getCurrentImageUrl(acc);
+                              return (
+                                <div key={`${idx}-${acc.id}`} className="relative group w-56 flex-none">
+                                  <a
+                                    href={acc.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block"
+                                  >
+                                    <Card className="rounded-3xl overflow-hidden hover:shadow-lg transition-shadow">
+                                      <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
+                                        {currentUrl ? (
+                                          <img
+                                            src={currentUrl}
+                                            alt={acc.title || "Alojamiento"}
+                                            className="h-full w-full object-cover"
+                                            loading="lazy"
+                                          />
+                                        ) : (
+                                          <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200" />
+                                        )}
+                                        {total > 1 && (
+                                          <>
+                                            <button
+                                              className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                showPrevImage(acc.id, total);
+                                              }}
+                                              aria-label="Imagen anterior"
+                                            >
+                                              <ChevronLeftIcon className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                showNextImage(acc.id, total);
+                                              }}
+                                              aria-label="Imagen siguiente"
+                                            >
+                                              <ChevronRightIcon className="h-4 w-4" />
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
+                                      <CardContent>
+                                        <CardTitle className="text-sm font-semibold truncate">
+                                          {acc.title || acc.url}
+                                        </CardTitle>
+                                        {acc.provider ? (
+                                          <div className="text-xs text-gray-500 mt-1">{acc.provider}</div>
+                                        ) : null}
+                                      </CardContent>
+                                    </Card>
+                                  </a>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur hover:bg-red-100"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      handleDeleteLink(acc.id);
+                                    }}
+                                    aria-label="Eliminar alojamiento"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-4 w-4 text-gray-600 group-hover:text-red-600 transition-colors"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                      strokeWidth={2}
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
+                                      />
+                                    </svg>
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
