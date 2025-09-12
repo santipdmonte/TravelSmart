@@ -9,6 +9,12 @@ import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
 import { ChatPanel } from "@/components/chat";
 import { apiRequest } from "@/lib/api";
+import {
+  listAccommodationsByItineraryAndCity,
+  createAccommodation,
+  softDeleteAccommodation,
+} from "@/lib/accommodationApi";
+import { AccommodationResponse } from "@/types/accommodation";
 import { FloatingEditButton, Button, Input } from "@/components";
 import {
   Dialog,
@@ -47,10 +53,10 @@ export default function ItineraryDetailsPage() {
     number | null
   >(null);
 
-  // Mock state for accommodations per destino
-  const [accommodationsByDest, setAccommodationsByDest] = useState<string[][]>(
-    []
-  );
+  // Saved accommodations per destino (persisted via backend)
+  const [accommodationsByDest, setAccommodationsByDest] = useState<
+    AccommodationResponse[][]
+  >([]);
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
   // Route tab no longer supports editing or reordering
   const [activeTab, setActiveTab] = useState<string>("itinerary");
@@ -117,20 +123,11 @@ export default function ItineraryDetailsPage() {
     };
   }, [isChatOpen, clearChat]);
 
-  // Seed one placeholder link per destination (mock)
+  // Initialize input rows when destinos change
   useEffect(() => {
-    if (!currentItinerary?.details_itinerary?.destinos) {
-      setAccommodationsByDest([]);
-      setNewLinkByDest([]);
-      return;
-    }
-    const seeded = currentItinerary.details_itinerary.destinos.map((d) => {
-      const q = encodeURIComponent(`${d.ciudad ?? ""}, ${d.pais ?? ""}`.trim());
-      return [`https://www.booking.com/searchresults.html?ss=${q}`];
-    });
-    setAccommodationsByDest(seeded);
-    setNewLinkByDest(currentItinerary.details_itinerary.destinos.map(() => ""));
-  }, [currentItinerary]);
+    const destinos = currentItinerary?.details_itinerary?.destinos ?? [];
+    setNewLinkByDest(destinos.map(() => ""));
+  }, [currentItinerary?.details_itinerary?.destinos]);
 
   // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
   const fetchAccommodationLinks = useCallback(async () => {
@@ -156,6 +153,32 @@ export default function ItineraryDetailsPage() {
   useEffect(() => {
     fetchAccommodationLinks();
   }, [fetchAccommodationLinks]);
+
+  // Load saved accommodations from backend per destination
+  const fetchSavedAccommodations = useCallback(async () => {
+    if (!currentItinerary) return;
+    const destinos = currentItinerary.details_itinerary.destinos ?? [];
+    if (!Array.isArray(destinos) || destinos.length === 0) {
+      setAccommodationsByDest([]);
+      return;
+    }
+    const results = await Promise.all(
+      destinos.map((d) =>
+        listAccommodationsByItineraryAndCity(itineraryId, d.ciudad)
+      )
+    );
+    const mapped: AccommodationResponse[][] = results.map((res) =>
+      (res.data ?? []).filter((a) => a.status !== "deleted")
+    );
+    setAccommodationsByDest(mapped);
+  }, [currentItinerary, itineraryId]);
+
+  // Fetch when opening the stays tab or when itinerary changes
+  useEffect(() => {
+    if (activeTab === "stays") {
+      fetchSavedAccommodations();
+    }
+  }, [activeTab, fetchSavedAccommodations]);
 
   if (loading) {
     return (
@@ -213,26 +236,23 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
 
-  const handleAddLink = (destIndex: number) => {
+  const handleAddLink = async (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || "").trim();
-    if (!url) return;
-    setAccommodationsByDest((prev) => {
-      const next = prev.map((arr) => [...arr]);
-      if (!next[destIndex]) next[destIndex] = [];
-      next[destIndex].push(url);
-      return next;
+    if (!url || !currentItinerary) return;
+    const city = currentItinerary.details_itinerary.destinos[destIndex]?.ciudad;
+    if (!city) return;
+    await createAccommodation({
+      itinerary_id: currentItinerary.itinerary_id,
+      city,
+      url,
     });
+    await fetchSavedAccommodations();
     setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? "" : v)));
   };
 
-  const handleDeleteLink = (destIndex: number, linkIndex: number) => {
-    setAccommodationsByDest((prev) => {
-      const next = prev.map((arr) => [...arr]);
-      if (next[destIndex]) {
-        next[destIndex].splice(linkIndex, 1);
-      }
-      return next;
-    });
+  const handleDeleteLink = async (accommodationId: string) => {
+    await softDeleteAccommodation(accommodationId);
+    await fetchSavedAccommodations();
   };
 
   return (
@@ -706,45 +726,43 @@ export default function ItineraryDetailsPage() {
                         </div>
 
                         <ul className="mt-4 space-y-2">
-                          {(accommodationsByDest[idx] ?? []).map(
-                            (link, linkIdx) => (
-                              <li
-                                key={`${idx}-${linkIdx}`}
-                                className="flex items-center justify-between gap-3 border border-gray-100 rounded-full px-4 py-2"
+                          {(accommodationsByDest[idx] ?? []).map((acc) => (
+                            <li
+                              key={`${idx}-${acc.id}`}
+                              className="flex items-center justify-between gap-3 border border-gray-100 rounded-full px-4 py-2"
+                            >
+                              <a
+                                href={acc.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sky-700 hover:text-sky-800 hover:underline truncate"
                               >
-                                <a
-                                  href={link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sky-700 hover:text-sky-800 hover:underline truncate"
+                                {acc.title || acc.url}
+                              </a>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full hover:bg-red-100"
+                                onClick={() => handleDeleteLink(acc.id)}
+                                aria-label="Eliminar alojamiento"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 text-gray-500 group-hover:text-red-600 transition-colors"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
                                 >
-                                  {link}
-                                </a>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="rounded-full hover:bg-red-100"
-                                  onClick={() => handleDeleteLink(idx, linkIdx)}
-                                  aria-label="Eliminar alojamiento"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-4 w-4 text-gray-500 group-hover:text-red-600 transition-colors"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    strokeWidth={2}
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
-                                    />
-                                  </svg>
-                                </Button>
-                              </li>
-                            )
-                          )}
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
+                                  />
+                                </svg>
+                              </Button>
+                            </li>
+                          ))}
                         </ul>
                       </div>
                     </div>
