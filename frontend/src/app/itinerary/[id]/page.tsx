@@ -761,7 +761,7 @@ export default function ItineraryDetailsPage() {
                         </div>
 
                         <div className="mt-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                          <div className="flex gap-4">
+                          <div className="flex pb-4 gap-4">
                             {isCreatingByDest[idx] && (
                               <div className="relative w-56 flex-none">
                                 <Card className="rounded-3xl overflow-hidden">
