@@ -105,13 +105,6 @@ export default function ItinerariesPage() {
                       <h3 className="text-xl font-bold text-gray-900 group-hover:text-sky-600 transition-colors">
                         {itinerary.trip_name}
                       </h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        itinerary.status === 'published' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {itinerary.status}
-                      </span>
                     </div>
                     
                     <p className="text-gray-600 mb-4">
@@ -120,24 +113,12 @@ export default function ItinerariesPage() {
                     
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                       <span>{itinerary.duration_days} días</span>
-                      <span>{itinerary.trip_type || 'Viaje'}</span>
                     </div>
                     
                     <div className="text-xs text-gray-400">
                       Creado el {new Date(itinerary.created_at).toLocaleDateString()}
                     </div>
                     
-                    {/* Status indicator */}
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">
-                          {itinerary.visibility === 'private' ? '🔒 Privado' : '🌍 Público'}
-                        </span>
-                        <span className="text-sky-600 font-medium">
-                          Ver detalles →
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </Link>
               ))}
