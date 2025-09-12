@@ -324,11 +324,6 @@ export default function ItineraryDetailsPage() {
                 </p>
               </div>
             </div>
-            <div className="absolute top-6 right-6">
-              <Badge className="rounded-full capitalize">
-                {currentItinerary.status}
-              </Badge>
-            </div>
           </div>
 
           {/* Tabs mockup */}
