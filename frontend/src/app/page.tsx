@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Button } from "@/components";
 import { useAuth } from "@/hooks/useAuth";
+import MagicBento from '@/components/MagicBento';
+import ProfileCard from '@/components/ProfileCard'
+
 
 export default function LandingPage() {
   const { isAuthenticated, userDisplayName } = useAuth();
@@ -97,6 +100,75 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-    </div>
+      <MagicBento 
+        textAutoHide={true}
+        enableStars={true}
+        enableSpotlight={true}
+        enableBorderGlow={true}
+        enableTilt={false}
+        enableMagnetism={false}
+        clickEffect={false}
+        spotlightRadius={300}
+        particleCount={12}
+        glowColor="132, 0, 255"
+      />
+
+      <div className="flex flex-col justify-center items-center">
+        <h2 className="text-2xl font-bold">El Equipo</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 mx-auto w-full max-w-6xl mt-6">
+          <div className="flex justify-center">
+            <ProfileCard
+              size="sm"
+              name="Santiago Spini"
+              title="Software Engineer"
+              handle="Sani Spini"
+              status="Online"
+              contactText="Hablemos!"
+              avatarUrl="/avatars/santi_spini.png"
+              grainUrl="/texture/grain.webp"
+              iconUrl="/texture/iconpattern.png"
+              showUserInfo={true}
+              enableTilt={true}
+              enableMobileTilt={false}
+              onContactClick={() => window.open('https://www.linkedin.com/in/santiagospini/', '_blank', 'noopener,noreferrer')}
+            />
+          </div>
+          <div className="flex justify-center">
+            <ProfileCard
+              size="sm"
+              name="Santi Pedemonte"
+              title="Software Engineer"
+              handle="SPedemonte"
+              status="Online"
+              contactText="Hablemos!"
+              avatarUrl="/avatars/spedemonte_avatar.png"
+              grainUrl="/texture/grain.webp"
+              iconUrl="/texture/iconpattern.png"
+              showUserInfo={true}
+              enableTilt={true}
+              enableMobileTilt={false}
+              onContactClick={() => window.open('https://www.linkedin.com/in/santiagopedemonte/', '_blank', 'noopener,noreferrer')}
+            />
+          </div>
+          <div className="flex justify-center">
+            <ProfileCard
+              size="sm"
+              name="Florencia Toledo"
+              title="Project Manager"
+              handle="Flor Toledo"
+              status="Online"
+              contactText="Hablemos!"
+              avatarUrl="/avatars/flor_toledo.png"
+              grainUrl="/texture/grain.webp"
+              iconUrl="/texture/iconpattern.png"
+              showUserInfo={true}
+              enableTilt={true}
+              enableMobileTilt={false}
+              onContactClick={() => window.open('https://www.linkedin.com/in/florencia-toledo-266753272/', '_blank', 'noopener,noreferrer')}
+            />
+          </div>
+        </div>
+      </div>
+    </div>  
   );
 }
