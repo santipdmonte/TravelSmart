@@ -788,7 +788,7 @@ export default function ItineraryDetailsPage() {
                                     rel="noopener noreferrer"
                                     className="block"
                                   >
-                                    <Card className="rounded-3xl overflow-hidden hover:shadow-lg transition-shadow">
+                                    <Card className="rounded-3xl overflow-hidden hover:shadow-lg transition-shadow pt-0">
                                       <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                         {currentUrl ? (
                                           <img
