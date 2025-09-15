@@ -38,6 +38,8 @@ import {
   MapPinIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
@@ -74,6 +76,8 @@ export default function ItineraryDetailsPage() {
   >({});
   const [loadingAccommodationLinks, setLoadingAccommodationLinks] =
     useState<boolean>(false);
+  // Toggle state for transport alternatives per item index
+  const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -410,9 +414,13 @@ export default function ItineraryDetailsPage() {
                       </div>
                       <div className="ml-11">
                         <div className="h-px bg-gray-200 mb-2"></div>
-                        <div className="text-gray-900 whitespace-pre-line">
-                          {destination.actividades_sugeridas}
-                        </div>
+                        {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
+                          <ul className="list-disc pl-5 text-gray-900 space-y-1">
+                            {destination.actividades_sugeridas.map((actividad, i) => (
+                              <li key={`act-${destIndex}-${i}`}>{actividad}</li>
+                            ))}
+                          </ul>
+                        ) : null}
                       </div>
                     </div>
                   ))}
@@ -616,11 +624,35 @@ export default function ItineraryDetailsPage() {
                               <div className="text-gray-900">
                                 {t.justificacion}
                               </div>
-                              <div className="text-gray-500">
-                                <span className="font-medium">
-                                  Alternativas:
-                                </span>{" "}
-                                {t.alternativas}
+                              <div>
+                                <button
+                                  className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
+                                  onClick={() =>
+                                    setOpenAlternatives((prev) => ({
+                                      ...prev,
+                                      [idx]: !prev[idx],
+                                    }))
+                                  }
+                                  aria-expanded={!!openAlternatives[idx]}
+                                  aria-controls={`alternatives-${idx}`}
+                                >
+                                  {openAlternatives[idx] ? (
+                                    <ChevronUpIcon className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDownIcon className="h-4 w-4" />
+                                  )}
+                                  Alternativas
+                                </button>
+                                {openAlternatives[idx] && Array.isArray(t.alternativas) && t.alternativas.length > 0 ? (
+                                  <ul
+                                    id={`alternatives-${idx}`}
+                                    className="mt-2 list-disc pl-5 text-gray-600 space-y-1"
+                                  >
+                                    {t.alternativas.map((alt, aidx) => (
+                                      <li key={`alt-${idx}-${aidx}`}>{alt}</li>
+                                    ))}
+                                  </ul>
+                                ) : null}
                               </div>
                             </div>
                           </div>

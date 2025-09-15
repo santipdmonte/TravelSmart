@@ -11,7 +11,7 @@ export interface TransporteEntreDestinos {
   ciudad_destino: string;
   tipo_transporte: TransportType;
   justificacion: string;
-  alternativas: string;
+  alternativas: string[];
 }
 
 export interface Destino {
@@ -24,7 +24,7 @@ export interface Destino {
   latitude?: number;
   longitude?: number;
   dias_en_destino: number;
-  actividades_sugeridas: string;
+  actividades_sugeridas: string[];
 }
 
 export interface ItineraryDetails {
