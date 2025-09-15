@@ -177,7 +177,7 @@ const TextType = ({
       ...props
     },
     <span className="inline" style={{ color: getCurrentTextColor() }}>
-      {displayedText}
+      {displayedText === '' ? '\u00A0' : displayedText}
     </span>,
     showCursor && (
       <span
