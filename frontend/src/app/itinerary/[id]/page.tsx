@@ -28,6 +28,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
   CalendarIcon,
   PlaneIcon,
   TrainIcon,
@@ -49,7 +55,7 @@ export default function ItineraryDetailsPage() {
   const { currentItinerary, loading, error } = useItinerary();
   const { fetchItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
-  const { clearChat } = useChatActions();
+  const { clearChat, openChat, sendMessage } = useChatActions();
 
   const itineraryId = params.id as string;
 
@@ -246,6 +252,16 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
 
+  const handleAskMoreInfo = async (city: string, activity: string) => {
+    try {
+      await openChat(itineraryId);
+      const msg = `Me gustaria saber mas informacion sobre la actividad sugerida "${activity}" de ${city}`;
+      await sendMessage(itineraryId, msg);
+    } catch (_) {
+      // no-op
+    }
+  };
+
   const handleAddLink = async (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || "").trim();
     if (!url || !currentItinerary) return;
@@ -417,7 +433,22 @@ export default function ItineraryDetailsPage() {
                         {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
                           <ul className="list-disc pl-5 text-gray-900 space-y-1">
                             {destination.actividades_sugeridas.map((actividad, i) => (
-                              <li key={`act-${destIndex}-${i}`}>{actividad}</li>
+                              <li key={`act-${destIndex}-${i}`}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-200"
+                                    >
+                                      {actividad}
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
+                                      Pedir más info con la IA
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </li>
                             ))}
                           </ul>
                         ) : null}
