@@ -64,7 +64,7 @@ export default function ItineraryDetailsPage() {
   const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
   const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
   // Route tab no longer supports editing or reordering
-  const [activeTab, setActiveTab] = useState<string>("itinerary");
+  const [activeTab, setActiveTab] = useState<string>("route");
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
   const [tripStartDate, setTripStartDate] = useState<string>("");
   const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
