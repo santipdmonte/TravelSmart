@@ -11,6 +11,8 @@ import { useItinerary } from "@/contexts/ItineraryContext";
 import { useAuth } from "@/hooks/useAuth";
 import { GenerateItineraryRequest } from "@/types/itinerary";
 import { TravelerTestPromptModal } from "@/components";
+import Loader from "@/components/loader/Loader";
+import TextType from "@/components/TextType";
 import {
   Button,
   Form,
@@ -277,6 +279,23 @@ export default function CreateItineraryPage() {
   const [showPreCreatePrompt, setShowPreCreatePrompt] = useState(false);
   const pendingSubmissionRef = useRef<FormData | null>(null);
 
+  // Lock scroll while loading (overlay visible)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!loading) return;
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollBarComp = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollBarComp > 0) {
+      document.body.style.paddingRight = `${scrollBarComp}px`;
+    }
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
+    };
+  }, [loading]);
+
   const onSubmit = async (data: FormData) => {
     try {
       // Clear any previous errors
@@ -376,6 +395,37 @@ export default function CreateItineraryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1000,
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <Loader size={180} />
+            <TextType
+              text={[
+                "Generando itinerario...",
+                "Planificando Rutas...",
+                "Optimizando Rutas...",
+                "Planificando actividades...",
+                "Optimizando actividades...",
+                "Generando enlaces de alojamiento...",
+              ]}
+              typingSpeed={100}
+              pauseDuration={4000}
+              showCursor={false}
+              textColors={["#FFFFFF", "#FFFFFF", "#FFFFFF"]}
+              className="text-xl font-bold mt-4"
+            />
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="max-w-2xl mx-auto">
