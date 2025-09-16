@@ -331,14 +331,22 @@ export default function CreateItineraryPage() {
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Avoid event bubbling causing submit when UI switches to submit button
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLButtonElement).blur();
+
     if (step === 1) {
       const valid = await form.trigger(["trip_name", "duration_days"], {
         shouldFocus: true,
       });
       if (!valid) return;
     }
-    setStep((prev) => (prev < 4 ? ((prev + 1) as 1 | 2 | 3 | 4) : 4));
+    // Defer step change to next tick to avoid pointerup landing on new submit button
+    setTimeout(() => {
+      setStep((prev) => (prev < 4 ? ((prev + 1) as 1 | 2 | 3 | 4) : 4));
+    }, 0);
   };
 
   const handleBack = () => {
