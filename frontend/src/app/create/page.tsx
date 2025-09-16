@@ -159,13 +159,9 @@ const createItinerarySchema = z.object({
     .max(100, "El destino debe tener menos de 100 caracteres")
     .trim(),
   duration_days: z
-    .number({
-      required_error: "La duración es obligatoria",
-      invalid_type_error: "Ingresa un número válido (1-30)",
-    })
-    .min(1, "La duración debe ser de al menos 1 día")
-    .max(30, "La duración no puede superar 30 días")
-    .int("La duración debe ser un número entero"),
+    .string({ required_error: "La duración es obligatoria" })
+    .min(1, "La duración es obligatoria")
+    .regex(/^(?:[1-9]|[12][0-9]|30)$/u, "Ingresa un número válido (1-30)"),
   preferences: z
     .object({
       when: z.enum(["winter", "spring", "summer", "fall"]).optional(),
@@ -225,7 +221,10 @@ const createItinerarySchema = z.object({
           ])
         )
         .optional(),
-      budget: z.number().positive().max(100000).optional(),
+      budget: z
+        .string()
+        .regex(/^\d+$/u, "Usa solo números")
+        .optional(),
       budget_currency: z.literal("USD").optional(),
       notes: z.string().max(250).optional(),
     })
@@ -247,7 +246,6 @@ export default function CreateItineraryPage() {
     resolver: zodResolver(createItinerarySchema),
     defaultValues: {
       trip_name: "",
-      duration_days: 7,
       preferences: {
         when: undefined,
         goal: "",
@@ -306,8 +304,12 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          // preserve values as is
-          (acc as Record<string, unknown>)[k] = v as unknown;
+          if (k === "budget") {
+            const asNum = typeof v === "string" ? Number(v) : (v as number);
+            if (!Number.isNaN(asNum)) acc[k] = asNum;
+            return acc;
+          }
+          acc[k] = v as unknown;
           return acc;
         },
         {}
@@ -315,7 +317,7 @@ export default function CreateItineraryPage() {
 
       const request: GenerateItineraryRequest = {
         trip_name: data.trip_name,
-        duration_days: data.duration_days,
+        duration_days: Number(data.duration_days),
         ...(Object.keys(cleanedPreferences).length
           ? { preferences: cleanedPreferences }
           : {}),
@@ -374,14 +376,19 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          (acc as Record<string, unknown>)[k] = v as unknown;
+          if (k === "budget") {
+            const asNum = typeof v === "string" ? Number(v) : (v as number);
+            if (!Number.isNaN(asNum)) acc[k] = asNum;
+            return acc;
+          }
+          acc[k] = v as unknown;
           return acc;
         },
         {}
       );
       const request: GenerateItineraryRequest = {
         trip_name: data.trip_name,
-        duration_days: data.duration_days,
+        duration_days: Number(data.duration_days),
         ...(Object.keys(cleanedPreferences).length
           ? { preferences: cleanedPreferences }
           : {}),
@@ -500,25 +507,21 @@ export default function CreateItineraryPage() {
                           <FormLabel className="pl-3 pb-1 text-gray-800">Duración</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              min="1"
-                              max="30"
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={2}
                               placeholder="¿Cuántos días?"
                               className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                               disabled={loading}
-                              value={(field.value as number | undefined) ?? ""}
+                              value={(field.value as unknown as string) ?? ""}
                               onChange={(e) => {
-                                const raw = e.target.value;
+                                const value = e.target.value;
                                 if (form.formState.errors.duration_days) {
                                   form.clearErrors("duration_days");
                                 }
-                                if (raw === "") {
-                                  field.onChange(undefined);
-                                  return;
-                                }
-                                const numValue = parseInt(raw, 10);
-                                if (!isNaN(numValue)) {
-                                  field.onChange(numValue);
+                                if (value === "" || /^[0-9]{0,2}$/.test(value)) {
+                                  field.onChange(value);
                                 }
                               }}
                               onBlur={field.onBlur}
@@ -604,17 +607,19 @@ export default function CreateItineraryPage() {
                             </div>
                             <FormControl>
                               <Input
-                                type="number"
-                                min="0"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 placeholder="¿Cuanto quieres gastar por persona?"
                                 className="h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
                                 disabled={loading}
-                                value={field.value ?? ""}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.value === "" ? undefined : Number(e.target.value)
-                                  )
-                                }
+                                value={(field.value as string | undefined) ?? ""}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (value === "" || /^\d+$/.test(value)) {
+                                    field.onChange(value);
+                                  }
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
