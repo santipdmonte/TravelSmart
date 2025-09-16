@@ -778,15 +778,7 @@ export default function CreateItineraryPage() {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="ai-button disabled:opacity-60 disabled:cursor-not-allowed"
-                      size="lg"
-                      onMouseMove={(e) => {
-                        const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-                        const mx = ((e.clientX - rect.left) / rect.width) * 100;
-                        const my = ((e.clientY - rect.top) / rect.height) * 100;
-                        (e.currentTarget as HTMLButtonElement).style.setProperty("--mx", `${mx}%`);
-                        (e.currentTarget as HTMLButtonElement).style.setProperty("--my", `${my}%`);
-                      }}
+                      className="rounded-full h-auto px-6 py-2.5 border border-sky-500 bg-sky-500 text-white shadow-sm hover:bg-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <span className="flex items-center justify-center">
