@@ -434,7 +434,7 @@ export default function ItineraryDetailsPage() {
                             {destination.ciudad}
                           </h2>
                         </div>
-                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
                           {destination.dias_en_destino} días
                         </span>
                       </div>
@@ -532,11 +532,11 @@ export default function ItineraryDetailsPage() {
                                 {idx + 1}
                               </div>
                               <div className="flex-1">
-                                <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-start justify-between gap-3">
                                   <h3 className="text-lg font-semibold text-gray-900">
                                     {dest.ciudad}
                                   </h3>
-                                  <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                                  <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
                                     {dest.dias_en_destino} días
                                   </span>
                                 </div>
