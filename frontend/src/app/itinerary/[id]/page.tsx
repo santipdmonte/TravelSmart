@@ -328,8 +328,8 @@ export default function ItineraryDetailsPage() {
           isChatOpen ? "lg:mr-[33.333333%]" : ""
         }`}
       >
-        <div className="container mx-auto px-4 py-8">
-          {/* Itinerary Header */}
+        <div className="container mx-auto px-4 pb-4">
+          {/* Itinerary Header
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 mb-8 relative">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="flex-1">
@@ -354,9 +354,9 @@ export default function ItineraryDetailsPage() {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
 
-          {/* Tabs mockup */}
+          {/* Tabs container */}
           <div>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex justify-between">
@@ -367,7 +367,7 @@ export default function ItineraryDetailsPage() {
                         value="route"
                         className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
                       >
-                        Ruta
+                        General
                       </TabsTrigger>
                     )}
                     <TabsTrigger
@@ -468,68 +468,101 @@ export default function ItineraryDetailsPage() {
                 </div>
               </TabsContent>
 
-              {hasMultipleDestinations && (
-                <TabsContent value="route">
-                  <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-                      {/* Left: Destination steps */}
-                      <div className="md:col-span-2 space-y-4">
-                        {details_itinerary.destinos.map((dest, idx) => {
-                          const range = destinationDateRanges[idx];
-                          return (
-                            <div
-                              key={`route-left-${idx}`}
-                              className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm"
-                              onMouseEnter={() =>
-                                setHoveredDestinationIndex(idx)
-                              }
-                              onMouseLeave={() =>
-                                setHoveredDestinationIndex(null)
-                              }
-                            >
-                              <div className="flex items-start gap-3">
-                                <div
-                                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold shadow border ${
-                                    hoveredDestinationIndex === idx
-                                      ? "bg-sky-500 text-white border-sky-500"
-                                      : "bg-white text-sky-600 border-sky-400"
-                                  }`}
-                                >
-                                  {idx + 1}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <h3 className="text-lg font-semibold text-gray-900">
-                                      {dest.ciudad}
-                                    </h3>
-                                    <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
-                                      {dest.dias_en_destino} días
-                                    </span>
-                                  </div>
-                                  {range && (
-                                    <div className="text-gray-500 text-sm mt-1">
-                                      {formatDateShort(range.start)} —{" "}
-                                      {formatDateShort(range.end)}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Right: Interactive map */}
-                      <div className="md:col-span-3 h-80 md:h-[420px] rounded-2xl overflow-hidden border border-gray-100 shadow-inner relative">
-                        <ItineraryMap
-                          itinerary={currentItinerary}
-                          hoveredDestinationIndex={hoveredDestinationIndex}
-                        />
+              {/* Route tab content */}
+              <TabsContent value="route">
+                {/* Integrated card with header, summary and content */}
+                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                  {/* Header + Summary */}
+                  <div className="mb-6">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div className="flex-1">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                          {details_itinerary.nombre_viaje}
+                        </h1>
+                        {/* Trip summary chips */}
+                        <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
+                          <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+                            {details_itinerary.destinos.length} destinos
+                          </span>
+                          <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+                            {details_itinerary.cantidad_dias} días
+                          </span>
+                          {typeof currentItinerary.travelers_count === "number" && (
+                            <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+                              {currentItinerary.travelers_count} viajero{currentItinerary.travelers_count > 1 ? "s" : ""}
+                            </span>
+                          )}
+                          {currentItinerary.start_date && (
+                            <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+                              Inicio {new Date(currentItinerary.start_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        {/* Itinerary Resume */}
+                        <div className="text-gray-700">
+                          {details_itinerary.resumen_viaje}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </TabsContent>
-              )}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+                    {/* Left: Destination steps */}
+                    <div className="md:col-span-2 space-y-4">
+                      {details_itinerary.destinos.map((dest, idx) => {
+                        const range = destinationDateRanges[idx];
+                        return (
+                          <div
+                            key={`route-left-${idx}`}
+                            className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm"
+                            onMouseEnter={() =>
+                              setHoveredDestinationIndex(idx)
+                            }
+                            onMouseLeave={() =>
+                              setHoveredDestinationIndex(null)
+                            }
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-semibold shadow border ${
+                                  hoveredDestinationIndex === idx
+                                    ? "bg-sky-500 text-white border-sky-500"
+                                    : "bg-white text-sky-600 border-sky-400"
+                                }`}
+                              >
+                                {idx + 1}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between gap-3">
+                                  <h3 className="text-lg font-semibold text-gray-900">
+                                    {dest.ciudad}
+                                  </h3>
+                                  <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium">
+                                    {dest.dias_en_destino} días
+                                  </span>
+                                </div>
+                                {range && (
+                                  <div className="text-gray-500 text-sm mt-1">
+                                    {formatDateShort(range.start)} —{" "}
+                                    {formatDateShort(range.end)}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Right: Interactive map */}
+                    <div className="md:col-span-3 h-80 md:h-[420px] rounded-2xl overflow-hidden border border-gray-100 shadow-inner relative">
+                      <ItineraryMap
+                        itinerary={currentItinerary}
+                        hoveredDestinationIndex={hoveredDestinationIndex}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
 
               {/* Add Destination Modal removed */}
 
