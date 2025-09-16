@@ -22,14 +22,14 @@ export default function ChatPanel() {
       {/* Chat panel - Fixed positioned with card styling */}
       <div
         className={`fixed top-16 lg:top-20 right-0 lg:right-4 bottom-0 lg:bottom-4 left-0 lg:left-auto
-        w-full lg:w-1/3 lg:max-w-md bg-white lg:rounded-lg lg:shadow-lg z-40 flex flex-col
+        w-full lg:w-1/3 lg:max-w-md bg-white lg:rounded-3xl lg:shadow-xl lg:border lg:border-gray-100 z-40 flex flex-col
         transform transition-transform duration-400 ease-out will-change-transform
         ${isOpen ? "translate-x-0" : "translate-x-full"}
         overscroll-contain`}
         aria-hidden={!isOpen}
       >
         {/* Header - Fixed */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 lg:rounded-t-lg">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 lg:rounded-t-3xl">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <h3 className="font-semibold text-gray-900">Asistente</h3>
@@ -61,7 +61,7 @@ export default function ChatPanel() {
         </div>
 
         {/* Input - Fixed at bottom */}
-        <div className="flex-shrink-0 lg:rounded-b-lg">
+        <div className="flex-shrink-0 lg:rounded-b-3xl">
           <MessageInput />
         </div>
       </div>
