@@ -40,10 +40,10 @@ export default function RootLayout({
         <AuthProvider>
           <ItineraryProvider>
             <ChatProvider>
-              <SidebarProvider>
+              <SidebarProvider className="bg-gray-50">
                 <AppSidebar />
                 <SidebarInset>
-                  <div className="flex h-12 items-center gap-2 px-2">
+                  <div className="flex h-12 items-center gap-2 px-2 bg-gray-50">
                     <SidebarTrigger />
                     <span className="text-sm text-muted-foreground">Menú</span>
                   </div>

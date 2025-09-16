@@ -69,7 +69,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Explorar</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="px-1">
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
