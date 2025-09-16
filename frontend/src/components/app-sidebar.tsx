@@ -41,12 +41,17 @@ import {
 
 export function AppSidebar() {
   const { isAuthenticated, hasRole, logout, user, userDisplayName } = useAuth()
+  const hasTravelerType = !!(user?.traveler_type_id || user?.traveler_type)
 
   const mainItems = [
     { title: "Inicio", href: "/", icon: Home },
     { title: "Itinerarios", href: "/itineraries", icon: MapPinned },
     { title: "Crear itinerario", href: "/create", icon: PlusSquare },
-    { title: "Test de viajero", href: "/traveler-test", icon: TestTube2 },
+    {
+      title: hasTravelerType ? "Tipo de Viajero" : "Test de viajero",
+      href: hasTravelerType ? "/traveler-type" : "/traveler-test",
+      icon: TestTube2,
+    },
   ] as const
 
   const adminItems = [
