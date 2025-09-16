@@ -60,7 +60,10 @@ export function AppSidebar() {
   ] as const
 
   return (
-    <Sidebar>
+    <Sidebar
+      variant="floating"
+      className="[&_[data-slot=sidebar-inner]]:rounded-2xl [&_[data-slot=sidebar-inner]]:shadow-lg [&_[data-slot=sidebar-inner]]:border"
+    >
       <SidebarHeader />
       <SidebarContent>
         <SidebarGroup>
