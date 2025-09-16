@@ -610,8 +610,8 @@ export default function CreateItineraryPage() {
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
-                                placeholder="¿Cuanto quieres gastar por persona?"
-                                className="h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
+                                placeholder="¿Presupuesto por persona?"
+                                className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
                                 disabled={loading}
                                 value={(field.value as string | undefined) ?? ""}
                                 onChange={(e) => {
@@ -753,14 +753,25 @@ export default function CreateItineraryPage() {
                 {/* Navigation buttons */}
                 <div className="flex items-center justify-between pt-2">
                   {step > 1 ? (
-                  <Button type="button" variant="secondary" onClick={handleBack} disabled={loading || step === 1}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleBack}
+                    disabled={loading || step === 1}
+                    className="rounded-full h-auto px-6 py-2.5"
+                  >
                     Atrás
                   </Button>
                   ) : (
                     <div className="w-10" />
                   )}
                   {step < 4 ? (
-                    <Button type="button" onClick={handleNext} disabled={loading}>
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={loading}
+                      className="rounded-full h-auto px-6 py-2.5 border border-sky-500 bg-sky-500 text-white shadow-sm hover:bg-sky-600"
+                    >
                       Siguiente
                     </Button>
                   ) : (
