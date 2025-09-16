@@ -441,13 +441,13 @@ export default function ItineraryDetailsPage() {
                       <div className="ml-11">
                         <div className="h-px bg-gray-200 mb-2"></div>
                         {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
-                          <ul className="list-disc pl-5 text-gray-900 space-y-1">
+                          <ul className="pl-0 list-none text-gray-900 space-y-1">
                             {destination.actividades_sugeridas.map((actividad, i) => (
                               <li key={`act-${destIndex}-${i}`}>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <button
-                                      className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
+                                      className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
                                     >
                                       {actividad}
                                     </button>
@@ -694,7 +694,7 @@ export default function ItineraryDetailsPage() {
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
                                             <button
-                                              className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
+                                              className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
                                             >
                                               {alt}
                                             </button>
