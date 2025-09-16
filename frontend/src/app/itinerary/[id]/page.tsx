@@ -262,6 +262,16 @@ export default function ItineraryDetailsPage() {
     }
   };
 
+  const handleSetTransportPrimary = async (fromCity: string, toCity: string, transport: string) => {
+    try {
+      await openChat(itineraryId);
+      const msg = `Establecer "${transport}" como transporte principal entre ${fromCity} y ${toCity}`;
+      await sendMessage(itineraryId, msg);
+    } catch (_) {
+      // no-op
+    }
+  };
+
   const handleAddLink = async (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || "").trim();
     if (!url || !currentItinerary) return;
@@ -437,14 +447,14 @@ export default function ItineraryDetailsPage() {
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <button
-                                      className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-200"
+                                      className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
                                     >
                                       {actividad}
                                     </button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="start">
                                     <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
-                                      Pedir más info con la IA
+                                      Consultar mas informacion con la IA
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -677,10 +687,25 @@ export default function ItineraryDetailsPage() {
                                 {openAlternatives[idx] && Array.isArray(t.alternativas) && t.alternativas.length > 0 ? (
                                   <ul
                                     id={`alternatives-${idx}`}
-                                    className="mt-2 list-disc pl-5 text-gray-600 space-y-1"
+                                    className="mt-2 pl-0 list-none text-gray-900 space-y-1"
                                   >
                                     {t.alternativas.map((alt, aidx) => (
-                                      <li key={`alt-${idx}-${aidx}`}>{alt}</li>
+                                      <li key={`alt-${idx}-${aidx}`}>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <button
+                                              className="inline-flex items-center rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
+                                            >
+                                              {alt}
+                                            </button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="start">
+                                            <DropdownMenuItem onClick={() => handleSetTransportPrimary(t.ciudad_origen, t.ciudad_destino, alt)}>
+                                              Establecer como transporte principal
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </li>
                                     ))}
                                   </ul>
                                 ) : null}
