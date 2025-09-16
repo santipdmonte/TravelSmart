@@ -4,7 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ItineraryProvider } from "@/contexts/ItineraryContext";
 import { ChatProvider } from "@/contexts/AgentContext";
-import { Navigation } from "@/components";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { __warnMissingApiBaseIfNeeded } from "@/lib/config";
 import ClientTravelerTestWelcome from "@/components/traveler-test/ClientTravelerTestWelcome";
 
@@ -39,12 +40,18 @@ export default function RootLayout({
         <AuthProvider>
           <ItineraryProvider>
             <ChatProvider>
-              <Navigation />
-              <main>
-                {children}
-                {/* Client-only welcome traveler test prompt */}
-                <ClientTravelerTestWelcome />
-              </main>
+              <SidebarProvider className="bg-gray-50">
+                <AppSidebar />
+                <SidebarInset>
+                  <div className="flex h-12 items-center gap-2 px-2 bg-gray-50">
+                    <SidebarTrigger />
+                    <span className="text-sm text-muted-foreground">Menú</span>
+                  </div>
+                  {children}
+                  {/* Client-only welcome traveler test prompt */}
+                  <ClientTravelerTestWelcome />
+                </SidebarInset>
+              </SidebarProvider>
             </ChatProvider>
           </ItineraryProvider>
         </AuthProvider>

@@ -4,10 +4,12 @@ import { useCallback } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { sendAgentMessage, getAgentState, sendAgentMessageStream, getAgentStateWithHIL } from '@/lib/agentApi';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export function useChatActions() {
   const { dispatch } = useChat();
   const { fetchItinerary } = useItineraryActions();
+  const { setOpen, setOpenMobile, isMobile } = useSidebar();
 
   const openChat = useCallback(async (itineraryId: string) => {
     // Open chat immediately and show initializing state
@@ -15,6 +17,13 @@ export function useChatActions() {
     dispatch({ type: 'SET_INITIALIZING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     
+    // Close sidebar if open (desktop and mobile)
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+
     // Clear any existing state if switching to a different itinerary
     dispatch({ type: 'CLEAR_CHAT' });
     dispatch({ type: 'OPEN_CHAT' });
@@ -39,7 +48,7 @@ export function useChatActions() {
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return false;
     }
-  }, [dispatch]);
+  }, [dispatch, isMobile, setOpen, setOpenMobile]);
 
   const sendMessage = useCallback(async (itineraryId: string, message: string) => {
     dispatch({ type: 'SET_ERROR', payload: null });

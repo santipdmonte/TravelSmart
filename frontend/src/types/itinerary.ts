@@ -70,6 +70,7 @@ export interface GenerateItineraryRequest {
   // Additional optional answers, wrapped for backend compatibility
   preferences?: {
     when?: "winter" | "spring" | "summer" | "fall";
+    goal?: string;
     trip_type?:
       | "business"
       | "couples"
