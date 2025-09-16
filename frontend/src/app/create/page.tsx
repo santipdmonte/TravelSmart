@@ -171,8 +171,8 @@ const createItinerarySchema = z.object({
       when: z.enum(["winter", "spring", "summer", "fall"]).optional(),
       goal: z
         .string()
-        .max(150, "Máximo 150 caracteres")
-        .optional(),
+        .min(2, "El objetivo es obligatorio")
+        .max(150, "Máximo 150 caracteres"),
       trip_type: z
         .enum([
           "business",
@@ -342,6 +342,11 @@ export default function CreateItineraryPage() {
         shouldFocus: true,
       });
       if (!valid) return;
+    } else if (step === 2) {
+      const valid = await form.trigger(["preferences.goal"], {
+        shouldFocus: true,
+      });
+      if (!valid) return;
     }
     // Defer step change to next tick to avoid pointerup landing on new submit button
     setTimeout(() => {
@@ -501,20 +506,19 @@ export default function CreateItineraryPage() {
                               placeholder="¿Cuántos días?"
                               className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                               disabled={loading}
+                              value={(field.value as number | undefined) ?? ""}
                               onChange={(e) => {
-                                const value = e.target.value;
+                                const raw = e.target.value;
                                 if (form.formState.errors.duration_days) {
                                   form.clearErrors("duration_days");
                                 }
-                                if (value === "") {
-                                  field.onChange("");
-                                } else {
-                                  const numValue = parseInt(value, 10);
-                                  if (!isNaN(numValue)) {
-                                    field.onChange(numValue);
-                                  } else {
-                                    field.onChange(value);
-                                  }
+                                if (raw === "") {
+                                  field.onChange(undefined);
+                                  return;
+                                }
+                                const numValue = parseInt(raw, 10);
+                                if (!isNaN(numValue)) {
+                                  field.onChange(numValue);
                                 }
                               }}
                               onBlur={field.onBlur}
@@ -537,17 +541,16 @@ export default function CreateItineraryPage() {
                       name="preferences.goal"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="pl-3 pb-1 text-gray-800">Objetivo del viaje</FormLabel>
+                          <FormLabel className="pl-3 pb-1 text-gray-800">Objetivo del viaje*</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Ej: Descansar, conocer la cultura, aventura..."
+                              placeholder="¿Que objetivo tienes para el viaje?"
                               className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
                               disabled={loading}
                               value={field.value ?? ""}
                               onChange={field.onChange}
                             />
                           </FormControl>
-                          <FormDescription>Opcional</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -559,7 +562,7 @@ export default function CreateItineraryPage() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-3">
-                            <FormLabel className="text-gray-800">Temporada del viaje</FormLabel>
+                            <FormLabel className="pl-3 pb-1 text-gray-800">Temporada del viaje</FormLabel>
                             {field.value && (
                               <button
                                 type="button"
@@ -577,7 +580,6 @@ export default function CreateItineraryPage() {
                               </Chip>
                             ))}
                           </div>
-                          <FormDescription>Opcional</FormDescription>
                         </FormItem>
                       )}
                     />
@@ -589,7 +591,7 @@ export default function CreateItineraryPage() {
                         render={({ field }) => (
                           <FormItem>
                             <div className="flex items-center gap-3">
-                              <FormLabel className="text-gray-800">Presupuesto (USD)</FormLabel>
+                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto (USD)</FormLabel>
                               {field.value !== undefined && (
                                 <button
                                   type="button"
@@ -604,7 +606,7 @@ export default function CreateItineraryPage() {
                               <Input
                                 type="number"
                                 min="0"
-                                placeholder="Ej: 300"
+                                placeholder="¿Cuanto quieres gastar por persona?"
                                 className="h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
                                 disabled={loading}
                                 value={field.value ?? ""}
@@ -615,7 +617,6 @@ export default function CreateItineraryPage() {
                                 }
                               />
                             </FormControl>
-                            <FormDescription>Por persona y para todo el viaje (opcional)</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -641,7 +642,7 @@ export default function CreateItineraryPage() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-3">
-                            <FormLabel className="text-gray-800">Viaje con</FormLabel>
+                            <FormLabel className="pl-3 pb-1 text-gray-800">¿Con quienes vas a compartir el viaje?</FormLabel>
                             {field.value && (
                               <button
                                 type="button"
@@ -653,9 +654,11 @@ export default function CreateItineraryPage() {
                             )}
                           </div>
                           <div className="flex flex-wrap gap-3">
+                            <Chip active={field.value === "solo"} onClick={() => field.onChange("solo")}>Viajo solo</Chip>
                             <Chip active={field.value === "friends"} onClick={() => field.onChange("friends")}>Amigos</Chip>
-                            <Chip active={field.value === "family_teen"} onClick={() => field.onChange("family_teen")}>Familia</Chip>
                             <Chip active={field.value === "couples"} onClick={() => field.onChange("couples")}>Pareja</Chip>
+                            <Chip active={field.value === "family_teen"} onClick={() => field.onChange("family_teen")}>Familia (adolescentes/adultos)</Chip>
+                            <Chip active={field.value === "family_young_kids"} onClick={() => field.onChange("family_young_kids")}>Familia (niños pequeños)</Chip>
                           </div>
                         </FormItem>
                       )}
@@ -667,7 +670,7 @@ export default function CreateItineraryPage() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-3">
-                            <FormLabel className="text-gray-800">Ver el destino como...</FormLabel>
+                            <FormLabel className="pl-3 pb-1 text-gray-800">¿Como te gustaría ver el destino?</FormLabel>
                             {field.value && (
                               <button
                                 type="button"
@@ -700,7 +703,7 @@ export default function CreateItineraryPage() {
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-3">
-                            <FormLabel className="text-gray-800">¿Algo más para tener en cuenta?</FormLabel>
+                            <FormLabel className="pl-3 pb-1 text-gray-800">¿Algo más que quieras agregar?</FormLabel>
                             {(field.value ?? "").length > 0 && (
                               <button
                                 type="button"
@@ -714,7 +717,7 @@ export default function CreateItineraryPage() {
                           <FormControl>
                             <Textarea
                               maxLength={250}
-                              placeholder="Ej: Quiero más deportes acuáticos, o me gustaría usar un auto para moverme"
+                              placeholder="¿Alguna actividad especifica? ¿Alguna atraccion que gustaria ver?"
                               className="rounded-2xl border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 min-h-28 placeholder:text-gray-400"
                               disabled={loading}
                               value={field.value ?? ""}
@@ -744,11 +747,15 @@ export default function CreateItineraryPage() {
 
                 {/* Navigation buttons */}
                 <div className="flex items-center justify-between pt-2">
+                  {step > 1 ? (
                   <Button type="button" variant="secondary" onClick={handleBack} disabled={loading || step === 1}>
                     Atrás
                   </Button>
+                  ) : (
+                    <div className="w-10" />
+                  )}
                   {step < 4 ? (
-                    <Button type="button" onClick={handleNext} disabled={loading} className="ai-button">
+                    <Button type="button" onClick={handleNext} disabled={loading}>
                       Siguiente
                     </Button>
                   ) : (
