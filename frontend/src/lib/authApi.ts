@@ -76,6 +76,7 @@ async function authApiRequest<T>(
         "Content-Type": "application/json",
         ...options.headers,
       },
+      credentials: "include",
       ...options,
     });
 
@@ -155,6 +156,20 @@ export async function login(
 }
 
 /**
+ * Request a magic login link via email
+ * Expected 200 response: { message: "Verification code sent", email: string }
+ */
+export async function requestMagicLink(
+  email: string
+): Promise<ApiResponse<{ message: string; email: string }>> {
+  const endpoint = `/auth/login`;
+  return authApiRequest<{ message: string; email: string }>(endpoint, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+/**
  * Register new user account
  */
 export async function register(
@@ -224,6 +239,34 @@ export async function verifyEmail(
   const url = `/auth/verify-email?token=${encodeURIComponent(token)}`;
   console.log("API: Making verification request to:", url);
   return authApiRequest<EmailVerificationResponse>(url, {
+    method: "GET",
+  });
+}
+
+/**
+ * Verify email validation token (magic link) and retrieve token pair
+ * GET /auth/email/verify-token/?token=<token>
+ * Returns: { access_token, refresh_token, token_type }
+ */
+export async function verifyEmailValidationToken(
+  token: string
+): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+  const url = `/auth/email/verify-token/?token=${encodeURIComponent(token)}`;
+  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
+    method: "GET",
+  });
+}
+
+/**
+ * Verify Google validation token and retrieve token pair
+ * GET /auth/google/verify-token/?token=<token>
+ * Returns: { access_token, refresh_token, token_type }
+ */
+export async function verifyGoogleToken(
+  token: string
+): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+  const url = `/auth/google/verify-token/?token=${encodeURIComponent(token)}`;
+  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
     method: "GET",
   });
 }
