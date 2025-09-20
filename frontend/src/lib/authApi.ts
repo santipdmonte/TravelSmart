@@ -243,6 +243,20 @@ export async function verifyEmail(
 }
 
 /**
+ * Verify email validation token (magic link) and retrieve token pair
+ * GET /auth/verify-token/?token=<token>
+ * Returns: { access_token, refresh_token, token_type }
+ */
+export async function verifyEmailValidationToken(
+  token: string
+): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+  const url = `/auth/verify-token/?token=${encodeURIComponent(token)}`;
+  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
+    method: "GET",
+  });
+}
+
+/**
  * Resend email verification
  */
 export async function resendVerification(
