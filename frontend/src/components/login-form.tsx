@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +28,24 @@ export function LoginForm({
   const [successOpen, setSuccessOpen] = useState(false)
   const [sentToEmail, setSentToEmail] = useState<string>("")
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  const [cardMinHeight, setCardMinHeight] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!successOpen && cardRef.current) {
+      setCardMinHeight(cardRef.current.offsetHeight)
+    }
+  }, [successOpen, isGoogleLoading, isLoading, error, email])
+
+  useEffect(() => {
+    function handleResize() {
+      if (!successOpen && cardRef.current) {
+        setCardMinHeight(cardRef.current.offsetHeight)
+      }
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [successOpen])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -51,7 +69,7 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card ref={cardRef} style={cardMinHeight ? { minHeight: cardMinHeight } : undefined}>
         {!successOpen && (
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Bienvenido de nuevo</CardTitle>
