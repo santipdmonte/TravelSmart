@@ -10,7 +10,7 @@ import type { TokenData } from "@/types/auth";
 export default function ValidateLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { dispatch } = useAuth();
+  const { dispatch, refreshProfile } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(true);
@@ -41,7 +41,8 @@ export default function ValidateLoginPage() {
         setTokens(tokens);
         dispatch({ type: "SET_TOKENS", payload: tokens });
 
-        // Redirect to itineraries after storing tokens
+        // Hydrate profile and then redirect
+        await refreshProfile();
         router.replace("/itineraries");
       } catch (err) {
         setError(
@@ -51,7 +52,7 @@ export default function ValidateLoginPage() {
         setIsVerifying(false);
       }
     })();
-  }, [dispatch, router, searchParams]);
+  }, [dispatch, refreshProfile, router, searchParams]);
 
   if (isVerifying) {
     return (

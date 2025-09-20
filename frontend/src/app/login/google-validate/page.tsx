@@ -10,7 +10,7 @@ import type { TokenData } from "@/types/auth";
 export default function GoogleValidatePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { dispatch } = useAuth();
+  const { dispatch, refreshProfile } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +40,8 @@ export default function GoogleValidatePage() {
         setTokens(tokens);
         dispatch({ type: "SET_TOKENS", payload: tokens });
 
-        // Redirect
+        // Hydrate profile then redirect
+        await refreshProfile();
         router.replace("/itineraries");
       } catch (err) {
         setError(
@@ -50,7 +51,7 @@ export default function GoogleValidatePage() {
         setIsLoading(false);
       }
     })();
-  }, [dispatch, router, searchParams]);
+  }, [dispatch, refreshProfile, router, searchParams]);
 
   if (isLoading) {
     return (
