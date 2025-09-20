@@ -10,7 +10,6 @@ import {
   PasswordResetConfirmRequest,
 } from "@/types/auth";
 import { ROOT_BASE_URL } from "./config";
-import { apiRequest } from "./api";
 
 // Expected response shape for POST /auth/refresh-token
 interface RefreshTokenResponse {
@@ -259,6 +258,20 @@ export async function verifyEmailValidationToken(
 }
 
 /**
+ * Verify Google validation token and retrieve token pair
+ * GET /auth/google/verify-token/?token=<token>
+ * Returns: { access_token, refresh_token, token_type }
+ */
+export async function verifyGoogleToken(
+  token: string
+): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+  const url = `/auth/google/verify-token/?token=${encodeURIComponent(token)}`;
+  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
+    method: "GET",
+  });
+}
+
+/**
  * Resend email verification
  */
 export async function resendVerification(
@@ -301,8 +314,7 @@ export async function resetPassword(
  * Get current user profile
  */
 export async function getUserProfile(): Promise<ApiResponse<User>> {
-  // Use generic apiRequest: adds Authorization header if tokens exist and always includes credentials
-  return apiRequest<User>("/users/profile");
+  return authenticatedRequest<User>("/users/profile");
 }
 
 /**

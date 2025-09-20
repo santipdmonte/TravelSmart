@@ -76,6 +76,7 @@ export async function apiRequest<T>(
         ...getAuthHeaders(),
         ...options.headers,
       },
+      credentials: "include",
       ...options,
     });
 
@@ -90,6 +91,7 @@ export async function apiRequest<T>(
             ...getAuthHeaders(),
             ...options.headers,
           },
+          credentials: "include",
           ...options,
         });
 
