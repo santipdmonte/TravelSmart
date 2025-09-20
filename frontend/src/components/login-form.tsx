@@ -82,14 +82,16 @@ export function LoginForm({
           <div className="min-h-[280px]">
             {successOpen ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-                <h3 className="text-xl font-semibold">Revisa tu correo</h3>
-                <div className="inline-flex w-16 h-16 items-center justify-center rounded-full bg-sky-100 text-sky-600">
-                  <Mail className="w-8 h-8" />
+                <h3 className="text-xl font-semibold mb-4">Revisa tu correo</h3>
+                <div className="mb-8">
+                  <div className="inline-flex w-16 h-16 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+                    <Mail className="w-8 h-8" />
+                  </div>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    Te enviamos un enlace de acceso a <span className="font-medium text-foreground">{sentToEmail}</span>.
+                    Abre tu correo y sigue el enlace para iniciar sesión.
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  Te enviamos un enlace de acceso a <span className="font-medium text-foreground">{sentToEmail}</span>.
-                  Abre tu correo y sigue el enlace para iniciar sesión.
-                </p>
                 <Button variant="outline" onClick={() => setSuccessOpen(false)}>Volver a Iniciar sesión</Button>
               </div>
             ) : (
