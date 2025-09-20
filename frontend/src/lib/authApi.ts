@@ -155,6 +155,20 @@ export async function login(
 }
 
 /**
+ * Request a magic login link via email
+ * Expected 200 response: { message: "Verification code sent", email: string }
+ */
+export async function requestMagicLink(
+  email: string
+): Promise<ApiResponse<{ message: string; email: string }>> {
+  const endpoint = `/auth/login`;
+  return authApiRequest<{ message: string; email: string }>(endpoint, {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+/**
  * Register new user account
  */
 export async function register(

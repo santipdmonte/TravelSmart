@@ -4,14 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { LoginForm } from "@/components/auth";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { LoginForm } from "@/components/login-form";
 import { MapPin } from "lucide-react";
 
 export default function LoginPage() {
@@ -64,31 +57,7 @@ export default function LoginPage() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Card className="shadow-lg">
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">
-                Bienvenido de nuevo
-              </CardTitle>
-              <CardDescription>
-                Inicia sesión en tu cuenta de TravelSmart para seguir
-                planificando tus aventuras
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LoginForm />
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  ¿No tienes una cuenta?{" "}
-                  <Link
-                    href="/register"
-                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-                  >
-                    Regístrate aquí
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <LoginForm />
         </div>
       </main>
 
