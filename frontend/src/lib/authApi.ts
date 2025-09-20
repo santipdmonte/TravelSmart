@@ -10,6 +10,7 @@ import {
   PasswordResetConfirmRequest,
 } from "@/types/auth";
 import { ROOT_BASE_URL } from "./config";
+import { apiRequest } from "./api";
 
 // Expected response shape for POST /auth/refresh-token
 interface RefreshTokenResponse {
@@ -76,6 +77,7 @@ async function authApiRequest<T>(
         "Content-Type": "application/json",
         ...options.headers,
       },
+      credentials: "include",
       ...options,
     });
 
@@ -244,13 +246,13 @@ export async function verifyEmail(
 
 /**
  * Verify email validation token (magic link) and retrieve token pair
- * GET /auth/verify-token/?token=<token>
+ * GET /auth/email/verify-token/?token=<token>
  * Returns: { access_token, refresh_token, token_type }
  */
 export async function verifyEmailValidationToken(
   token: string
 ): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
-  const url = `/auth/verify-token/?token=${encodeURIComponent(token)}`;
+  const url = `/auth/email/verify-token/?token=${encodeURIComponent(token)}`;
   return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
     method: "GET",
   });
@@ -299,7 +301,8 @@ export async function resetPassword(
  * Get current user profile
  */
 export async function getUserProfile(): Promise<ApiResponse<User>> {
-  return authenticatedRequest<User>("/users/profile");
+  // Use generic apiRequest: adds Authorization header if tokens exist and always includes credentials
+  return apiRequest<User>("/users/profile");
 }
 
 /**
