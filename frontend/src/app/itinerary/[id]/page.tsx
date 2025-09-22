@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useItinerary } from "@/contexts/ItineraryContext";
@@ -116,8 +116,12 @@ export default function ItineraryDetailsPage() {
     currentItinerary?.details_itinerary?.destinos,
   ]);
 
+  // Guard against StrictMode double-invocation
+  const fetchedItineraryRef = useRef<string | null>(null);
   useEffect(() => {
     if (itineraryId) {
+      if (fetchedItineraryRef.current === itineraryId) return;
+      fetchedItineraryRef.current = itineraryId;
       fetchItinerary(itineraryId);
     }
   }, [itineraryId, fetchItinerary]);
@@ -146,8 +150,10 @@ export default function ItineraryDetailsPage() {
   }, [currentItinerary?.details_itinerary?.destinos]);
 
   // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
-  const fetchAccommodationLinks = useCallback(async () => {
+  const fetchedLinksForRef = useRef<string | null>(null);
+  const fetchAccommodationLinks = useCallback(async (force: boolean = false) => {
     if (!itineraryId) return;
+    if (!force && fetchedLinksForRef.current === itineraryId) return;
     try {
       setLoadingAccommodationLinks(true);
       const res = await apiRequest<
@@ -158,6 +164,7 @@ export default function ItineraryDetailsPage() {
       } else {
         setAccommodationLinks({});
       }
+      fetchedLinksForRef.current = itineraryId;
     } catch (err) {
       // Silently keep fallbacks in the UI links
       setAccommodationLinks({});
@@ -167,7 +174,7 @@ export default function ItineraryDetailsPage() {
   }, [itineraryId]);
 
   useEffect(() => {
-    fetchAccommodationLinks();
+    fetchAccommodationLinks(false);
   }, [fetchAccommodationLinks]);
 
   // Load saved accommodations from backend per destination
@@ -632,7 +639,7 @@ export default function ItineraryDetailsPage() {
                             body: JSON.stringify(payload),
                           });
                           await fetchItinerary(itineraryId);
-                          await fetchAccommodationLinks();
+                          await fetchAccommodationLinks(true);
                           setIsTripDetailsOpen(false);
                         } finally {
                           setSavingTripDetails(false);

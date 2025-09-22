@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useAuth } from '@/hooks/useAuth';
 import { generateItinerary, getItinerary, getSessionItineraries, getUserItineraries } from '@/lib/api';
-import { GenerateItineraryRequest, ItineraryBase } from '@/types/itinerary';
+import { GenerateItineraryRequest, ItineraryBase, Itinerary } from '@/types/itinerary';
 
 // Coalesce in-flight list fetches by mode (auth vs anon) to avoid duplicate calls under StrictMode
 const inFlightFetchByMode: Map<string, Promise<ItineraryBase[]>> = new Map();
@@ -43,26 +43,43 @@ export function useItineraryActions() {
   const fetchItinerary = useCallback(async (itineraryId: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
-    try {
-      const response = await getItinerary(itineraryId);
-      
-      if (response.error) {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
+    // Coalesce in-flight fetches per itinerary id to avoid duplicate calls
+    const modeKey = `it:${itineraryId}`;
+    const inFlight = (inFlightFetchByMode as unknown as Map<string, Promise<Itinerary | null>>);
+    if (inFlight.has(modeKey)) {
+      return await inFlight.get(modeKey)!;
+    }
+
+    const promise: Promise<Itinerary | null> = (async () => {
+      try {
+        const response = await getItinerary(itineraryId);
+        
+        if (response.error) {
+          dispatch({ type: 'SET_ERROR', payload: response.error });
+          return null;
+        }
+
+        if (response.data) {
+          dispatch({ type: 'SET_CURRENT_ITINERARY', payload: response.data });
+          return response.data as Itinerary;
+        }
+
+        // If no data and no error, still need to stop loading
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return null;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itinerary';
+        dispatch({ type: 'SET_ERROR', payload: errorMessage });
         return null;
       }
+    })();
 
-      if (response.data) {
-        dispatch({ type: 'SET_CURRENT_ITINERARY', payload: response.data });
-        return response.data;
-      }
-
-      // If no data and no error, still need to stop loading
-      dispatch({ type: 'SET_LOADING', payload: false });
-      return null;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itinerary';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
-      return null;
+    inFlight.set(modeKey, promise);
+    try {
+      const result = await promise;
+      return result;
+    } finally {
+      inFlight.delete(modeKey);
     }
   }, [dispatch]);
 
