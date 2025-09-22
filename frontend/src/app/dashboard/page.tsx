@@ -171,7 +171,7 @@ export default function DashboardPage() {
 
             {/* Map mockup card */}
             <div className="lg:col-span-2 lg:row-span-2">
-              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full p-0 h-full">
                 <CardContent className="h-full p-0 relative">
                   {/* Map fills entire card */}
                   <div className="h-full min-h-64 md:min-h-[26rem]">
