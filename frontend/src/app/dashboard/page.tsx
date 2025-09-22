@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
-import { Button } from "@/components";
+import { Button, Input } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import PlainMap from "@/components/itinerary/PlainMap";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { XIcon } from "lucide-react";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
 import type { TravelerType } from "@/types/travelerTest";
 import { PlusIcon } from "lucide-react";
@@ -19,6 +21,8 @@ export default function DashboardPage() {
   const { fetchAllItineraries } = useItineraryActions();
   const [resolvedTravelerType, setResolvedTravelerType] = useState<TravelerType | null>(null);
   const [loadingTravelerType, setLoadingTravelerType] = useState<boolean>(true);
+  const [openVisitedDialog, setOpenVisitedDialog] = useState(false);
+  const [countryNameByCode, setCountryNameByCode] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchAllItineraries();
@@ -70,6 +74,25 @@ export default function DashboardPage() {
     .slice()
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 4);
+
+  // Load countries list from public JSON and build code -> name map
+  useEffect(() => {
+    let alive = true;
+    const loadCountries = async () => {
+      try {
+        const res = await fetch("/countries_list/countries.json");
+        const items = (await res.json()) as { code: string; name: string }[];
+        if (!alive) return;
+        const map: Record<string, string> = {};
+        for (const c of items) map[c.code] = c.name;
+        setCountryNameByCode(map);
+      } catch {}
+    };
+    loadCountries();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <div className="bg-gray-50">
@@ -190,12 +213,48 @@ export default function DashboardPage() {
                     <Button
                       variant="outline"
                       className="pointer-events-auto rounded-full bg-white/90"
-                      onClick={() => {}}
+                      onClick={() => setOpenVisitedDialog(true)}
                     >
                         <PlusIcon className="w-4 h-4" />
                         Agregar países
                     </Button>
                   </div>
+                  {/* Dialog: Add visited countries (mock UI) */}
+                  <Dialog open={openVisitedDialog} onOpenChange={setOpenVisitedDialog}>
+                    <DialogContent className="sm:max-w-[520px]">
+                      <DialogHeader>
+                        <DialogTitle>Países visitados</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Input
+                            placeholder="Agregar país (ej: Argentina, España)"
+                            className="rounded-full"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-sm text-gray-600">Ya agregados</div>
+                          <div className="flex flex-wrap gap-2">
+                            {(authState.user?.visited_countries ?? ["ARG", "URY", "CHL"]).map((code) => (
+                              <span
+                                key={`country-chip-${code}`}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border transition-colors shadow-sm bg-white text-gray-700 border-gray-200"
+                              >
+                                {countryNameByCode[code] ?? code}
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center justify-center h-5 w-5 rounded-full hover:bg-gray-100"
+                                  aria-label={`Quitar ${code}`}
+                                >
+                                  <XIcon className="h-3.5 w-3.5 text-gray-500" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             </div>
