@@ -7,8 +7,11 @@ import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { Button } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
+import PlainMap from "@/components/itinerary/PlainMap";
+import { Badge } from "@/components/ui/badge";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
 import type { TravelerType } from "@/types/travelerTest";
+import { PlusIcon } from "lucide-react";
 
 export default function DashboardPage() {
   const { state: authState } = useAuth();
@@ -169,15 +172,29 @@ export default function DashboardPage() {
             {/* Map mockup card */}
             <div className="lg:col-span-2 lg:row-span-2">
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-900">Mapa de países visitados</CardTitle>
-                </CardHeader>
-                <CardContent className="h-full">
-                  <div className="h-full min-h-64 md:min-h-[26rem] rounded-2xl border border-gray-100 shadow-inner bg-gray-100 grid place-items-center text-gray-500">
-                    <div className="text-center">
-                      <div className="text-5xl mb-2">🗺️</div>
-                      <div className="text-sm">Próximamente: mapa con tus países visitados</div>
-                    </div>
+                <CardContent className="h-full p-0 relative">
+                  {/* Map fills entire card */}
+                  <div className="h-full min-h-64 md:min-h-[26rem]">
+                    <PlainMap />
+                  </div>
+                  {/* Overlay header + action */}
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                    <Button 
+                        variant="outline"
+                        className="pointer-events-auto rounded-full bg-white/90 text-gray-900 border shadow px-3 py-1 text-sm"
+                        onClick={() => {}}
+                    >
+                            
+                      Países visitados
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="pointer-events-auto rounded-full bg-white/90"
+                      onClick={() => {}}
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        Agregar países
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
