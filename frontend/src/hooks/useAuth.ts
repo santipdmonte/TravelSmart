@@ -35,10 +35,9 @@ export function useAuth() {
     // Computed state
     isEmailVerified: state.user?.email_verified ?? false,
     userDisplayName:
-      state.user?.display_name ||
-      state.user?.username ||
-      state.user?.email ||
-      "",
+      (state.user?.first_name && state.user?.last_name
+        ? `${state.user.first_name} ${state.user.last_name}`
+        : state.user?.username || state.user?.email || ""),
     hasCompletedOnboarding: state.user?.onboarding_completed ?? false,
 
     // Actions (return the stable functions directly)

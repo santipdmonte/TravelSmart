@@ -51,7 +51,6 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState<ProfileUpdateFormData>({
     first_name: "",
     last_name: "",
-    display_name: "",
     username: "",
     bio: "",
   });
@@ -67,7 +66,6 @@ export default function ProfilePage() {
       setFormData({
         first_name: user.first_name || "",
         last_name: user.last_name || "",
-        display_name: user.display_name || "",
         username: user.username || "",
         bio: user.bio || "",
       });
@@ -167,7 +165,6 @@ export default function ProfilePage() {
     setFormData({
       first_name: user.first_name || "",
       last_name: user.last_name || "",
-      display_name: user.display_name || "",
       username: user.username || "",
       bio: user.bio || "",
     });
@@ -179,11 +176,9 @@ export default function ProfilePage() {
   const getUserInitials = (user: {
     first_name?: string;
     last_name?: string;
-    display_name?: string;
     username?: string;
   }) => {
-    const firstName =
-      user.first_name || user.display_name || user.username || "";
+    const firstName = user.first_name || user.username || "";
     const lastName = user.last_name || "";
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
   };
@@ -218,7 +213,9 @@ export default function ProfilePage() {
                 </Avatar>
                 <div>
                   <CardTitle className="text-2xl">
-                    {user.display_name || user.username}
+                    {(user.first_name && user.last_name)
+                      ? `${user.first_name} ${user.last_name}`
+                      : user.username || user.email}
                   </CardTitle>
                   <CardDescription className="flex items-center mt-1">
                     <Mail className="h-4 w-4 mr-1" />
@@ -360,30 +357,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="display_name">Nombre para mostrar</Label>
-                  {isEditing ? (
-                    <div>
-                      <Input
-                        id="display_name"
-                        value={formData.display_name}
-                        onChange={(e) =>
-                          handleInputChange("display_name", e.target.value)
-                        }
-                        className={errors.display_name ? "border-red-500" : ""}
-                      />
-                      {errors.display_name && (
-                        <p className="text-sm text-red-600 mt-1">
-                          {errors.display_name}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-gray-900">
-                      {user.display_name || "Sin definir"}
-                    </p>
-                  )}
-                </div>
+                
 
                 <div>
                   <Label htmlFor="username">Usuario</Label>

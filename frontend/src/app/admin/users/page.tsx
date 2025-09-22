@@ -74,7 +74,7 @@ export default function AdminUsersPage() {
                 <tr key={u.id}>
                   <td className="px-4 py-2 text-xs text-gray-500">{u.id}</td>
                   <td className="px-4 py-2">
-                    {u.display_name || u.username || "—"}
+                    {u.username || u.email || "—"}
                   </td>
                   <td className="px-4 py-2">{u.email}</td>
                   <td className="px-4 py-2">{u.traveler_type?.name || "—"}</td>

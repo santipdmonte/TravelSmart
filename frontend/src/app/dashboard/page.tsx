@@ -185,7 +185,9 @@ export default function DashboardPage() {
                     <div>
                       <div className="mb-2">
                         <div className="text-2xl font-semibold text-gray-900">
-                          {user?.display_name || user?.first_name || user?.email}
+                          {user?.first_name && user?.last_name
+                            ? `${user.first_name} ${user.last_name}`
+                            : user?.username || user?.email}
                         </div>
                         <div className="text-gray-600">
                           {user?.city ? `${user.city}${user.country ? ", " + user.country : ""}` : user?.country || ""}

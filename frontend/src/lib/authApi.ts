@@ -323,7 +323,6 @@ export async function getUserProfile(): Promise<ApiResponse<User>> {
 export async function updateUserProfile(profileData: {
   first_name: string;
   last_name: string;
-  display_name: string;
   username: string;
   bio?: string;
 }): Promise<ApiResponse<User>> {
