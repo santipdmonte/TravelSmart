@@ -32,6 +32,8 @@ export interface User {
   accessibility_needs: string[];
   countries_visited: string[];
   languages_spoken: string[];
+  // ISO3 country codes of visited countries (e.g., "ARG", "USA")
+  visited_countries?: string[];
   travel_experience_level: string;
   measurement_system: string;
   preferred_language: string;

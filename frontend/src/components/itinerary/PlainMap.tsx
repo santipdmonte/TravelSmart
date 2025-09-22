@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Map, { Source, Layer } from "react-map-gl/mapbox";
 import type { Map as MbMap } from "mapbox-gl";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FogOptions {
   range?: [number, number];
@@ -11,6 +12,7 @@ interface FogOptions {
 }
 
 export default function PlainMap() {
+  const { user } = useAuth();
   const STORAGE_KEY = "dashboard_plain_map_view";
   const styleLoadedRef = useRef(false);
   const [mapRef, setMapRef] = useState<MbMap | null>(null);
@@ -117,7 +119,18 @@ export default function PlainMap() {
                 id="visited-fill"
                 type="fill"
                 source-layer="country_boundaries"
-                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "URY", "CHL", "ABW", "MEX", "BRA", "USA", "ESP", "FRA", "NLD", "ITA", "GBR", "IRL", "BEL"]                ]]}
+                filter={[
+                  "in",
+                  ["get", "iso_3166_1_alpha_3"],
+                  [
+                    "literal",
+                    (user?.visited_countries && user.visited_countries.length > 0
+                      ? user.visited_countries
+                      : [
+                          "ARG"
+                        ]) as unknown as string[],
+                  ],
+                ]}
                 paint={{
                   "fill-color": "#0ea5e9",
                   "fill-opacity": 0.18,
@@ -128,7 +141,18 @@ export default function PlainMap() {
                 id="visited-outline"
                 type="line"
                 source-layer="country_boundaries"
-                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "URY", "CHL", "ABW", "MEX", "BRA", "USA", "ESP", "FRA", "NLD", "ITA", "GBR", "IRL", "BEL"]]]}
+                filter={[
+                  "in",
+                  ["get", "iso_3166_1_alpha_3"],
+                  [
+                    "literal",
+                    (user?.visited_countries && user.visited_countries.length > 0
+                      ? user.visited_countries
+                      : [
+                          "ARG"
+                        ]) as unknown as string[],
+                  ],
+                ]}
                 paint={{
                   "line-color": "#0ea5e9",
                   "line-width": 1.5,
