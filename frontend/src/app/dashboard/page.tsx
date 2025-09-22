@@ -79,10 +79,11 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Bento grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* User summary card */}
-            <div className="lg:col-span-1">
+          {/* Bento grid - Row 1 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* Left column stack: user + traveler type */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* User summary card */}
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-900">Tu perfil</CardTitle>
@@ -126,6 +127,46 @@ export default function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Traveler type card (persistent) */}
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loadingTravelerType ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-5 w-2/3" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                    </div>
+                  ) : resolvedTravelerType ? (
+                    <div className="space-y-2">
+                      <div className="text-lg font-semibold text-gray-900">{resolvedTravelerType.name}</div>
+                      {resolvedTravelerType.description ? (
+                        <p className="text-sm text-gray-700">{resolvedTravelerType.description}</p>
+                      ) : (
+                        <p className="text-sm text-gray-600">Sin descripción disponible.</p>
+                      )}
+                      <div className="pt-2">
+                        <Button asChild variant="outline" className="rounded-full">
+                          <Link href="/traveler-type">Ver detalles</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-700">Aún no tienes un tipo de viajero asignado.</p>
+                      <p className="text-sm text-gray-600">Realiza el test para descubrir tu perfil y obtener recomendaciones más personalizadas.</p>
+                      <div className="pt-2">
+                        <Button asChild className="rounded-full bg-sky-500 hover:bg-sky-700">
+                          <Link href="/traveler-test">Realizar test de viajero</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Map mockup card */}
@@ -144,43 +185,12 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </div>
+          </div>
 
-            {/* Traveler type card (only if user has one) */}
-            {(loadingTravelerType || resolvedTravelerType) && (
-              <div className="lg:col-span-1">
-                <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingTravelerType ? (
-                      <div className="space-y-3">
-                        <Skeleton className="h-5 w-2/3" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-5/6" />
-                      </div>
-                    ) : resolvedTravelerType ? (
-                      <div className="space-y-2">
-                        <div className="text-lg font-semibold text-gray-900">{resolvedTravelerType.name}</div>
-                        {resolvedTravelerType.description ? (
-                          <p className="text-sm text-gray-700">{resolvedTravelerType.description}</p>
-                        ) : (
-                          <p className="text-sm text-gray-600">Sin descripción disponible.</p>
-                        )}
-                        <div className="pt-2">
-                          <Button asChild variant="outline" className="rounded-full">
-                            <Link href="/traveler-type">Ver detalles</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Recent itineraries list */}
-            <div className="lg:col-span-2 order-3 lg:order-3">
+          {/* Bento grid - Row 2 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Recent itineraries list (span 2 cols) */}
+            <div className="lg:col-span-2">
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -226,8 +236,8 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Quick actions / tips */}
-            <div className="lg:col-span-1 order-4 lg:order-4">
+            {/* Quick actions (right side) */}
+            <div className="lg:col-span-1">
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-900">Acciones rápidas</CardTitle>
