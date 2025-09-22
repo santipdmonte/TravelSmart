@@ -79,16 +79,14 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Bento grid - Row 1 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Left column stack: user + traveler type */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* User summary card */}
-              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-900">Tu perfil</CardTitle>
-                </CardHeader>
-                <CardContent>
+          {/* Bento grid - Row 1 (map spans two rows to match left stack) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-6 mb-6 items-stretch">
+            {/* User summary card (row 1) */}
+            <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1">
+              <CardHeader>
+                <CardTitle className="text-xl text-gray-900">Tu perfil</CardTitle>
+              </CardHeader>
+              <CardContent>
                   {!isInitialized || isLoading ? (
                     <div className="space-y-3">
                       <Skeleton className="h-5 w-2/3" />
@@ -125,15 +123,15 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
-              {/* Traveler type card (persistent) */}
-              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
-                </CardHeader>
-                <CardContent>
+            {/* Traveler type card (row 2) */}
+            <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1 lg:row-start-2">
+              <CardHeader>
+                <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
+              </CardHeader>
+              <CardContent>
                   {loadingTravelerType ? (
                     <div className="space-y-3">
                       <Skeleton className="h-5 w-2/3" />
@@ -165,18 +163,17 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Map mockup card */}
-            <div className="lg:col-span-2">
-              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="lg:col-span-2 lg:row-span-2">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-900">Mapa de países visitados</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="h-64 md:h-80 rounded-2xl border border-gray-100 shadow-inner bg-gray-100 grid place-items-center text-gray-500">
+                <CardContent className="h-full">
+                  <div className="h-full min-h-64 md:min-h-[26rem] rounded-2xl border border-gray-100 shadow-inner bg-gray-100 grid place-items-center text-gray-500">
                     <div className="text-center">
                       <div className="text-5xl mb-2">🗺️</div>
                       <div className="text-sm">Próximamente: mapa con tus países visitados</div>
