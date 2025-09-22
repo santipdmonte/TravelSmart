@@ -189,7 +189,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Email Verification Banner */}
         <EmailVerificationBanner />

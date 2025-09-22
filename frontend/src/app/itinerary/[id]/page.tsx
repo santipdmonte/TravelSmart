@@ -321,7 +321,7 @@ export default function ItineraryDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Main Content Area */}
       <div
         className={`transition-all duration-300 ${

@@ -20,7 +20,7 @@ export default function ItinerariesPage() {
   // Show preload while auth is initializing/loading or itineraries are loading
   if (!isInitialized || isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando tus itinerarios...</p>
@@ -31,7 +31,7 @@ export default function ItinerariesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             
@@ -52,7 +52,7 @@ export default function ItinerariesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
