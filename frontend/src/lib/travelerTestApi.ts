@@ -120,8 +120,33 @@ export async function getTestResult(
 export async function getTravelerTypeDetails(
   travelerTypeId: string
 ): Promise<ApiResponse<TravelerType>> {
+  return getTravelerTypeDetailsCoalesced(travelerTypeId);
+}
+// Coalesced fetch to avoid duplicate concurrent calls for the same traveler type ID
+const inFlightTravelerType: Map<string, Promise<ApiResponse<TravelerType>>> =
+  new Map();
+
+async function getTravelerTypeDetailsRaw(
+  travelerTypeId: string
+): Promise<ApiResponse<TravelerType>> {
   return apiRequest<TravelerType>(`/traveler-types/${travelerTypeId}`);
 }
+
+export const getTravelerTypeDetailsCoalesced = async (
+  travelerTypeId: string
+): Promise<ApiResponse<TravelerType>> => {
+  if (!travelerTypeId) return { error: "Invalid traveler type id" };
+
+  const existing = inFlightTravelerType.get(travelerTypeId);
+  if (existing) return existing;
+
+  const promise = getTravelerTypeDetailsRaw(travelerTypeId).finally(() => {
+    inFlightTravelerType.delete(travelerTypeId);
+  });
+  inFlightTravelerType.set(travelerTypeId, promise);
+  return promise;
+};
+
 
 // ==================== USER TEST HELPERS ====================
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [resolvedTravelerType, setResolvedTravelerType] =
     useState<TravelerType | null>(null);
+  const fetchedTravelerTypeForRef = useRef<string | null>(null);
   const [formData, setFormData] = useState<ProfileUpdateFormData>({
     first_name: "",
     last_name: "",
@@ -74,11 +75,12 @@ export default function ProfilePage() {
       if (user.traveler_type) {
         setResolvedTravelerType(user.traveler_type);
       } else if (user.traveler_type_id) {
-        getTravelerTypeDetails(user.traveler_type_id)
-          .then((resp) => {
-            if (resp.data) setResolvedTravelerType(resp.data);
-          })
-          .finally(() => {});
+        const id = user.traveler_type_id;
+        if (fetchedTravelerTypeForRef.current === id) return;
+        fetchedTravelerTypeForRef.current = id;
+        getTravelerTypeDetails(id).then((resp) => {
+          if (resp.data) setResolvedTravelerType(resp.data);
+        });
       } else {
         setResolvedTravelerType(null);
       }
