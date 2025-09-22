@@ -44,7 +44,7 @@ export function AppSidebar() {
   const hasTravelerType = !!(user?.traveler_type_id || user?.traveler_type)
 
   const mainItems = [
-    { title: "Inicio", href: "/", icon: Home },
+    { title: "Inicio", href: "/dashboard", icon: Home },
     { title: "Itinerarios", href: "/itineraries", icon: MapPinned },
     { title: "Crear itinerario", href: "/create", icon: PlusSquare },
     {

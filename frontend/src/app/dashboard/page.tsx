@@ -1,0 +1,254 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useItinerary } from "@/contexts/ItineraryContext";
+import { useItineraryActions } from "@/hooks/useItineraryActions";
+import { Button } from "@/components";
+import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
+import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
+import type { TravelerType } from "@/types/travelerTest";
+
+export default function DashboardPage() {
+  const { state: authState } = useAuth();
+  const { itineraries, loading } = useItinerary();
+  const { fetchAllItineraries } = useItineraryActions();
+  const [resolvedTravelerType, setResolvedTravelerType] = useState<TravelerType | null>(null);
+  const [loadingTravelerType, setLoadingTravelerType] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetchAllItineraries();
+  }, [fetchAllItineraries]);
+
+  const user = authState.user;
+  const isInitialized = Boolean(authState.isInitialized);
+  const isLoading = authState.isLoading || loading;
+
+  useEffect(() => {
+    let active = true;
+    const resolveTravelerType = async () => {
+      if (!user) {
+        if (active) {
+          setResolvedTravelerType(null);
+          setLoadingTravelerType(false);
+        }
+        return;
+      }
+      if (user.traveler_type) {
+        if (active) {
+          setResolvedTravelerType(user.traveler_type);
+          setLoadingTravelerType(false);
+        }
+        return;
+      }
+      if (user.traveler_type_id) {
+        try {
+          setLoadingTravelerType(true);
+          const resp = await getTravelerTypeDetails(user.traveler_type_id);
+          if (active) setResolvedTravelerType(resp.data ?? null);
+        } finally {
+          if (active) setLoadingTravelerType(false);
+        }
+        return;
+      }
+      if (active) {
+        setResolvedTravelerType(null);
+        setLoadingTravelerType(false);
+      }
+    };
+    resolveTravelerType();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const recentItins = itineraries
+    .slice()
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 4);
+
+  return (
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 pl-3">Inicio</h1>
+            <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full px-6">
+              <Link href="/create">Crear nuevo itinerario</Link>
+            </Button>
+          </div>
+
+          {/* Bento grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* User summary card */}
+            <div className="lg:col-span-1">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-900">Tu perfil</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!isInitialized || isLoading ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-5 w-2/3" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <div className="grid grid-cols-3 gap-3">
+                        <Skeleton className="h-16" />
+                        <Skeleton className="h-16" />
+                        <Skeleton className="h-16" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="mb-2">
+                        <div className="text-2xl font-semibold text-gray-900">
+                          {user?.display_name || user?.first_name || user?.email}
+                        </div>
+                        <div className="text-gray-600">
+                          {user?.city ? `${user.city}${user.country ? ", " + user.country : ""}` : user?.country || ""}
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-3">
+                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                          <div className="text-lg font-bold text-gray-900">{user?.total_trips_created ?? 0}</div>
+                          <div className="text-xs text-gray-500">Itinerarios</div>
+                        </div>
+                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                          <div className="text-lg font-bold text-gray-900">{user?.countries_visited?.length ?? 0}</div>
+                          <div className="text-xs text-gray-500">Países</div>
+                        </div>
+                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                          <div className="text-lg font-bold text-gray-900">{user?.languages_spoken?.length ?? 0}</div>
+                          <div className="text-xs text-gray-500">Idiomas</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Map mockup card */}
+            <div className="lg:col-span-2">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-900">Mapa de países visitados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 md:h-80 rounded-2xl border border-gray-100 shadow-inner bg-gray-100 grid place-items-center text-gray-500">
+                    <div className="text-center">
+                      <div className="text-5xl mb-2">🗺️</div>
+                      <div className="text-sm">Próximamente: mapa con tus países visitados</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Traveler type card (only if user has one) */}
+            {(loadingTravelerType || resolvedTravelerType) && (
+              <div className="lg:col-span-1">
+                <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingTravelerType ? (
+                      <div className="space-y-3">
+                        <Skeleton className="h-5 w-2/3" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                      </div>
+                    ) : resolvedTravelerType ? (
+                      <div className="space-y-2">
+                        <div className="text-lg font-semibold text-gray-900">{resolvedTravelerType.name}</div>
+                        {resolvedTravelerType.description ? (
+                          <p className="text-sm text-gray-700">{resolvedTravelerType.description}</p>
+                        ) : (
+                          <p className="text-sm text-gray-600">Sin descripción disponible.</p>
+                        )}
+                        <div className="pt-2">
+                          <Button asChild variant="outline" className="rounded-full">
+                            <Link href="/traveler-type">Ver detalles</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Recent itineraries list */}
+            <div className="lg:col-span-2 order-3 lg:order-3">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl text-gray-900">Tus itinerarios recientes</CardTitle>
+                    <Button asChild variant="outline" className="rounded-full">
+                      <Link href="/itineraries">Ver todos</Link>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Skeleton className="h-24" />
+                      <Skeleton className="h-24" />
+                      <Skeleton className="h-24" />
+                      <Skeleton className="h-24" />
+                    </div>
+                  ) : recentItins.length === 0 ? (
+                    <div className="text-sm text-gray-600">No hay itinerarios aún. ¡Crea tu primer itinerario!</div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {recentItins.map((it) => (
+                        <Link key={it.itinerary_id} href={`/itinerary/${it.itinerary_id}`} className="group">
+                          <div className="rounded-2xl border border-gray-100 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="text-base font-semibold text-gray-900 group-hover:text-sky-600">
+                                  {it.trip_name}
+                                </div>
+                                <div className="text-sm text-gray-600">{it.destination || it.trip_name}</div>
+                              </div>
+                              <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
+                                {it.duration_days} días
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-400 mt-2">Creado el {new Date(it.created_at).toLocaleDateString()}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick actions / tips */}
+            <div className="lg:col-span-1 order-4 lg:order-4">
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-900">Acciones rápidas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button asChild className="w-full rounded-full bg-sky-500 hover:bg-sky-700">
+                      <Link href="/create">Crear itinerario</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full rounded-full">
+                      <Link href="/traveler-test">Descubrir mi perfil viajero</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
