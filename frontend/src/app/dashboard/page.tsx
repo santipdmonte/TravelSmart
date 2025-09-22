@@ -11,6 +11,7 @@ import PlainMap from "@/components/itinerary/PlainMap";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { XIcon } from "lucide-react";
+import { updateUserVisitedCountries } from "@/lib/authApi";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
 import type { TravelerType } from "@/types/travelerTest";
 import { PlusIcon } from "lucide-react";
@@ -341,9 +342,13 @@ export default function DashboardPage() {
                           <Button
                             className="rounded-full bg-sky-500 hover:bg-sky-700"
                             disabled={!isDirty}
-                            onClick={() => {
-                              // A futuro persistiremos en backend. Ahora solo cerramos.
-                              setOpenVisitedDialog(false);
+                            onClick={async () => {
+                              try {
+                                const payload = visitedLocal.slice();
+                                await updateUserVisitedCountries(payload);
+                              } finally {
+                                setOpenVisitedDialog(false);
+                              }
                             }}
                           >
                             Guardar cambios

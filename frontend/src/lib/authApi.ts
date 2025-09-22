@@ -334,6 +334,19 @@ export async function updateUserProfile(profileData: {
 }
 
 /**
+ * Update only visited countries on the user profile
+ */
+export async function updateUserVisitedCountries(
+  visited_countries: string[]
+): Promise<ApiResponse<User>> {
+  console.log("API: Updating visited countries:", JSON.stringify({ visited_countries }));
+  return authenticatedRequest<User>("/users/profile", {
+    method: "PUT",
+    body: JSON.stringify({ visited_countries }),
+  });
+}
+
+/**
  * Check if user is authenticated (has valid tokens)
  */
 export function isAuthenticated(): boolean {
