@@ -132,7 +132,7 @@ export default function DashboardPage() {
             {/* Traveler type card (row 2) */}
             <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1 lg:row-start-2">
               <CardHeader>
-                <CardTitle className="text-xl text-gray-900">Tu tipo de viajero</CardTitle>
+                <CardTitle className="text-xl text-gray-900">Tipo de viajero</CardTitle>
               </CardHeader>
               <CardContent>
                   {loadingTravelerType ? (
