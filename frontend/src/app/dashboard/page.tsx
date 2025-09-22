@@ -9,7 +9,7 @@ import { Button, Input } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import PlainMap from "@/components/itinerary/PlainMap";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { XIcon } from "lucide-react";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
 import type { TravelerType } from "@/types/travelerTest";
@@ -27,6 +27,8 @@ export default function DashboardPage() {
   const [visitedLocal, setVisitedLocal] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<{ code: string; name: string }[]>([]);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const originalVisitedRef = useState<string[]>([])[0];
 
   useEffect(() => {
     fetchAllItineraries();
@@ -102,10 +104,21 @@ export default function DashboardPage() {
   // Initialize local visited list when opening dialog
   useEffect(() => {
     if (!openVisitedDialog) return;
-    setVisitedLocal((authState.user?.visited_countries ?? []).slice());
+    const base = (authState.user?.visited_countries ?? []).slice();
+    setVisitedLocal(base);
+    // store original snapshot for dirty check
+    (originalVisitedRef as any).current = base;
     setSearchValue("");
     setSuggestions([]);
   }, [openVisitedDialog, authState.user?.visited_countries]);
+
+  const isDirty = (() => {
+    const a = (visitedLocal || []).slice().sort();
+    const b = ((originalVisitedRef as any).current || []).slice().sort();
+    if (a.length !== b.length) return true;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
+    return false;
+  })();
 
   // Compute suggestions based on search value
   useEffect(() => {
@@ -264,7 +277,17 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                   {/* Dialog: Add visited countries (mock UI) */}
-                  <Dialog open={openVisitedDialog} onOpenChange={setOpenVisitedDialog}>
+                  <Dialog
+                    open={openVisitedDialog}
+                    onOpenChange={(next) => {
+                      if (next) {
+                        setOpenVisitedDialog(true);
+                      } else {
+                        if (isDirty) setShowUnsavedConfirm(true);
+                        else setOpenVisitedDialog(false);
+                      }
+                    }}
+                  >
                     <DialogContent className="sm:max-w-[520px]">
                       <DialogHeader>
                         <DialogTitle>Países visitados</DialogTitle>
@@ -314,12 +337,52 @@ export default function DashboardPage() {
                             ))}
                           </div>
                         </div>
-                        <div className="flex justify-end pt-2">
-                          <Button className="rounded-full bg-sky-500 hover:bg-sky-700" onClick={() => setOpenVisitedDialog(false)}>
+                        <DialogFooter>
+                          <Button
+                            className="rounded-full bg-sky-500 hover:bg-sky-700"
+                            disabled={!isDirty}
+                            onClick={() => {
+                              // A futuro persistiremos en backend. Ahora solo cerramos.
+                              setOpenVisitedDialog(false);
+                            }}
+                          >
                             Guardar cambios
                           </Button>
-                        </div>
+                        </DialogFooter>
                       </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* Unsaved changes confirmation */}
+                  <Dialog open={showUnsavedConfirm} onOpenChange={setShowUnsavedConfirm}>
+                    <DialogContent className="sm:max-w-[440px]">
+                      <DialogHeader>
+                        <DialogTitle>Hay cambios sin guardar</DialogTitle>
+                      </DialogHeader>
+                      <p className="text-sm text-gray-600 mb-4">
+                        ¿Quieres cerrar sin guardar los cambios o guardarlos ahora?
+                      </p>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          className="rounded-full"
+                          onClick={() => {
+                            setShowUnsavedConfirm(false);
+                            setOpenVisitedDialog(false); // descartar
+                          }}
+                        >
+                          Cerrar sin guardar
+                        </Button>
+                        <Button
+                          className="rounded-full bg-sky-500 hover:bg-sky-700"
+                          onClick={() => {
+                            setShowUnsavedConfirm(false);
+                            setOpenVisitedDialog(false);
+                          }}
+                        >
+                          Guardar y cerrar
+                        </Button>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 </CardContent>
