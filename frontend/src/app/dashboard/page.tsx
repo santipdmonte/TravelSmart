@@ -23,6 +23,10 @@ export default function DashboardPage() {
   const [loadingTravelerType, setLoadingTravelerType] = useState<boolean>(true);
   const [openVisitedDialog, setOpenVisitedDialog] = useState(false);
   const [countryNameByCode, setCountryNameByCode] = useState<Record<string, string>>({});
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+  const [visitedLocal, setVisitedLocal] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<{ code: string; name: string }[]>([]);
 
   useEffect(() => {
     fetchAllItineraries();
@@ -86,6 +90,7 @@ export default function DashboardPage() {
         const map: Record<string, string> = {};
         for (const c of items) map[c.code] = c.name;
         setCountryNameByCode(map);
+        setCountries(items);
       } catch {}
     };
     loadCountries();
@@ -93,6 +98,45 @@ export default function DashboardPage() {
       alive = false;
     };
   }, []);
+
+  // Initialize local visited list when opening dialog
+  useEffect(() => {
+    if (!openVisitedDialog) return;
+    setVisitedLocal((authState.user?.visited_countries ?? []).slice());
+    setSearchValue("");
+    setSuggestions([]);
+  }, [openVisitedDialog, authState.user?.visited_countries]);
+
+  // Compute suggestions based on search value
+  useEffect(() => {
+    const q = searchValue.trim();
+    if (!q) {
+      setSuggestions([]);
+      return;
+    }
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+    const nq = norm(q);
+    const existing = new Set(visitedLocal);
+    const filtered = countries
+      .filter((c) => !existing.has(c.code))
+      .filter((c) => norm(c.name).includes(nq) || c.code.toLowerCase().startsWith(nq))
+      .slice(0, 5);
+    setSuggestions(filtered);
+  }, [searchValue, countries, visitedLocal]);
+
+  const addCountry = (code: string) => {
+    setVisitedLocal((prev) => (prev.includes(code) ? prev : [...prev, code]));
+    setSearchValue("");
+    setSuggestions([]);
+  };
+
+  const removeCountry = (code: string) => {
+    setVisitedLocal((prev) => prev.filter((c) => c !== code));
+  };
 
   return (
     <div className="bg-gray-50">
@@ -230,12 +274,29 @@ export default function DashboardPage() {
                           <Input
                             placeholder="Agregar país (ej: Argentina, España)"
                             className="rounded-full"
+                            value={searchValue}
+                            onChange={(e) => setSearchValue(e.target.value)}
                           />
+                          {suggestions.length > 0 && (
+                            <div className="mt-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                              {suggestions.map((s) => (
+                                <button
+                                  key={`sugg-${s.code}`}
+                                  type="button"
+                                  onClick={() => addCountry(s.code)}
+                                  className="w-full text-left px-4 py-2 hover:bg-sky-50 flex items-center justify-between"
+                                >
+                                  <span>{s.name}</span>
+                                  <span className="text-xs text-gray-500">{s.code}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <div className="text-sm text-gray-600">Ya agregados</div>
                           <div className="flex flex-wrap gap-2">
-                            {(authState.user?.visited_countries ?? ["ARG", "URY", "CHL"]).map((code) => (
+                            {(visitedLocal ?? []).map((code) => (
                               <span
                                 key={`country-chip-${code}`}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm border transition-colors shadow-sm bg-white text-gray-700 border-gray-200"
@@ -245,12 +306,18 @@ export default function DashboardPage() {
                                   type="button"
                                   className="inline-flex items-center justify-center h-5 w-5 rounded-full hover:bg-gray-100"
                                   aria-label={`Quitar ${code}`}
+                                  onClick={() => removeCountry(code)}
                                 >
                                   <XIcon className="h-3.5 w-3.5 text-gray-500" />
                                 </button>
                               </span>
                             ))}
                           </div>
+                        </div>
+                        <div className="flex justify-end pt-2">
+                          <Button className="rounded-full bg-sky-500 hover:bg-sky-700" onClick={() => setOpenVisitedDialog(false)}>
+                            Guardar cambios
+                          </Button>
                         </div>
                       </div>
                     </DialogContent>
