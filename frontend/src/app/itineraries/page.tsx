@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
@@ -11,9 +11,13 @@ export default function ItinerariesPage() {
   const { itineraries, loading, error } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
+  const fetchedFor = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isInitialized || isLoading) return;
+    const mode = isAuthenticated ? 'auth' : 'anon';
+    if (fetchedFor.current === mode) return;
+    fetchedFor.current = mode;
     fetchAllItineraries();
   }, [isInitialized, isLoading, isAuthenticated, fetchAllItineraries]);
 

@@ -4,7 +4,10 @@ import { useCallback } from 'react';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useAuth } from '@/hooks/useAuth';
 import { generateItinerary, getItinerary, getSessionItineraries, getUserItineraries } from '@/lib/api';
-import { GenerateItineraryRequest } from '@/types/itinerary';
+import { GenerateItineraryRequest, ItineraryBase } from '@/types/itinerary';
+
+// Coalesce in-flight list fetches by mode (auth vs anon) to avoid duplicate calls under StrictMode
+const inFlightFetchByMode: Map<string, Promise<ItineraryBase[]>> = new Map();
 
 export function useItineraryActions() {
   const { dispatch } = useItinerary();
@@ -66,35 +69,53 @@ export function useItineraryActions() {
   const fetchAllItineraries = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
-    try {
-      let response;
-      
-      // Use different endpoints based on authentication status
-      if (isAuthenticated && user?.id) {
-        // Authenticated user: fetch user-specific itineraries
-        response = await getUserItineraries(user.id);
-      } else {
-        // Anonymous user: fetch session-based itineraries
-        response = await getSessionItineraries();
+    const modeKey = isAuthenticated && user?.id ? `auth:${user.id}` : 'anon';
+
+    if (inFlightFetchByMode.has(modeKey)) {
+      try {
+        const result = await inFlightFetchByMode.get(modeKey)!;
+        // In case this call arrived after data was already dispatched in another instance
+        return result;
+      } finally {
+        // Do not clear here; owner call will clear
       }
-      
-      if (response.error) {
-        dispatch({ type: 'SET_ERROR', payload: response.error });
+    }
+
+    const fetchPromise: Promise<ItineraryBase[]> = (async () => {
+      try {
+        let response;
+
+        if (isAuthenticated && user?.id) {
+          response = await getUserItineraries(user.id);
+        } else {
+          response = await getSessionItineraries();
+        }
+
+        if (response.error) {
+          dispatch({ type: 'SET_ERROR', payload: response.error });
+          return [];
+        }
+
+        if (response.data) {
+          dispatch({ type: 'SET_ITINERARIES', payload: response.data });
+          return response.data as ItineraryBase[];
+        }
+
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return [];
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itineraries';
+        dispatch({ type: 'SET_ERROR', payload: errorMessage });
         return [];
       }
+    })();
 
-      if (response.data) {
-        dispatch({ type: 'SET_ITINERARIES', payload: response.data });
-        return response.data;
-      }
-
-      // If no data and no error, still need to stop loading
-      dispatch({ type: 'SET_LOADING', payload: false });
-      return [];
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch itineraries';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
-      return [];
+    inFlightFetchByMode.set(modeKey, fetchPromise);
+    try {
+      const result = await fetchPromise;
+      return result;
+    } finally {
+      inFlightFetchByMode.delete(modeKey);
     }
   }, [dispatch, isAuthenticated, user?.id]);
 
