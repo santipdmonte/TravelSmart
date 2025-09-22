@@ -270,7 +270,7 @@ export default function DashboardPage() {
                         <DialogTitle>Países visitados</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
+                        <div className="relative">
                           <Input
                             placeholder="Agregar país (ej: Argentina, España)"
                             className="rounded-full"
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                             onChange={(e) => setSearchValue(e.target.value)}
                           />
                           {suggestions.length > 0 && (
-                            <div className="mt-2 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                            <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-auto max-h-64">
                               {suggestions.map((s) => (
                                 <button
                                   key={`sugg-${s.code}`}
