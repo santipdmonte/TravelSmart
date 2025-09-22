@@ -117,7 +117,7 @@ export default function PlainMap() {
                 id="visited-fill"
                 type="fill"
                 source-layer="country_boundaries"
-                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "BRA", "USA", "ESP"]]]}
+                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "URY", "CHL", "ABW", "MEX", "BRA", "USA", "ESP", "FRA", "NLD", "ITA", "GBR", "IRL", "BEL"]                ]]}
                 paint={{
                   "fill-color": "#0ea5e9",
                   "fill-opacity": 0.18,
@@ -128,7 +128,7 @@ export default function PlainMap() {
                 id="visited-outline"
                 type="line"
                 source-layer="country_boundaries"
-                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "BRA", "USA", "ESP"]]]}
+                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "URY", "CHL", "ABW", "MEX", "BRA", "USA", "ESP", "FRA", "NLD", "ITA", "GBR", "IRL", "BEL"]]]}
                 paint={{
                   "line-color": "#0ea5e9",
                   "line-width": 1.5,
