@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Map from "react-map-gl/mapbox";
+import Map, { Source, Layer } from "react-map-gl/mapbox";
 import type { Map as MbMap } from "mapbox-gl";
 
 interface FogOptions {
@@ -108,7 +108,37 @@ export default function PlainMap() {
           onLoad={handleMapLoad}
           dragRotate={false}
           style={{ width: "100%", height: "100%" }}
-        />
+        >
+          {/* Mock visited countries highlight */}
+          {styleReady && (
+            <Source id="country-boundaries" type="vector" url="mapbox://mapbox.country-boundaries-v1">
+              {/* Soft fill for visited countries */}
+              <Layer
+                id="visited-fill"
+                type="fill"
+                source-layer="country_boundaries"
+                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "BRA", "USA", "ESP"]]]}
+                paint={{
+                  "fill-color": "#0ea5e9",
+                  "fill-opacity": 0.18,
+                }}
+              />
+              {/* Subtle outline + blur for glow effect */}
+              <Layer
+                id="visited-outline"
+                type="line"
+                source-layer="country_boundaries"
+                filter={["in", ["get", "iso_3166_1_alpha_3"], ["literal", ["ARG", "BRA", "USA", "ESP"]]]}
+                paint={{
+                  "line-color": "#0ea5e9",
+                  "line-width": 1.5,
+                  "line-opacity": 0.6,
+                  "line-blur": 0.5,
+                }}
+              />
+            </Source>
+          )}
+        </Map>
       ) : (
         <div className="w-full h-full grid place-items-center text-sm text-neutral-500 p-4 bg-gray-100 rounded-2xl">
           Configura NEXT_PUBLIC_MAPBOX_API_TOKEN para ver el mapa.
