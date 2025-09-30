@@ -7,6 +7,7 @@ import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
+import { useToast } from "@/contexts/ToastContext";
 import { ChatPanel } from "@/components/chat";
 import { apiRequest } from "@/lib/api";
 import {
@@ -58,6 +59,7 @@ export default function ItineraryDetailsPage() {
   const { fetchItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
   const { clearChat, openChat, sendMessage } = useChatActions();
+  const { toastState, showToast } = useToast();
 
   const itineraryId = params.id as string;
 
@@ -156,8 +158,6 @@ export default function ItineraryDetailsPage() {
   // Confirm route modal state
   const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
   const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
-  // Track route confirmation request status
-  const [routeConfirmRequestStatus, setRouteConfirmRequestStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -370,8 +370,8 @@ export default function ItineraryDetailsPage() {
       setIsConfirmRouteOpen(false);
       setActiveTab("itinerary");
       
-      // Mark request as pending
-      setRouteConfirmRequestStatus("pending");
+      // Show pending toast
+      showToast("pending", "Confirmando ruta...", "Procesando solicitud...");
       
       // Fire POST request and track its status
       (async () => {
@@ -382,10 +382,7 @@ export default function ItineraryDetailsPage() {
           
           if (response.data && !response.error) {
             // Success: show toast for 4 seconds
-            setRouteConfirmRequestStatus("success");
-            setTimeout(() => {
-              setRouteConfirmRequestStatus("idle");
-            }, 4000);
+            showToast("success", "¡Ruta confirmada!", "Generando itinerario detallado", 4000);
             // Refresh to get updated itinerary with confirmed status
             fetchItinerary(itineraryId);
           } else {
@@ -395,18 +392,12 @@ export default function ItineraryDetailsPage() {
             if (!errorMsg.includes("404") && !errorMsg.includes("400") && !errorMsg.includes("403")) {
               console.error("Error confirming route:", errorMsg);
             }
-            setRouteConfirmRequestStatus("error");
-            setTimeout(() => {
-              setRouteConfirmRequestStatus("idle");
-            }, 5000);
+            showToast("error", "Error al confirmar", "Inténtalo de nuevo más tarde", 5000);
           }
         } catch (err) {
           // Unexpected errors (network, etc)
           console.error("Unexpected error confirming route:", err);
-          setRouteConfirmRequestStatus("error");
-          setTimeout(() => {
-            setRouteConfirmRequestStatus("idle");
-          }, 5000);
+          showToast("error", "Error al confirmar", "Inténtalo de nuevo más tarde", 5000);
         }
       })();
     } finally {
@@ -560,7 +551,7 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
-                {!isRouteConfirmed && routeConfirmRequestStatus === "idle" && (
+                {!isRouteConfirmed && toastState.status === "idle" && (
                   <div className="mb-4">
                     <Alert className="bg-sky-50 border-sky-200 text-sky-800">
                       <CircleHelpIcon className="h-4 w-4" />
@@ -762,7 +753,7 @@ export default function ItineraryDetailsPage() {
                           </div>
                         );
                       })}
-                      {!isRouteConfirmed && routeConfirmRequestStatus === "idle" && (
+                      {!isRouteConfirmed && toastState.status === "idle" && (
                         <div>
                           <Button
                             className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
@@ -1259,120 +1250,6 @@ export default function ItineraryDetailsPage() {
 
       {/* Floating Edit Button */}
       <FloatingEditButton itineraryId={itineraryId} />
-
-      {/* Toast notification for route confirmation status */}
-      {routeConfirmRequestStatus !== "idle" && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 fade-in duration-300">
-          <div
-            className={`rounded-2xl shadow-2xl border px-5 py-4 min-w-[280px] max-w-[320px] ${
-              routeConfirmRequestStatus === "pending"
-                ? "bg-sky-50 border-sky-200"
-                : routeConfirmRequestStatus === "success"
-                ? "bg-green-50 border-green-200"
-                : "bg-red-50 border-red-200"
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              {/* Icon */}
-              <div className="flex-shrink-0">
-                {routeConfirmRequestStatus === "pending" && (
-                  <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent"></div>
-                )}
-                {routeConfirmRequestStatus === "success" && (
-                  <svg
-                    className="h-5 w-5 text-green-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-                {routeConfirmRequestStatus === "error" && (
-                  <svg
-                    className="h-5 w-5 text-red-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`text-sm font-semibold ${
-                    routeConfirmRequestStatus === "pending"
-                      ? "text-sky-900"
-                      : routeConfirmRequestStatus === "success"
-                      ? "text-green-900"
-                      : "text-red-900"
-                  }`}
-                >
-                  {routeConfirmRequestStatus === "pending" && "Confirmando ruta..."}
-                  {routeConfirmRequestStatus === "success" && "¡Ruta confirmada!"}
-                  {routeConfirmRequestStatus === "error" && "Error al confirmar"}
-                </p>
-                <p
-                  className={`text-xs mt-1 ${
-                    routeConfirmRequestStatus === "pending"
-                      ? "text-sky-700"
-                      : routeConfirmRequestStatus === "success"
-                      ? "text-green-700"
-                      : "text-red-700"
-                  }`}
-                >
-                  {routeConfirmRequestStatus === "pending" &&
-                    "Procesando solicitud..."}
-                  {routeConfirmRequestStatus === "success" &&
-                    "Generando itinerario detallado"}
-                  {routeConfirmRequestStatus === "error" &&
-                    "Inténtalo de nuevo más tarde"}
-                </p>
-              </div>
-
-              {/* Close button */}
-              {routeConfirmRequestStatus !== "pending" && (
-                <button
-                  onClick={() => setRouteConfirmRequestStatus("idle")}
-                  className={`flex-shrink-0 transition-colors ${
-                    routeConfirmRequestStatus === "success"
-                      ? "text-green-600 hover:text-green-800"
-                      : "text-red-600 hover:text-red-800"
-                  }`}
-                  aria-label="Cerrar"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
