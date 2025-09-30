@@ -88,9 +88,6 @@ export default function ItineraryDetailsPage() {
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
   // Expand/collapse for daily itinerary details per destination
   const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
-  // Background generation state (non-blocking UI)
-  const [isGeneratingDaily, setIsGeneratingDaily] = useState<boolean>(false);
-  const generationPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
   const renderMarkdown = useCallback(function renderMarkdown(md: string) {
     try {
@@ -280,57 +277,6 @@ export default function ItineraryDetailsPage() {
     }
   }, [activeTab, fetchSavedAccommodations]);
 
-  const startGenerationPolling = useCallback(() => {
-    setIsGeneratingDaily(true);
-    let attempts = 0;
-    const maxAttempts = 40; // ~2 minutes at 3s interval
-    const intervalMs = 3000;
-    const tick = async () => {
-      attempts += 1;
-      const res = await apiRequest<Itinerary>(`/api/itineraries/${itineraryId}`);
-      if (res?.data) {
-        const allHave = (res.data.details_itinerary.destinos ?? []).every(
-          (d: any) => d.itinerario_diario && d.itinerario_diario_resumen
-        );
-        if (allHave) {
-          setIsGeneratingDaily(false);
-          await fetchItinerary(itineraryId);
-          return;
-        }
-      }
-      if (attempts < maxAttempts) {
-        generationPollRef.current = setTimeout(tick, intervalMs);
-      } else {
-        setIsGeneratingDaily(false);
-        await fetchItinerary(itineraryId);
-      }
-    };
-    // kick off
-    tick();
-  }, [itineraryId, fetchItinerary]);
-
-  useEffect(() => {
-    return () => {
-      if (generationPollRef.current) {
-        clearTimeout(generationPollRef.current);
-      }
-    };
-  }, []);
-
-  // Auto-start polling if route is confirmed but daily itineraries are missing
-  useEffect(() => {
-    if (!currentItinerary) return;
-    
-    const isConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
-    const hasMissingDaily = (currentItinerary.details_itinerary?.destinos ?? []).some(
-      (d: any) => !d.itinerario_diario || !d.itinerario_diario_resumen
-    );
-    
-    // If confirmed but missing daily itineraries, and not already generating, start polling
-    if (isConfirmed && hasMissingDaily && !isGeneratingDaily) {
-      startGenerationPolling();
-    }
-  }, [currentItinerary, isGeneratingDaily, startGenerationPolling]);
 
   if (loading) {
     return (
@@ -388,10 +334,6 @@ export default function ItineraryDetailsPage() {
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
   const isRouteConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
-  const missingDailyForAny = isRouteConfirmed && (details_itinerary.destinos ?? []).some(
-    (d) => !(d as any).itinerario_diario || !(d as any).itinerario_diario_resumen
-  );
-  // markdown renderer defined earlier with hooks
 
   const handleAskMoreInfo = async (city: string, activity: string) => {
     try {
@@ -428,9 +370,6 @@ export default function ItineraryDetailsPage() {
       setIsConfirmRouteOpen(false);
       setActiveTab("itinerary");
       
-      // Start polling immediately (non-blocking)
-      startGenerationPolling();
-      
       // Mark request as pending
       setRouteConfirmRequestStatus("pending");
       
@@ -447,30 +386,29 @@ export default function ItineraryDetailsPage() {
             setTimeout(() => {
               setRouteConfirmRequestStatus("idle");
             }, 4000);
+            // Refresh to get updated itinerary with confirmed status
+            fetchItinerary(itineraryId);
           } else {
-            // Error response or no data
-            console.error("Error confirming route:", response.error);
-            setIsGeneratingDaily(false);
+            // Error response or no data - only log if unexpected
+            const errorMsg = response.error || "Unknown error";
+            // Only log 5xx server errors, not 4xx client errors
+            if (!errorMsg.includes("404") && !errorMsg.includes("400") && !errorMsg.includes("403")) {
+              console.error("Error confirming route:", errorMsg);
+            }
             setRouteConfirmRequestStatus("error");
             setTimeout(() => {
               setRouteConfirmRequestStatus("idle");
             }, 5000);
           }
         } catch (err) {
-          // Unexpected errors
-          console.error("Error confirming route:", err);
-          setIsGeneratingDaily(false);
+          // Unexpected errors (network, etc)
+          console.error("Unexpected error confirming route:", err);
           setRouteConfirmRequestStatus("error");
           setTimeout(() => {
             setRouteConfirmRequestStatus("idle");
           }, 5000);
         }
       })();
-      
-      // Refresh itinerary data to get updated status from backend
-      fetchItinerary(itineraryId).catch((err) => {
-        console.error("Error refreshing itinerary:", err);
-      });
     } finally {
       setConfirmingRoute(false);
     }
@@ -622,7 +560,7 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
-                {!isRouteConfirmed && (
+                {!isRouteConfirmed && routeConfirmRequestStatus === "idle" && (
                   <div className="mb-4">
                     <Alert className="bg-sky-50 border-sky-200 text-sky-800">
                       <CircleHelpIcon className="h-4 w-4" />
@@ -634,39 +572,6 @@ export default function ItineraryDetailsPage() {
                             onClick={handleGenerateDailyActivities}
                           >
                             Confirmar ruta y generar itinerario diario
-                          </Button>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-                {isRouteConfirmed && isGeneratingDaily && (
-                  <div className="mb-4">
-                    <Alert className="bg-sky-50 border-sky-200 text-sky-800">
-                      <CircleHelpIcon className="h-4 w-4" />
-                      <AlertDescription>
-                        <div className="flex items-center gap-2">
-                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent"></span>
-                          {routeConfirmRequestStatus === "pending" 
-                            ? "Confirmando ruta en el servidor..." 
-                            : "Generando itinerario diario..."}
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-                {isRouteConfirmed && !isGeneratingDaily && missingDailyForAny && (
-                  <div className="mb-4">
-                    <Alert className="bg-red-50 border-red-200 text-red-800">
-                      <CircleHelpIcon className="h-4 w-4" />
-                      <AlertDescription>
-                        Error al generar itinerarios diarios.
-                        <div className="mt-3">
-                          <Button
-                            className="rounded-full bg-sky-500 hover:bg-sky-700"
-                            onClick={handleGenerateDailyActivities}
-                          >
-                            Volver a intentar
                           </Button>
                         </div>
                       </AlertDescription>
@@ -857,7 +762,7 @@ export default function ItineraryDetailsPage() {
                           </div>
                         );
                       })}
-                      {!isRouteConfirmed && (
+                      {!isRouteConfirmed && routeConfirmRequestStatus === "idle" && (
                         <div>
                           <Button
                             className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
