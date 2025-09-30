@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -84,6 +85,9 @@ export default function ItineraryDetailsPage() {
     useState<boolean>(false);
   // Toggle state for transport alternatives per item index
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
+  // Confirm route modal state
+  const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
+  const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -279,6 +283,26 @@ export default function ItineraryDetailsPage() {
     }
   };
 
+  const handleGenerateDailyActivities = async () => {
+    setIsConfirmRouteOpen(true);
+  };
+
+  const handleConfirmRoute = async () => {
+    setIsConfirmRouteOpen(true);
+  };
+
+  const handleConfirmRouteProceed = async () => {
+    try {
+      setConfirmingRoute(true);
+      await openChat(itineraryId);
+      const msg = "Confirmar ruta y generar actividades día a día para el itinerario";
+      await sendMessage(itineraryId, msg);
+      setIsConfirmRouteOpen(false);
+    } finally {
+      setConfirmingRoute(false);
+    }
+  };
+
   const handleAddLink = async (destIndex: number) => {
     const url = (newLinkByDest[destIndex] || "").trim();
     if (!url || !currentItinerary) return;
@@ -378,12 +402,6 @@ export default function ItineraryDetailsPage() {
                       </TabsTrigger>
                     )}
                     <TabsTrigger
-                      value="itinerary"
-                      className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
-                    >
-                      Actividades
-                    </TabsTrigger>
-                    <TabsTrigger
                       value="transport"
                       className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
                     >
@@ -394,6 +412,12 @@ export default function ItineraryDetailsPage() {
                       className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
                     >
                       Alojamientos
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="itinerary"
+                      className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
+                    >
+                      Actividades
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -425,6 +449,22 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
+                <div className="mb-4">
+                  <Alert className="bg-sky-50 border-sky-200 text-sky-800">
+                    <CircleHelpIcon className="h-4 w-4" />
+                    <AlertDescription>
+                    Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos automáticamente un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
+                      <div className="mt-3">
+                        <Button
+                          className="rounded-full bg-sky-500 hover:bg-sky-700"
+                          onClick={handleGenerateDailyActivities}
+                        >
+                          Confirmar ruta y generar itinerario diario
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                </div>
                 {/* Destinations */}
                 <div className="space-y-4">
                   {details_itinerary.destinos.map((destination, destIndex) => (
@@ -510,6 +550,7 @@ export default function ItineraryDetailsPage() {
                           {details_itinerary.resumen_viaje}
                         </div>
                       </div>
+                      
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -558,6 +599,14 @@ export default function ItineraryDetailsPage() {
                           </div>
                         );
                       })}
+                      <div>
+                        <Button
+                          className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
+                          onClick={handleConfirmRoute}
+                        >
+                          Confirmar ruta
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Right: Interactive map */}
@@ -652,6 +701,46 @@ export default function ItineraryDetailsPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
+            {/* Confirm route modal */}
+            <Dialog
+              open={isConfirmRouteOpen}
+              onOpenChange={setIsConfirmRouteOpen}
+            >
+              <DialogContent className="sm:max-w-[520px]">
+                <DialogHeader>
+                  <DialogTitle>Confirmar ruta</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 text-gray-700">
+                  <p>
+                    Al confirmar la ruta:
+                  </p>
+                  <ul className="list-disc pl-5">
+                    <li>Se confirmarán los destinos.</li>
+                    <li>Se confirmará la cantidad de días por destino.</li>
+                    <li>Se generará un itinerario diario con las actividades organizadas por día y recomendaciones.</li>
+                  </ul>
+                  <p>¿Deseas continuar?</p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={() => setIsConfirmRouteOpen(false)}
+                    disabled={confirmingRoute}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="rounded-full bg-sky-500 hover:bg-sky-700"
+                    onClick={handleConfirmRouteProceed}
+                    disabled={confirmingRoute}
+                  >
+                    {confirmingRoute ? "Confirmando..." : "Confirmar"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
