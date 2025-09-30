@@ -159,6 +159,8 @@ export default function ItineraryDetailsPage() {
   // Confirm route modal state
   const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
   const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
+  // Track route confirmation request status
+  const [routeConfirmRequestStatus, setRouteConfirmRequestStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -429,13 +431,41 @@ export default function ItineraryDetailsPage() {
       // Start polling immediately (non-blocking)
       startGenerationPolling();
       
-      // Fire and forget the POST request
-      apiRequest(`/api/itineraries/${itineraryId}/route_confirmed`, {
-        method: "POST",
-      }).catch((err) => {
-        console.error("Error confirming route:", err);
-        setIsGeneratingDaily(false);
-      });
+      // Mark request as pending
+      setRouteConfirmRequestStatus("pending");
+      
+      // Fire POST request and track its status
+      (async () => {
+        try {
+          const response = await apiRequest(`/api/itineraries/${itineraryId}/route_confirmed`, {
+            method: "POST",
+          });
+          
+          if (response.data && !response.error) {
+            // Success: show toast for 4 seconds
+            setRouteConfirmRequestStatus("success");
+            setTimeout(() => {
+              setRouteConfirmRequestStatus("idle");
+            }, 4000);
+          } else {
+            // Error response or no data
+            console.error("Error confirming route:", response.error);
+            setIsGeneratingDaily(false);
+            setRouteConfirmRequestStatus("error");
+            setTimeout(() => {
+              setRouteConfirmRequestStatus("idle");
+            }, 5000);
+          }
+        } catch (err) {
+          // Unexpected errors
+          console.error("Error confirming route:", err);
+          setIsGeneratingDaily(false);
+          setRouteConfirmRequestStatus("error");
+          setTimeout(() => {
+            setRouteConfirmRequestStatus("idle");
+          }, 5000);
+        }
+      })();
       
       // Refresh itinerary data to get updated status from backend
       fetchItinerary(itineraryId).catch((err) => {
@@ -617,7 +647,9 @@ export default function ItineraryDetailsPage() {
                       <AlertDescription>
                         <div className="flex items-center gap-2">
                           <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent"></span>
-                          Generando itinerario completo...
+                          {routeConfirmRequestStatus === "pending" 
+                            ? "Confirmando ruta en el servidor..." 
+                            : "Generando itinerario diario..."}
                         </div>
                       </AlertDescription>
                     </Alert>
@@ -1322,6 +1354,120 @@ export default function ItineraryDetailsPage() {
 
       {/* Floating Edit Button */}
       <FloatingEditButton itineraryId={itineraryId} />
+
+      {/* Toast notification for route confirmation status */}
+      {routeConfirmRequestStatus !== "idle" && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 fade-in duration-300">
+          <div
+            className={`rounded-2xl shadow-2xl border px-5 py-4 min-w-[280px] max-w-[320px] ${
+              routeConfirmRequestStatus === "pending"
+                ? "bg-sky-50 border-sky-200"
+                : routeConfirmRequestStatus === "success"
+                ? "bg-green-50 border-green-200"
+                : "bg-red-50 border-red-200"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div className="flex-shrink-0">
+                {routeConfirmRequestStatus === "pending" && (
+                  <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent"></div>
+                )}
+                {routeConfirmRequestStatus === "success" && (
+                  <svg
+                    className="h-5 w-5 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+                {routeConfirmRequestStatus === "error" && (
+                  <svg
+                    className="h-5 w-5 text-red-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-sm font-semibold ${
+                    routeConfirmRequestStatus === "pending"
+                      ? "text-sky-900"
+                      : routeConfirmRequestStatus === "success"
+                      ? "text-green-900"
+                      : "text-red-900"
+                  }`}
+                >
+                  {routeConfirmRequestStatus === "pending" && "Confirmando ruta..."}
+                  {routeConfirmRequestStatus === "success" && "¡Ruta confirmada!"}
+                  {routeConfirmRequestStatus === "error" && "Error al confirmar"}
+                </p>
+                <p
+                  className={`text-xs mt-1 ${
+                    routeConfirmRequestStatus === "pending"
+                      ? "text-sky-700"
+                      : routeConfirmRequestStatus === "success"
+                      ? "text-green-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {routeConfirmRequestStatus === "pending" &&
+                    "Procesando solicitud..."}
+                  {routeConfirmRequestStatus === "success" &&
+                    "Generando itinerario detallado"}
+                  {routeConfirmRequestStatus === "error" &&
+                    "Inténtalo de nuevo más tarde"}
+                </p>
+              </div>
+
+              {/* Close button */}
+              {routeConfirmRequestStatus !== "pending" && (
+                <button
+                  onClick={() => setRouteConfirmRequestStatus("idle")}
+                  className={`flex-shrink-0 transition-colors ${
+                    routeConfirmRequestStatus === "success"
+                      ? "text-green-600 hover:text-green-800"
+                      : "text-red-600 hover:text-red-800"
+                  }`}
+                  aria-label="Cerrar"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
