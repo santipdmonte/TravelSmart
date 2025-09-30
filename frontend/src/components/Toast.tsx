@@ -73,21 +73,22 @@ export function Toast() {
             >
               {title}
             </p>
-            <p
-              className={`text-xs mt-1 ${
-                status === "pending"
-                  ? "text-sky-700"
-                  : status === "success"
-                  ? "text-green-700"
-                  : "text-red-700"
-              }`}
-            >
-              {message}
-            </p>
+            {message && (
+              <div
+                className={`text-xs mt-1 ${
+                  status === "pending"
+                    ? "text-sky-700"
+                    : status === "success"
+                    ? "text-green-700"
+                    : "text-red-700"
+                } [&_a]:underline [&_a]:font-semibold hover:[&_a]:opacity-80`}
+                dangerouslySetInnerHTML={{ __html: message }}
+              />
+            )}
           </div>
 
           {/* Close button */}
-          {status !== "pending" && (
+          {/* {status !== "pending" && (
             <button
               onClick={hideToast}
               className={`flex-shrink-0 transition-colors ${
@@ -111,7 +112,7 @@ export function Toast() {
                 />
               </svg>
             </button>
-          )}
+          )} */}
         </div>
       </div>
     </div>

@@ -371,7 +371,7 @@ export default function ItineraryDetailsPage() {
       setActiveTab("itinerary");
       
       // Show pending toast
-      showToast("pending", "Confirmando ruta...", "Procesando solicitud...");
+      showToast("pending", "Generando actividades diarias...", "", 5000);
       
       // Fire POST request and track its status
       (async () => {
@@ -382,7 +382,7 @@ export default function ItineraryDetailsPage() {
           
           if (response.data && !response.error) {
             // Success: show toast for 4 seconds
-            showToast("success", "¡Ruta confirmada!", "Generando itinerario detallado", 4000);
+            showToast("success", "¡Actividades diarias generadas!", "Ya puedes verlas en Actividades", 4000);
             // Refresh to get updated itinerary with confirmed status
             fetchItinerary(itineraryId);
           } else {
@@ -392,7 +392,7 @@ export default function ItineraryDetailsPage() {
             if (!errorMsg.includes("404") && !errorMsg.includes("400") && !errorMsg.includes("403")) {
               console.error("Error confirming route:", errorMsg);
             }
-            showToast("error", "Error al confirmar", "Inténtalo de nuevo más tarde", 5000);
+            showToast("error", "Error al generar actividades", "Inténtalo de nuevo más tarde", 5000);
           }
         } catch (err) {
           // Unexpected errors (network, etc)
