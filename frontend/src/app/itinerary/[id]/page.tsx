@@ -85,6 +85,73 @@ export default function ItineraryDetailsPage() {
     useState<boolean>(false);
   // Toggle state for transport alternatives per item index
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
+  // Expand/collapse for daily itinerary details per destination
+  const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
+  // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
+  const renderMarkdown = useCallback(function renderMarkdown(md: string) {
+    try {
+      const escapeHtml = (str: string) =>
+        str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      const lines = md.split(/\r?\n/);
+      let html = "";
+      let inList = false;
+      const flushList = () => {
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+      };
+      for (let raw of lines) {
+        let line = raw;
+        // Headings
+        const h3 = line.match(/^###\s+(.*)$/);
+        const h2 = line.match(/^##\s+(.*)$/);
+        const h1 = line.match(/^#\s+(.*)$/);
+        if (h3 || h2 || h1) {
+          flushList();
+          const text = escapeHtml((h3?.[1] || h2?.[1] || h1?.[1] || "").trim());
+          if (h1) html += `<h1 class=\"text-xl font-semibold mt-3 mb-2\">${text}</h1>`;
+          else if (h2) html += `<h2 class=\"text-lg font-semibold mt-3 mb-2\">${text}</h2>`;
+          else html += `<h3 class=\"text-base font-semibold mt-3 mb-2\">${text}</h3>`;
+          continue;
+        }
+        // Unordered list
+        const li = line.match(/^\s*[-*]\s+(.*)$/);
+        if (li) {
+          if (!inList) {
+            html += '<ul class=\"list-disc pl-5 space-y-1\">';
+            inList = true;
+          }
+          let item = escapeHtml(li[1]);
+          item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
+          item = item.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
+          item = item.replace(/_(.*?)_/g, '<em>$1<\/em>');
+          html += `<li>${item}</li>`;
+          continue;
+        }
+        // Empty line -> paragraph break
+        if (!line.trim()) {
+          flushList();
+          html += "<br/>";
+          continue;
+        }
+        // Paragraph
+        flushList();
+        let paragraph = escapeHtml(line);
+        paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
+        paragraph = paragraph.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
+        paragraph = paragraph.replace(/_(.*?)_/g, '<em>$1<\/em>');
+        html += `<p class=\"leading-relaxed\">${paragraph}</p>`;
+      }
+      if (inList) html += "</ul>";
+      return html;
+    } catch (_) {
+      return md;
+    }
+  }, []);
   // Confirm route modal state
   const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
   const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
@@ -262,6 +329,11 @@ export default function ItineraryDetailsPage() {
 
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
+  const isRouteConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
+  const missingDailyForAny = isRouteConfirmed && (details_itinerary.destinos ?? []).some(
+    (d) => !(d as any).itinerario_diario || !(d as any).itinerario_diario_resumen
+  );
+  // markdown renderer defined earlier with hooks
 
   const handleAskMoreInfo = async (city: string, activity: string) => {
     try {
@@ -449,69 +521,139 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
-                <div className="mb-4">
-                  <Alert className="bg-sky-50 border-sky-200 text-sky-800">
-                    <CircleHelpIcon className="h-4 w-4" />
-                    <AlertDescription>
-                    Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos automáticamente un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
-                      <div className="mt-3">
-                        <Button
-                          className="rounded-full bg-sky-500 hover:bg-sky-700"
-                          onClick={handleGenerateDailyActivities}
-                        >
-                          Confirmar ruta y generar itinerario diario
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                </div>
+                {!isRouteConfirmed && (
+                  <div className="mb-4">
+                    <Alert className="bg-sky-50 border-sky-200 text-sky-800">
+                      <CircleHelpIcon className="h-4 w-4" />
+                      <AlertDescription>
+                      Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos automáticamente un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
+                        <div className="mt-3">
+                          <Button
+                            className="rounded-full bg-sky-500 hover:bg-sky-700"
+                            onClick={handleGenerateDailyActivities}
+                          >
+                            Confirmar ruta y generar itinerario diario
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+                {isRouteConfirmed && missingDailyForAny && (
+                  <div className="mb-4">
+                    <Alert className="bg-red-50 border-red-200 text-red-800">
+                      <CircleHelpIcon className="h-4 w-4" />
+                      <AlertDescription>
+                        Error al generar itinerarios diarios.
+                        <div className="mt-3">
+                          <Button
+                            className="rounded-full bg-sky-500 hover:bg-sky-700"
+                            onClick={handleGenerateDailyActivities}
+                          >
+                            Volver a intentar
+                          </Button>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
                 {/* Destinations */}
                 <div className="space-y-4">
-                  {details_itinerary.destinos.map((destination, destIndex) => (
-                    <div
-                      key={destIndex}
-                      className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
-                            <MapPinIcon className="w-4 h-4" />
+                  {details_itinerary.destinos.map((destination, destIndex) => {
+                    const hasDaily = Boolean((destination as any).itinerario_diario && (destination as any).itinerario_diario_resumen);
+                    if (isRouteConfirmed && hasDaily) {
+                      const isOpen = !!openDailyByDest[destIndex];
+                      return (
+                        <div
+                          key={destIndex}
+                          className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center">
+                              <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                                <MapPinIcon className="w-4 h-4" />
+                              </div>
+                              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                                {destination.ciudad}
+                              </h2>
+                            </div>
+                            <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
+                              {destination.dias_en_destino} días
+                            </span>
                           </div>
-                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                            {destination.ciudad}
-                          </h2>
+                          <div className="ml-11">
+                            <div className="h-px bg-gray-200 mb-3"></div>
+                            <div className="text-gray-800 mb-3">
+                              {(destination as any).itinerario_diario_resumen}
+                            </div>
+                            <Button
+                              variant="outline"
+                              className="rounded-full"
+                              onClick={() =>
+                                setOpenDailyByDest((prev) => ({ ...prev, [destIndex]: !prev[destIndex] }))
+                              }
+                            >
+                              {isOpen ? "Ocultar itinerario completo" : "Ver itinerario completo"}
+                            </Button>
+                            {isOpen && (
+                              <div className="mt-3 text-gray-800">
+                                <div
+                                  className="prose max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: renderMarkdown((destination as any).itinerario_diario as string) }}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
-                          {destination.dias_en_destino} días
-                        </span>
+                      );
+                    }
+                    // Fallback to suggested activities list
+                    return (
+                      <div
+                        key={destIndex}
+                        className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                              <MapPinIcon className="w-4 h-4" />
+                            </div>
+                            <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                              {destination.ciudad}
+                            </h2>
+                          </div>
+                          <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
+                            {destination.dias_en_destino} días
+                          </span>
+                        </div>
+                        <div className="ml-11">
+                          <div className="h-px bg-gray-200 mb-2"></div>
+                          {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
+                            <ul className="pl-0 list-none text-gray-900 space-y-1">
+                              {destination.actividades_sugeridas.map((actividad, i) => (
+                                <li key={`act-${destIndex}-${i}`}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
+                                      >
+                                        {actividad}
+                                      </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start">
+                                      <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
+                                        Consultar mas informacion con la IA
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="ml-11">
-                        <div className="h-px bg-gray-200 mb-2"></div>
-                        {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
-                          <ul className="pl-0 list-none text-gray-900 space-y-1">
-                            {destination.actividades_sugeridas.map((actividad, i) => (
-                              <li key={`act-${destIndex}-${i}`}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <button
-                                      className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
-                                    >
-                                      {actividad}
-                                    </button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start">
-                                    <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
-                                      Consultar mas informacion con la IA
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </TabsContent>
 
@@ -599,14 +741,16 @@ export default function ItineraryDetailsPage() {
                           </div>
                         );
                       })}
-                      <div>
-                        <Button
-                          className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
-                          onClick={handleConfirmRoute}
-                        >
-                          Confirmar ruta
-                        </Button>
-                      </div>
+                      {!isRouteConfirmed && (
+                        <div>
+                          <Button
+                            className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
+                            onClick={handleConfirmRoute}
+                          >
+                            Confirmar ruta
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Right: Interactive map */}
