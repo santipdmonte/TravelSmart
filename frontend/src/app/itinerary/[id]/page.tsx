@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
@@ -55,6 +55,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { currentItinerary, loading, error } = useItinerary();
   const { fetchItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
@@ -62,6 +64,9 @@ export default function ItineraryDetailsPage() {
   const { toastState, showToast } = useToast();
 
   const itineraryId = params.id as string;
+  
+  // Get initial tab from URL query param or default to "route"
+  const tabFromUrl = searchParams.get("tab") || "route";
 
   // Hover state for destinations (used by map) - declare early before any returns
   const [hoveredDestinationIndex, setHoveredDestinationIndex] = useState<
@@ -76,7 +81,7 @@ export default function ItineraryDetailsPage() {
   const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
   const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
   // Route tab no longer supports editing or reordering
-  const [activeTab, setActiveTab] = useState<string>("route");
+  const [activeTab, setActiveTab] = useState<string>(tabFromUrl);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
   const [tripStartDate, setTripStartDate] = useState<string>("");
   const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
@@ -277,6 +282,23 @@ export default function ItineraryDetailsPage() {
     }
   }, [activeTab, fetchSavedAccommodations]);
 
+  // Sync activeTab with URL query param
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
+
+  // Helper function to change tab and update URL
+  const handleTabChange = useCallback((newTab: string) => {
+    setActiveTab(newTab);
+    // Update URL with new tab param using replaceState (faster, no navigation)
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", newTab);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, []);
 
   if (loading) {
     return (
@@ -368,7 +390,7 @@ export default function ItineraryDetailsPage() {
       setConfirmingRoute(true);
       // Close modal immediately and switch to activities tab
       setIsConfirmRouteOpen(false);
-      setActiveTab("itinerary");
+      handleTabChange("itinerary");
       
       // Show pending toast
       showToast("pending", "Generando actividades diarias...", "", 5000);
@@ -381,8 +403,8 @@ export default function ItineraryDetailsPage() {
           });
           
           if (response.data && !response.error) {
-            // Success: show toast for 4 seconds
-            showToast("success", "¡Actividades diarias generadas!", "Ya puedes verlas en Actividades", 4000);
+            // Success: show toast for 4 seconds with link to activities tab
+            showToast("success", "¡Actividades diarias generadas!", `<a href="/itinerary/${itineraryId}?tab=itinerary">Ver en Actividades</a>`, 4000);
             // Refresh to get updated itinerary with confirmed status
             fetchItinerary(itineraryId);
           } else {
@@ -491,7 +513,7 @@ export default function ItineraryDetailsPage() {
 
           {/* Tabs container */}
           <div>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <div className="flex justify-between">
                 <div>
                   <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
