@@ -15,6 +15,7 @@ import {
   softDeleteAccommodation,
 } from "@/lib/accommodationApi";
 import { AccommodationResponse } from "@/types/accommodation";
+import type { Itinerary } from "@/types/itinerary";
 import { FloatingEditButton, Button, Input } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import {
@@ -87,6 +88,9 @@ export default function ItineraryDetailsPage() {
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
   // Expand/collapse for daily itinerary details per destination
   const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
+  // Background generation state (non-blocking UI)
+  const [isGeneratingDaily, setIsGeneratingDaily] = useState<boolean>(false);
+  const generationPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
   const renderMarkdown = useCallback(function renderMarkdown(md: string) {
     try {
@@ -274,6 +278,58 @@ export default function ItineraryDetailsPage() {
     }
   }, [activeTab, fetchSavedAccommodations]);
 
+  const startGenerationPolling = useCallback(() => {
+    setIsGeneratingDaily(true);
+    let attempts = 0;
+    const maxAttempts = 40; // ~2 minutes at 3s interval
+    const intervalMs = 3000;
+    const tick = async () => {
+      attempts += 1;
+      const res = await apiRequest<Itinerary>(`/api/itineraries/${itineraryId}`);
+      if (res?.data) {
+        const allHave = (res.data.details_itinerary.destinos ?? []).every(
+          (d: any) => d.itinerario_diario && d.itinerario_diario_resumen
+        );
+        if (allHave) {
+          setIsGeneratingDaily(false);
+          await fetchItinerary(itineraryId);
+          return;
+        }
+      }
+      if (attempts < maxAttempts) {
+        generationPollRef.current = setTimeout(tick, intervalMs);
+      } else {
+        setIsGeneratingDaily(false);
+        await fetchItinerary(itineraryId);
+      }
+    };
+    // kick off
+    tick();
+  }, [itineraryId, fetchItinerary]);
+
+  useEffect(() => {
+    return () => {
+      if (generationPollRef.current) {
+        clearTimeout(generationPollRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-start polling if route is confirmed but daily itineraries are missing
+  useEffect(() => {
+    if (!currentItinerary) return;
+    
+    const isConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
+    const hasMissingDaily = (currentItinerary.details_itinerary?.destinos ?? []).some(
+      (d: any) => !d.itinerario_diario || !d.itinerario_diario_resumen
+    );
+    
+    // If confirmed but missing daily itineraries, and not already generating, start polling
+    if (isConfirmed && hasMissingDaily && !isGeneratingDaily) {
+      startGenerationPolling();
+    }
+  }, [currentItinerary, isGeneratingDaily, startGenerationPolling]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -366,10 +422,25 @@ export default function ItineraryDetailsPage() {
   const handleConfirmRouteProceed = async () => {
     try {
       setConfirmingRoute(true);
-      await openChat(itineraryId);
-      const msg = "Confirmar ruta y generar actividades día a día para el itinerario";
-      await sendMessage(itineraryId, msg);
+      // Close modal immediately and switch to activities tab
       setIsConfirmRouteOpen(false);
+      setActiveTab("itinerary");
+      
+      // Start polling immediately (non-blocking)
+      startGenerationPolling();
+      
+      // Fire and forget the POST request
+      apiRequest(`/api/itineraries/${itineraryId}/route_confirmed`, {
+        method: "POST",
+      }).catch((err) => {
+        console.error("Error confirming route:", err);
+        setIsGeneratingDaily(false);
+      });
+      
+      // Refresh itinerary data to get updated status from backend
+      fetchItinerary(itineraryId).catch((err) => {
+        console.error("Error refreshing itinerary:", err);
+      });
     } finally {
       setConfirmingRoute(false);
     }
@@ -539,7 +610,20 @@ export default function ItineraryDetailsPage() {
                     </Alert>
                   </div>
                 )}
-                {isRouteConfirmed && missingDailyForAny && (
+                {isRouteConfirmed && isGeneratingDaily && (
+                  <div className="mb-4">
+                    <Alert className="bg-sky-50 border-sky-200 text-sky-800">
+                      <CircleHelpIcon className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent"></span>
+                          Generando itinerario completo...
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+                {isRouteConfirmed && !isGeneratingDaily && missingDailyForAny && (
                   <div className="mb-4">
                     <Alert className="bg-red-50 border-red-200 text-red-800">
                       <CircleHelpIcon className="h-4 w-4" />
