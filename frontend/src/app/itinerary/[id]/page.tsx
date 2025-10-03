@@ -95,6 +95,8 @@ export default function ItineraryDetailsPage() {
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
   // Expand/collapse for daily itinerary details per destination
   const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
+  // Expand/collapse for individual activities (by day index and activity index)
+  const [openActivities, setOpenActivities] = useState<Record<string, boolean>>({});
   // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
   const renderMarkdown = useCallback(function renderMarkdown(md: string) {
     try {
@@ -591,58 +593,158 @@ export default function ItineraryDetailsPage() {
                     </Alert>
                   </div>
                 )}
-                {/* Destinations */}
-                <div className="space-y-4">
-                  {details_itinerary.destinos.map((destination, destIndex) => {
-                    const hasDaily = Boolean((destination as any).itinerario_diario && (destination as any).itinerario_diario_resumen);
-                    if (isRouteConfirmed && hasDaily) {
-                      const isOpen = !!openDailyByDest[destIndex];
+                
+                {/* Check if we have itinerario_diario in details_itinerary */}
+                {isRouteConfirmed && Array.isArray(details_itinerary.itinerario_diario) && details_itinerary.itinerario_diario.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Display resumen_itinerario if available */}
+                    {details_itinerary.resumen_itinerario && (
+                      <div className="rounded-2xl border border-gray-100 p-6 bg-white shadow-sm">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-3">Resumen del Itinerario</h2>
+                        <div className="h-px bg-gray-200 mb-4"></div>
+                        <div
+                          className="prose max-w-none text-gray-800"
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(details_itinerary.resumen_itinerario) }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Display daily itineraries - Days shown expanded, activities collapsed */}
+                    {details_itinerary.itinerario_diario.map((dailyItem: any, dayIndex: number) => {
+                      const renderActivitySection = (activities: any[], timeOfDay: string) => {
+                        if (!Array.isArray(activities) || activities.length === 0) return null;
+                        
+                        return (
+                          <div className="mb-4">
+                            <h4 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
+                              {timeOfDay === 'mañana' && '🌅 Mañana'}
+                              {timeOfDay === 'tarde' && '☀️ Tarde'}
+                              {timeOfDay === 'noche' && '🌙 Noche'}
+                            </h4>
+                            <div className="space-y-2">
+                              {activities.map((activity, actIdx) => {
+                                const activityKey = `${dayIndex}-${timeOfDay}-${actIdx}`;
+                                const isActivityOpen = !!openActivities[activityKey];
+                                
+                                return (
+                                  <div
+                                    key={activityKey}
+                                    className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
+                                  >
+                                    <button
+                                      onClick={() =>
+                                        setOpenActivities((prev) => ({
+                                          ...prev,
+                                          [activityKey]: !prev[activityKey],
+                                        }))
+                                      }
+                                      className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors text-left"
+                                    >
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <span className="text-gray-900 font-medium">
+                                          {activity.titulo}
+                                        </span>
+                                      </div>
+                                      {isActivityOpen ? (
+                                        <ChevronUpIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                      ) : (
+                                        <ChevronDownIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                      )}
+                                    </button>
+                                    
+                                    {isActivityOpen && (
+                                      <div className="px-3 pb-3 space-y-2 text-sm">
+                                        {activity.descripcion && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Descripción: </span>
+                                            <span className="text-gray-600">{activity.descripcion}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.ubicacion && (
+                                          <div className="flex items-start gap-1">
+                                            <MapPinIcon className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-600">{activity.ubicacion}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.horarios && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Horarios: </span>
+                                            <span className="text-gray-600">{activity.horarios}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.precio && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Precio: </span>
+                                            <span className="text-gray-600">{activity.precio}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.transporte_recomendado && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Transporte: </span>
+                                            <span className="text-gray-600">{activity.transporte_recomendado}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.requisitos_reserva && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Reserva: </span>
+                                            <span className="text-gray-600">{activity.requisitos_reserva}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.enlace && (
+                                          <div>
+                                            <a
+                                              href={activity.enlace}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 hover:underline"
+                                            >
+                                              Ver más información →
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      };
+                      
                       return (
                         <div
-                          key={destIndex}
-                          className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
+                          key={`day-${dayIndex}`}
+                          className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm"
                         >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center">
-                              <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
-                                <MapPinIcon className="w-4 h-4" />
-                              </div>
-                              <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                                {destination.ciudad}
-                              </h2>
+                          <div className="flex items-center mb-4">
+                            <div className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-sky-500 text-white mr-3 flex-shrink-0">
+                              <span className="text-base font-bold">{dailyItem.dia || dayIndex + 1}</span>
                             </div>
-                            <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
-                              {destination.dias_en_destino} días
-                            </span>
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                              {dailyItem.titulo || `Día ${dailyItem.dia || dayIndex + 1} - ${dailyItem.ciudad}`}
+                            </h2>
                           </div>
-                          <div className="ml-11">
-                            <div className="h-px bg-gray-200 mb-3"></div>
-                            <div className="text-gray-800 mb-3">
-                              {(destination as any).itinerario_diario_resumen}
-                            </div>
-                            <Button
-                              variant="outline"
-                              className="rounded-full"
-                              onClick={() =>
-                                setOpenDailyByDest((prev) => ({ ...prev, [destIndex]: !prev[destIndex] }))
-                              }
-                            >
-                              {isOpen ? "Ocultar itinerario completo" : "Ver itinerario completo"}
-                            </Button>
-                            {isOpen && (
-                              <div className="mt-3 text-gray-800">
-                                <div
-                                  className="prose max-w-none"
-                                  dangerouslySetInnerHTML={{ __html: renderMarkdown((destination as any).itinerario_diario as string) }}
-                                />
-                              </div>
-                            )}
+                          
+                          <div className="ml-12">
+                            {renderActivitySection(dailyItem.actividades_mañana, 'mañana')}
+                            {renderActivitySection(dailyItem.actividades_tarde, 'tarde')}
+                            {renderActivitySection(dailyItem.actividades_noche, 'noche')}
                           </div>
                         </div>
                       );
-                    }
-                    // Fallback to suggested activities list
-                    return (
+                    })}
+                  </div>
+                ) : (
+                  /* Fallback: show suggested activities per destination */
+                  <div className="space-y-4">
+                    {details_itinerary.destinos.map((destination, destIndex) => (
                       <div
                         key={destIndex}
                         className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
@@ -686,9 +788,9 @@ export default function ItineraryDetailsPage() {
                           ) : null}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
 
               {/* Route tab content */}
