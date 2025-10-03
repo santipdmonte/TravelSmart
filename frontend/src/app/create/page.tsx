@@ -26,6 +26,7 @@ import {
   Textarea,
   Alert,
   AlertDescription,
+  Slider,
 } from "@/components";
 
 // Opciones
@@ -259,7 +260,7 @@ export default function CreateItineraryPage() {
         city_view: undefined,
         travel_styles: [],
         food_preferences: [],
-        budget: undefined,
+        budget: "intermedio",
         notes: "",
       },
     },
@@ -584,29 +585,81 @@ export default function CreateItineraryPage() {
                     <FormField
                       control={form.control}
                       name="preferences.budget"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center gap-3">
-                            <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto</FormLabel>
-                            {field.value && (
-                              <button
-                                type="button"
-                                onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
-                              >
-                                limpiar
-                              </button>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {BUDGET_OPTIONS.map((opt) => (
-                              <Chip key={opt.key} active={field.value === opt.key} onClick={() => field.onChange(opt.key)}>
-                                {opt.label}
-                              </Chip>
-                            ))}
-                          </div>
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const budgetIndex = field.value 
+                          ? BUDGET_OPTIONS.findIndex(opt => opt.key === field.value)
+                          : -1;
+                        
+                        const handleSliderChange = (value: number[]) => {
+                          field.onChange(BUDGET_OPTIONS[value[0]].key);
+                        };
+
+                        return (
+                          <FormItem>
+                            <div className="flex items-center gap-3 mb-2">
+                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto</FormLabel>
+                              {field.value && (
+                                <button
+                                  type="button"
+                                  onClick={() => field.onChange(undefined)}
+                                  className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                                >
+                                  limpiar
+                                </button>
+                              )}
+                            </div>
+                            <div className="px-4 py-6">
+                              {/* Selected Value Display */}
+                              {budgetIndex >= 0 && (
+                                <div className="text-center mb-6">
+                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md">
+                                    {BUDGET_OPTIONS[budgetIndex].label}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Slider */}
+                              <div className="relative">
+                                {/* Centered slider at 80% width */}
+                                <div className="flex justify-center mb-4">
+                                  <div className="w-4/5">
+                                    <FormControl>
+                                      <Slider
+                                        min={0}
+                                        max={3}
+                                        step={1}
+                                        value={budgetIndex >= 0 ? [budgetIndex] : [1]}
+                                        onValueChange={handleSliderChange}
+                                        disabled={loading}
+                                        className="w-full"
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                
+                                {/* Labels below slider - full width */}
+                                <div className="flex justify-between px-1">
+                                  {BUDGET_OPTIONS.map((opt, idx) => (
+                                    <button
+                                      key={opt.key}
+                                      type="button"
+                                      onClick={() => field.onChange(opt.key)}
+                                      className={`text-xs font-medium transition-colors ${
+                                        budgetIndex === idx 
+                                          ? 'text-sky-600 font-semibold' 
+                                          : 'text-gray-500 hover:text-gray-700'
+                                      }`}
+                                      style={{ width: '25%', textAlign: 'center' }}
+                                    >
+                                      {opt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </FormItem>
+                        );
+                      }}
                     />
                   </div>
                 )}

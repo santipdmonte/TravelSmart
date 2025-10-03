@@ -16,3 +16,4 @@ export { Alert, AlertTitle, AlertDescription } from "./alert";
 export * from "./card";
 export { Skeleton } from "./skeleton";
 export { Progress } from "./progress";
+export { Slider } from "./slider";
