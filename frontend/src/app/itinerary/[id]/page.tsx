@@ -578,7 +578,7 @@ export default function ItineraryDetailsPage() {
                     <Alert className="bg-sky-50 border-sky-200 text-sky-800">
                       <CircleHelpIcon className="h-4 w-4" />
                       <AlertDescription>
-                      Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos automáticamente un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
+                      Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
                         <div className="mt-3">
                           <Button
                             className="rounded-full bg-sky-500 hover:bg-sky-700"
