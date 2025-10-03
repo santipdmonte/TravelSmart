@@ -77,6 +77,13 @@ const FOOD_PREFS = [
   "fine_dining",
 ] as const;
 
+const BUDGET_OPTIONS = [
+  { key: "economico", label: "Economico" },
+  { key: "intermedio", label: "Intermedio" },
+  { key: "confort", label: "Confort" },
+  { key: "lujo", label: "Lujo" },
+] as const;
+
 const TRIP_TYPE_LABELS: Record<(typeof TRIP_TYPES)[number], string> = {
   business: "Viaje de negocios",
   couples: "Viaje en pareja",
@@ -222,10 +229,8 @@ const createItinerarySchema = z.object({
         )
         .optional(),
       budget: z
-        .string()
-        .regex(/^\d+$/u, "Usa solo números")
+        .enum(["economico", "intermedio", "confort", "lujo"])
         .optional(),
-      budget_currency: z.literal("USD").optional(),
       notes: z.string().max(250).optional(),
     })
     .optional(),
@@ -255,7 +260,6 @@ export default function CreateItineraryPage() {
         travel_styles: [],
         food_preferences: [],
         budget: undefined,
-        budget_currency: "USD",
         notes: "",
       },
     },
@@ -304,11 +308,6 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          if (k === "budget") {
-            const asNum = typeof v === "string" ? Number(v) : (v as number);
-            if (!Number.isNaN(asNum)) acc[k] = asNum;
-            return acc;
-          }
           acc[k] = v as unknown;
           return acc;
         },
@@ -376,11 +375,6 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          if (k === "budget") {
-            const asNum = typeof v === "string" ? Number(v) : (v as number);
-            if (!Number.isNaN(asNum)) acc[k] = asNum;
-            return acc;
-          }
           acc[k] = v as unknown;
           return acc;
         },
@@ -587,54 +581,33 @@ export default function CreateItineraryPage() {
                       )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="preferences.budget"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-3">
-                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto (USD)</FormLabel>
-                              {field.value !== undefined && (
-                                <button
-                                  type="button"
-                                  onClick={() => field.onChange(undefined)}
-                                  className="text-sm text-gray-500 hover:underline"
-                                >
-                                  limpiar
-                                </button>
-                              )}
-                            </div>
-                            <FormControl>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                placeholder="¿Presupuesto por persona?"
-                                className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
-                                disabled={loading}
-                                value={(field.value as string | undefined) ?? ""}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value === "" || /^\d+$/.test(value)) {
-                                    field.onChange(value);
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="preferences.budget_currency"
-                        render={({ field }) => (
-                          <input type="hidden" value={field.value ?? "USD"} readOnly />
-                        )}
-                      />
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="preferences.budget"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-3">
+                            <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto</FormLabel>
+                            {field.value && (
+                              <button
+                                type="button"
+                                onClick={() => field.onChange(undefined)}
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                              >
+                                limpiar
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-3">
+                            {BUDGET_OPTIONS.map((opt) => (
+                              <Chip key={opt.key} active={field.value === opt.key} onClick={() => field.onChange(opt.key)}>
+                                {opt.label}
+                              </Chip>
+                            ))}
+                          </div>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 )}
 
