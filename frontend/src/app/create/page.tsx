@@ -479,10 +479,10 @@ export default function CreateItineraryPage() {
                       name="trip_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="pl-3 pb-1 text-gray-800">Destino</FormLabel>
+                          <FormLabel className="pl-3 pb-1 text-gray-800">Destinos</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="¿Donde quieres ir?"
+                              placeholder="¿Donde quieres viajar?"
                               className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                               disabled={loading}
                               {...field}
