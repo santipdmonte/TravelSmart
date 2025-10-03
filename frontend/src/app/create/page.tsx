@@ -28,6 +28,12 @@ import {
   AlertDescription,
   Slider,
 } from "@/components";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Opciones
 const WHEN_OPTIONS = [
@@ -79,10 +85,26 @@ const FOOD_PREFS = [
 ] as const;
 
 const BUDGET_OPTIONS = [
-  { key: "economico", label: "Economico" },
-  { key: "intermedio", label: "Intermedio" },
-  { key: "confort", label: "Confort" },
-  { key: "lujo", label: "Lujo" },
+  { 
+    key: "economico", 
+    label: "Economico",
+    description: "Viaja ligero, vive la aventura y descubre cada rincón gastando lo mínimo. Ideal para quienes buscan experiencias auténticas sin preocuparse por el lujo"
+  },
+  { 
+    key: "intermedio", 
+    label: "Intermedio",
+    description: "Equilibrio perfecto entre cuidar el bolsillo y disfrutar con comodidad. Una forma flexible y eficiente de viajar sin complicaciones."
+  },
+  { 
+    key: "confort", 
+    label: "Confort",
+    description: "Viaja sin preocupaciones y con todo a tu alcance. Perfecto si valoras la comodidad y quieres experiencias bien organizadas y agradables"
+  },
+  { 
+    key: "lujo", 
+    label: "Lujo",
+    description: "Exclusividad, atención al detalle y experiencias inolvidables. La manera más sofisticada de viajar y disfrutar cada destino al máximo."
+  },
 ] as const;
 
 const TRIP_TYPE_LABELS: Record<(typeof TRIP_TYPES)[number], string> = {
@@ -629,23 +651,34 @@ export default function CreateItineraryPage() {
                                 </div>
                                 
                                 {/* Labels below slider - full width */}
-                                <div className="flex justify-between px-1">
-                                  {BUDGET_OPTIONS.map((opt, idx) => (
-                                    <button
-                                      key={opt.key}
-                                      type="button"
-                                      onClick={() => field.onChange(opt.key)}
-                                      className={`text-xs font-medium transition-colors ${
-                                        budgetIndex === idx 
-                                          ? 'text-sky-600 font-semibold' 
-                                          : 'text-gray-500 hover:text-gray-700'
-                                      }`}
-                                      style={{ width: '25%', textAlign: 'center' }}
-                                    >
-                                      {opt.label}
-                                    </button>
-                                  ))}
-                                </div>
+                                <TooltipProvider>
+                                  <div className="flex justify-between px-1">
+                                    {BUDGET_OPTIONS.map((opt, idx) => (
+                                      <Tooltip key={opt.key} delayDuration={200}>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            onClick={() => field.onChange(opt.key)}
+                                            className={`text-xs font-medium transition-colors ${
+                                              budgetIndex === idx 
+                                                ? 'text-sky-600 font-semibold' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                            style={{ width: '25%', textAlign: 'center' }}
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent 
+                                          className="max-w-xs bg-gray-900 text-white p-3"
+                                          sideOffset={5}
+                                        >
+                                          <p className="text-xs leading-relaxed">{opt.description}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                  </div>
+                                </TooltipProvider>
                               </div>
                             </div>
                           </FormItem>
