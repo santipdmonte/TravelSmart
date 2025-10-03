@@ -1119,23 +1119,26 @@ export default function ItineraryDetailsPage() {
               </TabsContent>
 
               <TabsContent value="stays">
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {details_itinerary.destinos.map((dest, idx) => (
                     <div
                       key={`stay-${idx}`}
-                      className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8"
+                      className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
                     >
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
                         <div className="flex items-center">
-                          <h2 className="text-2xl font-bold text-gray-900">
+                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                            <MapPinIcon className="w-4 h-4" />
+                          </div>
+                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">
                             {dest.ciudad}
                           </h2>
-                          <p className="text-gray-700 ml-1">
-                            • {dest.dias_en_destino} días
-                          </p>
+                          <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium ml-2">
+                            {dest.dias_en_destino} días
+                          </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
                           {loadingAccommodationLinks && (
                             <span className="text-sm text-gray-600">
                               Generando enlaces...
@@ -1148,15 +1151,15 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all hover:shadow-md hover:scale-105"
                             style={{ backgroundColor: "#FF5A5F" }}
                           >
                             <Image
                               src="/accommodations-ico/airbnb.avif"
                               alt="Airbnb"
-                              width={20}
-                              height={20}
-                              className="rounded-sm h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="rounded-sm h-4 w-4"
                             />
                             Airbnb
                           </a>
@@ -1168,14 +1171,14 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all bg-[#003580] hover:bg-[#00224F] hover:shadow-md hover:scale-105"
                           >
                             <Image
                               src="/accommodations-ico/booking.svg"
                               alt="Booking.com"
-                              width={20}
-                              height={20}
-                              className="h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="h-4 w-4"
                             />
                             Booking
                           </a>
@@ -1187,23 +1190,24 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all bg-[#1F2B6C] hover:bg-[#172059] hover:shadow-md hover:scale-105"
                           >
                             <Image
                               src="/accommodations-ico/expedia.ico"
                               alt="Expedia"
-                              width={20}
-                              height={20}
-                              className="h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="h-4 w-4"
                             />
                             Expedia
                           </a>
                         </div>
                       </div>
 
-                      {/* Saved accommodations (mock) */}
-                      <div className="mt-6 pt-6 border-t border-gray-100">
-                        <div className="flex items-center gap-2 max-w-md">
+                      {/* Saved accommodations */}
+                      <div className="ml-11">
+                        <div className="h-px bg-gray-200 mb-4"></div>
+                        <div className="flex items-center gap-2 mb-4">
                           <Input
                             placeholder="Pega un enlace de Airbnb, Booking o Expedia"
                             value={newLinkByDest[idx] ?? ""}
@@ -1214,21 +1218,22 @@ export default function ItineraryDetailsPage() {
                                 )
                               )
                             }
-                            className="rounded-full"
+                            className="rounded-full w-full max-w-md"
                           />
                           <Button
-                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5"
+                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5 flex-shrink-0"
                             onClick={() => handleAddLink(idx)}
                           >
-                            + Agregar
+                            Agregar
                           </Button>
                         </div>
 
-                        <div className="mt-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        {((accommodationsByDest[idx] ?? []).length > 0 || isCreatingByDest[idx]) && (
+                          <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                           <div className="flex pb-4 gap-4">
                             {isCreatingByDest[idx] && (
                               <div className="relative w-56 flex-none">
-                                <Card className="rounded-3xl overflow-hidden pt-0">
+                                <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm pt-0">
                                   <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                     <Skeleton className="h-full w-full" />
                                   </div>
@@ -1254,7 +1259,7 @@ export default function ItineraryDetailsPage() {
                                     rel="noopener noreferrer"
                                     className="block"
                                   >
-                                    <Card className="rounded-3xl overflow-hidden hover:shadow-lg transition-shadow pt-0">
+                                    <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow pt-0">
                                       <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                         {currentUrl ? (
                                           <img
@@ -1333,7 +1338,8 @@ export default function ItineraryDetailsPage() {
                               );
                             })}
                           </div>
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
