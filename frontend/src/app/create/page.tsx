@@ -597,16 +597,7 @@ export default function CreateItineraryPage() {
                         return (
                           <FormItem>
                             <div className="flex items-center gap-3 mb-2">
-                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto</FormLabel>
-                              {field.value && (
-                                <button
-                                  type="button"
-                                  onClick={() => field.onChange(undefined)}
-                                  className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
-                                >
-                                  limpiar
-                                </button>
-                              )}
+                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto*</FormLabel>
                             </div>
                             <div className="px-4 py-6">
                               {/* Selected Value Display */}
