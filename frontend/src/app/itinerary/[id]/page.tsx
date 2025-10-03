@@ -359,16 +359,6 @@ export default function ItineraryDetailsPage() {
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
   const isRouteConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
 
-  const handleAskMoreInfo = async (city: string, activity: string) => {
-    try {
-      await openChat(itineraryId);
-      const msg = `Me gustaria saber mas informacion sobre la actividad sugerida "${activity}" de ${city}`;
-      await sendMessage(itineraryId, msg);
-    } catch (_) {
-      // no-op
-    }
-  };
-
   const handleSetTransportPrimary = async (fromCity: string, toCity: string, transport: string) => {
     try {
       await openChat(itineraryId);
@@ -575,23 +565,54 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
-                {!isRouteConfirmed && toastState.status === "idle" && (
-                  <div className="mb-4">
-                    <Alert className="bg-sky-50 border-sky-200 text-sky-800">
-                      <CircleHelpIcon className="h-4 w-4" />
-                      <AlertDescription>
-                      Estas son las actividades recomendadas para tu destino. Si confirmas la ruta, generaremos un itinerario detallado día por día con estas actividades organizadas, links de reservas y recomendaciones.
-                        <div className="mt-3">
-                          <Button
-                            className="rounded-full bg-sky-500 hover:bg-sky-700"
-                            onClick={handleGenerateDailyActivities}
-                          >
-                            Confirmar ruta y generar itinerario diario
-                          </Button>
+                {!isRouteConfirmed && (
+                  <>
+                    {toastState.status === "idle" ? (
+                      <div className="flex items-center justify-center min-h-[400px] px-4">
+                        <div className="max-w-2xl w-full">
+                          <div className="bg-gradient-to-br from-sky-50 to-blue-50 border-2 border-sky-300 rounded-2xl shadow-lg p-8">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center mb-4">
+                                <CircleHelpIcon className="h-8 w-8 text-white" />
+                              </div>
+                              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                Confirma tu ruta para continuar
+                              </h3>
+                              <p className="text-base text-gray-700 mb-6 leading-relaxed max-w-xl">
+                                Luego de confirmar la ruta elegida (destinos y días) se generarán las actividades diarias organizadas por mañana, tarde y noche, con detalles como horarios, precios, ubicaciones y links de reserva.
+                              </p>
+                              <Button
+                                size="lg"
+                                className="rounded-full bg-sky-500 hover:bg-sky-700 text-white px-8 py-6 text-lg font-semibold shadow-md"
+                                onClick={handleGenerateDailyActivities}
+                              >
+                                Confirmar ruta y generar actividades diarias
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                      </AlertDescription>
-                    </Alert>
-                  </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center min-h-[400px] px-4">
+                        <div className="max-w-2xl w-full">
+                          <div className="bg-gradient-to-br from-sky-50 to-blue-50 border-2 border-sky-300 rounded-2xl shadow-lg p-8">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="relative w-20 h-20 mb-6">
+                                <div className="absolute inset-0 rounded-full border-4 border-sky-200"></div>
+                                <div className="absolute inset-0 rounded-full border-4 border-sky-500 border-t-transparent animate-spin"></div>
+                              </div>
+                              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                Generando actividades diarias...
+                              </h3>
+                              <p className="text-base text-gray-700 leading-relaxed max-w-xl">
+                                Estamos creando tu itinerario personalizado con actividades organizadas por horarios, precios, ubicaciones y enlaces de reserva.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 {/* Check if we have itinerario_diario in details_itinerary */}
@@ -741,56 +762,7 @@ export default function ItineraryDetailsPage() {
                       );
                     })}
                   </div>
-                ) : (
-                  /* Fallback: show suggested activities per destination */
-                  <div className="space-y-4">
-                    {details_itinerary.destinos.map((destination, destIndex) => (
-                      <div
-                        key={destIndex}
-                        className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center">
-                            <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
-                              <MapPinIcon className="w-4 h-4" />
-                            </div>
-                            <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                              {destination.ciudad}
-                            </h2>
-                          </div>
-                          <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
-                            {destination.dias_en_destino} días
-                          </span>
-                        </div>
-                        <div className="ml-11">
-                          <div className="h-px bg-gray-200 mb-2"></div>
-                          {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
-                            <ul className="pl-0 list-none text-gray-900 space-y-1">
-                              {destination.actividades_sugeridas.map((actividad, i) => (
-                                <li key={`act-${destIndex}-${i}`}>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <button
-                                        className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
-                                      >
-                                        {actividad}
-                                      </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start">
-                                      <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
-                                        Consultar mas informacion con la IA
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                ) : null}
               </TabsContent>
 
               {/* Route tab content */}

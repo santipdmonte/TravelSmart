@@ -24,10 +24,6 @@ export interface Destino {
   latitude?: number;
   longitude?: number;
   dias_en_destino: number;
-  actividades_sugeridas: string[];
-  // Optional AI-generated daily itinerary fields when route is confirmed
-  itinerario_diario?: string; // markdown
-  itinerario_diario_resumen?: string; // plain text
   // Optional helper copy for stays
   sugerencias_alojamiento?: string;
 }
