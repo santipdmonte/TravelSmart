@@ -11,7 +11,19 @@ interface FogOptions {
   "horizon-blend"?: number;
 }
 
-export default function PlainMap() {
+const DEFAULT_VISITED_CODES = ["ARG"] as const;
+
+const normalizeCountryCode = (value: string | null | undefined): string =>
+  (value ?? "")
+    .trim()
+    .toUpperCase();
+
+interface PlainMapProps {
+  visitedCountries?: string[];
+  fallbackCountries?: string[];
+}
+
+export default function PlainMap({ visitedCountries, fallbackCountries }: PlainMapProps) {
   const { user } = useAuth();
   const STORAGE_KEY = "dashboard_plain_map_view";
   const styleLoadedRef = useRef(false);
@@ -98,6 +110,40 @@ export default function PlainMap() {
     setMapRef(map);
   };
 
+  const resolvedVisited = useMemo(() => {
+    if (visitedCountries && visitedCountries.length > 0) {
+      return Array.from(
+        new Set(
+          visitedCountries
+            .map((code) => normalizeCountryCode(code))
+            .filter((code) => code.length > 0)
+        )
+      );
+    }
+
+    if (user?.visited_countries?.length) {
+      return Array.from(
+        new Set(
+          user.visited_countries
+            .map((code) => normalizeCountryCode(code))
+            .filter((code) => code.length > 0)
+        )
+      );
+    }
+
+    if (fallbackCountries && fallbackCountries.length > 0) {
+      return Array.from(
+        new Set(
+          fallbackCountries
+            .map((code) => normalizeCountryCode(code))
+            .filter((code) => code.length > 0)
+        )
+      );
+    }
+
+    return Array.from(DEFAULT_VISITED_CODES);
+  }, [fallbackCountries, user?.visited_countries, visitedCountries]);
+
   return (
     <div className="w-full h-full">
       {token ? (
@@ -122,14 +168,7 @@ export default function PlainMap() {
                 filter={[
                   "in",
                   ["get", "iso_3166_1_alpha_3"],
-                  [
-                    "literal",
-                    (user?.visited_countries && user.visited_countries.length > 0
-                      ? user.visited_countries
-                      : [
-                          "ARG"
-                        ]) as unknown as string[],
-                  ],
+                  ["literal", resolvedVisited as unknown as string[]],
                 ]}
                 paint={{
                   "fill-color": "#0ea5e9",
@@ -144,14 +183,7 @@ export default function PlainMap() {
                 filter={[
                   "in",
                   ["get", "iso_3166_1_alpha_3"],
-                  [
-                    "literal",
-                    (user?.visited_countries && user.visited_countries.length > 0
-                      ? user.visited_countries
-                      : [
-                          "ARG"
-                        ]) as unknown as string[],
-                  ],
+                  ["literal", resolvedVisited as unknown as string[]],
                 ]}
                 paint={{
                   "line-color": "#0ea5e9",
