@@ -588,7 +588,7 @@ export default function DashboardPage() {
                           : user?.country || ""}
                       </div>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
                       <div className="rounded-2xl border border-gray-100 p-3 text-center">
                         <div className="text-lg font-bold text-gray-900">
                           {user?.total_trips_created ?? 0}
@@ -599,31 +599,15 @@ export default function DashboardPage() {
                         <div className="text-lg font-bold text-gray-900">
                           {visitedCount}
                         </div>
-                        <div className="text-xs text-gray-500">Países</div>
+                        <div className="text-xs text-gray-500">
+                          Países visitados
+                        </div>
                       </div>
                       <div className="rounded-2xl border border-gray-100 p-3 text-center">
                         <div className="text-lg font-bold text-gray-900">
                           {user?.languages_spoken?.length ?? 0}
                         </div>
                         <div className="text-xs text-gray-500">Idiomas</div>
-                      </div>
-                      <div className="rounded-2xl border border-gray-100 p-3 text-center flex flex-col items-center">
-                        <div className="text-lg font-bold text-gray-900">
-                          {visitedPercentageLabel}%
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Mundo visitado
-                        </div>
-                        <div className="mt-2 w-full h-2 rounded-full bg-sky-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-sky-500 transition-all"
-                            style={{ width: `${visitedPercentage}%` }}
-                            aria-label={`Has visitado ${visitedPercentageLabel}% del mundo`}
-                          />
-                        </div>
-                        <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                          {visitedCount} / {TOTAL_COUNTRIES}
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -695,23 +679,24 @@ export default function DashboardPage() {
 
             {/* Map mockup card */}
             <div className="lg:col-span-2 lg:row-span-2">
-              <Card className="bg-white rounded-3xl shadow-xl border-none overflow-hidden h-full p-0 h-full">
-                <CardContent className="h-full p-0 relative">
-                  {/* Map fills entire card */}
-                  <div className="h-full min-h-64 md:min-h-[26rem]">
-                    <PlainMap
-                      visitedCountries={effectiveVisitedCodes}
-                      fallbackCountries={fallbackVisitedCodes}
-                    />
-                  </div>
+              <Card className="bg-white rounded-3xl shadow-xl border-none overflow-hidden h-full p-0">
+                <CardContent className="relative h-full min-h-[16rem] md:min-h-[26rem] p-0">
+                  <PlainMap
+                    className="absolute inset-0"
+                    visitedCountries={effectiveVisitedCodes}
+                    fallbackCountries={fallbackVisitedCodes}
+                  />
                   {/* Overlay header + action */}
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
                     <Button
                       variant="outline"
-                      className="pointer-events-auto rounded-full bg-white/90 text-gray-900 border shadow px-3 py-1 text-sm"
+                      className="pointer-events-auto rounded-full bg-white/90 text-gray-900 border shadow px-3 py-1 text-sm flex items-center gap-2"
                       onClick={() => {}}
                     >
-                      Países visitados
+                      <span className="font-medium">Países visitados</span>
+                      <span className="text-xs font-semibold text-sky-600 bg-sky-100 px-2 py-0.5 rounded-full">
+                        {visitedPercentageLabel}%
+                      </span>
                     </Button>
                     <Button
                       variant="outline"

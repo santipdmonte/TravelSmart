@@ -19,11 +19,13 @@ const normalizeCountryCode = (value: string | null | undefined): string =>
 interface PlainMapProps {
   visitedCountries?: string[];
   fallbackCountries?: string[];
+  className?: string;
 }
 
 export default function PlainMap({
   visitedCountries,
   fallbackCountries,
+  className,
 }: PlainMapProps) {
   const { user } = useAuth();
   const STORAGE_KEY = "dashboard_plain_map_view";
@@ -106,7 +108,38 @@ export default function PlainMap({
       "horizon-blend": 0.2,
     } as FogOptions);
     setMapRef(map);
+    map.resize();
   };
+
+  useEffect(() => {
+    if (!mapRef) return;
+
+    const resize = () => {
+      try {
+        mapRef.resize();
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[TravelSmart] Map resize skipped:", error);
+        }
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        resize();
+      }
+    };
+
+    const raf = requestAnimationFrame(resize);
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [mapRef]);
 
   const resolvedVisited = useMemo(() => {
     if (visitedCountries && visitedCountries.length > 0) {
@@ -142,8 +175,12 @@ export default function PlainMap({
     return Array.from(DEFAULT_VISITED_CODES);
   }, [fallbackCountries, user?.visited_countries, visitedCountries]);
 
+  const containerClassName = useMemo(() => {
+    return className ? `${className} w-full h-full` : "w-full h-full";
+  }, [className]);
+
   return (
-    <div className="w-full h-full">
+    <div className={containerClassName}>
       {token ? (
         <Map
           mapboxAccessToken={token}
