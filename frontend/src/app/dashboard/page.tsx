@@ -6,9 +6,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { Button, Input } from "@/components";
-import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@/components/ui";
 import PlainMap from "@/components/itinerary/PlainMap";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { XIcon } from "lucide-react";
 import { updateUserVisitedCountries } from "@/lib/authApi";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
@@ -19,9 +31,7 @@ const DEFAULT_VISITED_CODES = ["ARG"] as const;
 const TOTAL_COUNTRIES = 195;
 
 const normalizeCountryCode = (value: string | null | undefined): string =>
-  (value ?? "")
-    .trim()
-    .toUpperCase();
+  (value ?? "").trim().toUpperCase();
 
 const normalizeSearchText = (value: string | null | undefined): string =>
   (value ?? "")
@@ -33,14 +43,21 @@ export default function DashboardPage() {
   const { state: authState, dispatch } = useAuth();
   const { itineraries, loading } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
-  const [resolvedTravelerType, setResolvedTravelerType] = useState<TravelerType | null>(null);
+  const [resolvedTravelerType, setResolvedTravelerType] =
+    useState<TravelerType | null>(null);
   const [loadingTravelerType, setLoadingTravelerType] = useState<boolean>(true);
   const [openVisitedDialog, setOpenVisitedDialog] = useState(false);
-  const [countryNameByCode, setCountryNameByCode] = useState<Record<string, string>>({});
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+  const [countryNameByCode, setCountryNameByCode] = useState<
+    Record<string, string>
+  >({});
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>(
+    []
+  );
   const [visitedLocal, setVisitedLocal] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<{ code: string; name: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    { code: string; name: string }[]
+  >([]);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const originalVisitedRef = useRef<string[]>([]);
   const visitedDialogInitializedRef = useRef(false);
@@ -84,12 +101,18 @@ export default function DashboardPage() {
     if (typeof window === "undefined") return;
 
     try {
-      localStorage.setItem(homeFallbackPreferenceKey, isHomeFallbackEnabled ? "1" : "0");
+      localStorage.setItem(
+        homeFallbackPreferenceKey,
+        isHomeFallbackEnabled ? "1" : "0"
+      );
     } catch {}
   }, [homeFallbackPreferenceKey, isHomeFallbackEnabled]);
 
   const regionDisplayNames = useMemo(() => {
-    if (typeof Intl === "undefined" || typeof Intl.DisplayNames === "undefined") {
+    if (
+      typeof Intl === "undefined" ||
+      typeof Intl.DisplayNames === "undefined"
+    ) {
       return null;
     }
     try {
@@ -199,10 +222,14 @@ export default function DashboardPage() {
   }, [fallbackVisitedCodes, normalizedUserVisited]);
 
   const visitedCount = user ? effectiveVisitedCodes.length : 0;
-  const visitedPercentage = visitedCount > 0 ? Math.min(100, (visitedCount / TOTAL_COUNTRIES) * 100) : 0;
-  const visitedPercentageLabel = visitedPercentage >= 10
-    ? visitedPercentage.toFixed(1)
-    : visitedPercentage.toFixed(2);
+  const visitedPercentage =
+    visitedCount > 0
+      ? Math.min(100, (visitedCount / TOTAL_COUNTRIES) * 100)
+      : 0;
+  const visitedPercentageLabel =
+    visitedPercentage >= 10
+      ? visitedPercentage.toFixed(1)
+      : visitedPercentage.toFixed(2);
 
   useEffect(() => {
     let active = true;
@@ -244,7 +271,10 @@ export default function DashboardPage() {
 
   const recentItins = itineraries
     .slice()
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
     .slice(0, 4);
 
   // Load countries list from public JSON and build code -> name map
@@ -304,7 +334,12 @@ export default function DashboardPage() {
     setSuggestions([]);
     setDuplicateMessage(null);
     setSaveError(null);
-  }, [homeCountryCode, isHomeFallbackEnabled, normalizedUserVisited, openVisitedDialog]);
+  }, [
+    homeCountryCode,
+    isHomeFallbackEnabled,
+    normalizedUserVisited,
+    openVisitedDialog,
+  ]);
 
   useEffect(() => {
     if (!openVisitedDialog) return;
@@ -327,7 +362,10 @@ export default function DashboardPage() {
       );
 
       if (!originalHasHome) {
-        originalVisitedRef.current = [...originalVisitedRef.current, normalizedHome];
+        originalVisitedRef.current = [
+          ...originalVisitedRef.current,
+          normalizedHome,
+        ];
       }
     }
   }, [homeCountryCode, isHomeFallbackEnabled, openVisitedDialog, visitedLocal]);
@@ -356,7 +394,9 @@ export default function DashboardPage() {
     }
     const normalizedQueryCode = normalizeCountryCode(q);
     const normalizedQueryName = normalizeSearchText(q);
-    const normalizedVisitedCodes = visitedLocal.map((code) => normalizeCountryCode(code));
+    const normalizedVisitedCodes = visitedLocal.map((code) =>
+      normalizeCountryCode(code)
+    );
     const existingCodeSet = new Set(normalizedVisitedCodes);
 
     const filtered = countries
@@ -388,7 +428,9 @@ export default function DashboardPage() {
 
       if (matchedCode) {
         const friendlyName = countryNameByCode[matchedCode] ?? matchedCode;
-        setDuplicateMessage(`${friendlyName} ya está en tu lista de países visitados.`);
+        setDuplicateMessage(
+          `${friendlyName} ya está en tu lista de países visitados.`
+        );
         return;
       }
     }
@@ -401,7 +443,9 @@ export default function DashboardPage() {
       const normalized = normalizeCountryCode(code);
       if (prev.some((item) => normalizeCountryCode(item) === normalized)) {
         const nameMatch = countryNameByCode[normalized] ?? code;
-        setDuplicateMessage(`${nameMatch} ya está en tu lista de países visitados.`);
+        setDuplicateMessage(
+          `${nameMatch} ya está en tu lista de países visitados.`
+        );
         return prev;
       }
       setDuplicateMessage(null);
@@ -428,7 +472,9 @@ export default function DashboardPage() {
     ) {
       setIsHomeFallbackEnabled(false);
     }
-    setVisitedLocal((prev) => prev.filter((c) => normalizeCountryCode(c) !== normalized));
+    setVisitedLocal((prev) =>
+      prev.filter((c) => normalizeCountryCode(c) !== normalized)
+    );
     setDuplicateMessage(null);
     setSaveError(null);
   };
@@ -482,7 +528,10 @@ export default function DashboardPage() {
       setOpenVisitedDialog(false);
       setShowUnsavedConfirm(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Ocurrió un error al guardar los cambios.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error al guardar los cambios.";
       setSaveError(message);
     } finally {
       setIsSavingVisited(false);
@@ -495,7 +544,10 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold text-gray-900 pl-3">Inicio</h1>
-            <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full px-6">
+            <Button
+              asChild
+              className="bg-sky-500 hover:bg-sky-700 rounded-full px-6"
+            >
               <Link href="/create">Crear nuevo itinerario</Link>
             </Button>
           </div>
@@ -505,101 +557,139 @@ export default function DashboardPage() {
             {/* User summary card (row 1) */}
             <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1">
               <CardHeader>
-                <CardTitle className="text-xl text-gray-900">Tu perfil</CardTitle>
+                <CardTitle className="text-xl text-gray-900">
+                  Tu perfil
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                  {!isInitialized || isLoading ? (
-                    <div className="space-y-3">
-                      <Skeleton className="h-5 w-2/3" />
-                      <Skeleton className="h-4 w-1/2" />
-                      <div className="grid grid-cols-3 gap-3">
-                        <Skeleton className="h-16" />
-                        <Skeleton className="h-16" />
-                        <Skeleton className="h-16" />
+                {!isInitialized || isLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <div className="grid grid-cols-3 gap-3">
+                      <Skeleton className="h-16" />
+                      <Skeleton className="h-16" />
+                      <Skeleton className="h-16" />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="mb-2">
+                      <div className="text-2xl font-semibold text-gray-900">
+                        {user?.first_name && user?.last_name
+                          ? `${user.first_name} ${user.last_name}`
+                          : user?.username || user?.email}
+                      </div>
+                      <div className="text-gray-600">
+                        {user?.city
+                          ? `${user.city}${
+                              user.country ? ", " + user.country : ""
+                            }`
+                          : user?.country || ""}
                       </div>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="mb-2">
-                        <div className="text-2xl font-semibold text-gray-900">
-                          {user?.first_name && user?.last_name
-                            ? `${user.first_name} ${user.last_name}`
-                            : user?.username || user?.email}
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {user?.total_trips_created ?? 0}
                         </div>
-                        <div className="text-gray-600">
-                          {user?.city ? `${user.city}${user.country ? ", " + user.country : ""}` : user?.country || ""}
-                        </div>
+                        <div className="text-xs text-gray-500">Itinerarios</div>
                       </div>
-                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
-                          <div className="text-lg font-bold text-gray-900">{user?.total_trips_created ?? 0}</div>
-                          <div className="text-xs text-gray-500">Itinerarios</div>
+                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {visitedCount}
                         </div>
-                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
-                          <div className="text-lg font-bold text-gray-900">{visitedCount}</div>
-                          <div className="text-xs text-gray-500">Países</div>
+                        <div className="text-xs text-gray-500">Países</div>
+                      </div>
+                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {user?.languages_spoken?.length ?? 0}
                         </div>
-                        <div className="rounded-2xl border border-gray-100 p-3 text-center">
-                          <div className="text-lg font-bold text-gray-900">{user?.languages_spoken?.length ?? 0}</div>
-                          <div className="text-xs text-gray-500">Idiomas</div>
+                        <div className="text-xs text-gray-500">Idiomas</div>
+                      </div>
+                      <div className="rounded-2xl border border-gray-100 p-3 text-center flex flex-col items-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {visitedPercentageLabel}%
                         </div>
-                        <div className="rounded-2xl border border-gray-100 p-3 text-center flex flex-col items-center">
-                          <div className="text-lg font-bold text-gray-900">{visitedPercentageLabel}%</div>
-                          <div className="text-xs text-gray-500">Mundo visitado</div>
-                          <div className="mt-2 w-full h-2 rounded-full bg-sky-100 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-sky-500 transition-all"
-                              style={{ width: `${visitedPercentage}%` }}
-                              aria-label={`Has visitado ${visitedPercentageLabel}% del mundo`}
-                            />
-                          </div>
-                          <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
-                            {visitedCount} / {TOTAL_COUNTRIES}
-                          </div>
+                        <div className="text-xs text-gray-500">
+                          Mundo visitado
+                        </div>
+                        <div className="mt-2 w-full h-2 rounded-full bg-sky-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-sky-500 transition-all"
+                            style={{ width: `${visitedPercentage}%` }}
+                            aria-label={`Has visitado ${visitedPercentageLabel}% del mundo`}
+                          />
+                        </div>
+                        <div className="mt-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                          {visitedCount} / {TOTAL_COUNTRIES}
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Traveler type card (row 2) */}
             <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1 lg:row-start-2">
               <CardHeader>
-                <CardTitle className="text-xl text-gray-900">Tipo de viajero</CardTitle>
+                <CardTitle className="text-xl text-gray-900">
+                  Tipo de viajero
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                  {loadingTravelerType ? (
-                    <div className="space-y-3">
-                      <Skeleton className="h-5 w-2/3" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-5/6" />
+                {loadingTravelerType ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </div>
+                ) : resolvedTravelerType ? (
+                  <div className="space-y-2">
+                    <div className="text-lg font-semibold text-gray-900">
+                      {resolvedTravelerType.name}
                     </div>
-                  ) : resolvedTravelerType ? (
-                    <div className="space-y-2">
-                      <div className="text-lg font-semibold text-gray-900">{resolvedTravelerType.name}</div>
-                      {resolvedTravelerType.description ? (
-                        <p className="text-sm text-gray-700">{resolvedTravelerType.description}</p>
-                      ) : (
-                        <p className="text-sm text-gray-600">Sin descripción disponible.</p>
-                      )}
-                      <div className="pt-2">
-                        <Button asChild variant="outline" className="rounded-full">
-                          <Link href="/traveler-type">Ver detalles</Link>
-                        </Button>
-                      </div>
+                    {resolvedTravelerType.description ? (
+                      <p className="text-sm text-gray-700">
+                        {resolvedTravelerType.description}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-600">
+                        Sin descripción disponible.
+                      </p>
+                    )}
+                    <div className="pt-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="rounded-full"
+                      >
+                        <Link href="/traveler-type">Ver detalles</Link>
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-700">Aún no tienes un tipo de viajero asignado.</p>
-                      <p className="text-sm text-gray-600">Realiza el test para descubrir tu perfil y obtener recomendaciones más personalizadas.</p>
-                      <div className="pt-2">
-                        <Button asChild className="rounded-full bg-sky-500 hover:bg-sky-700">
-                          <Link href="/traveler-test">Realizar test de viajero</Link>
-                        </Button>
-                      </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-700">
+                      Aún no tienes un tipo de viajero asignado.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Realiza el test para descubrir tu perfil y obtener
+                      recomendaciones más personalizadas.
+                    </p>
+                    <div className="pt-2">
+                      <Button
+                        asChild
+                        className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      >
+                        <Link href="/traveler-test">
+                          Realizar test de viajero
+                        </Link>
+                      </Button>
                     </div>
-                  )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -616,12 +706,11 @@ export default function DashboardPage() {
                   </div>
                   {/* Overlay header + action */}
                   <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">
-                    <Button 
-                        variant="outline"
-                        className="pointer-events-auto rounded-full bg-white/90 text-gray-900 border shadow px-3 py-1 text-sm"
-                        onClick={() => {}}
+                    <Button
+                      variant="outline"
+                      className="pointer-events-auto rounded-full bg-white/90 text-gray-900 border shadow px-3 py-1 text-sm"
+                      onClick={() => {}}
                     >
-                            
                       Países visitados
                     </Button>
                     <Button
@@ -629,8 +718,8 @@ export default function DashboardPage() {
                       className="pointer-events-auto rounded-full bg-white/90"
                       onClick={() => setOpenVisitedDialog(true)}
                     >
-                        <PlusIcon className="w-4 h-4" />
-                        Agregar países
+                      <PlusIcon className="w-4 h-4" />
+                      Agregar países
                     </Button>
                   </div>
                   {/* Dialog: Add visited countries (mock UI) */}
@@ -678,22 +767,29 @@ export default function DashboardPage() {
                                   className="w-full text-left px-4 py-2 hover:bg-sky-50 flex items-center justify-between"
                                 >
                                   <span>{s.name}</span>
-                                  <span className="text-xs text-gray-500">{s.code}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {s.code}
+                                  </span>
                                 </button>
                               ))}
                             </div>
                           )}
                           {duplicateMessage && (
-                            <p className="mt-2 text-sm text-red-500">{duplicateMessage}</p>
+                            <p className="mt-2 text-sm text-red-500">
+                              {duplicateMessage}
+                            </p>
                           )}
                         </div>
                         <div className="space-y-2">
-                          <div className="text-sm text-gray-600">Ya agregados</div>
+                          <div className="text-sm text-gray-600">
+                            Ya agregados
+                          </div>
                           <div className="flex flex-wrap gap-2">
                             {(visitedLocal ?? []).map((code) => {
                               const normalizedCode = normalizeCountryCode(code);
                               const displayName =
-                                countryNameByCode[normalizedCode] ?? normalizedCode;
+                                countryNameByCode[normalizedCode] ??
+                                normalizedCode;
                               return (
                                 <span
                                   key={`country-chip-${normalizedCode}`}
@@ -704,7 +800,9 @@ export default function DashboardPage() {
                                     type="button"
                                     className="inline-flex items-center justify-center h-5 w-5 rounded-full hover:bg-gray-100"
                                     aria-label={`Quitar ${displayName}`}
-                                    onClick={() => removeCountry(normalizedCode)}
+                                    onClick={() =>
+                                      removeCountry(normalizedCode)
+                                    }
                                   >
                                     <XIcon className="h-3.5 w-3.5 text-gray-500" />
                                   </button>
@@ -714,13 +812,19 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          {saveError && <p className="text-sm text-red-500 sm:mr-auto">{saveError}</p>}
+                          {saveError && (
+                            <p className="text-sm text-red-500 sm:mr-auto">
+                              {saveError}
+                            </p>
+                          )}
                           <Button
                             className="rounded-full bg-sky-500 hover:bg-sky-700"
                             disabled={!isDirty || isSavingVisited}
                             onClick={handleSaveVisitedCountries}
                           >
-                            {isSavingVisited ? "Guardando..." : "Guardar cambios"}
+                            {isSavingVisited
+                              ? "Guardando..."
+                              : "Guardar cambios"}
                           </Button>
                         </DialogFooter>
                       </div>
@@ -728,13 +832,17 @@ export default function DashboardPage() {
                   </Dialog>
 
                   {/* Unsaved changes confirmation */}
-                  <Dialog open={showUnsavedConfirm} onOpenChange={setShowUnsavedConfirm}>
+                  <Dialog
+                    open={showUnsavedConfirm}
+                    onOpenChange={setShowUnsavedConfirm}
+                  >
                     <DialogContent className="sm:max-w-[440px]">
                       <DialogHeader>
                         <DialogTitle>Hay cambios sin guardar</DialogTitle>
                       </DialogHeader>
                       <p className="text-sm text-gray-600 mb-4">
-                        ¿Quieres cerrar sin guardar los cambios o guardarlos ahora?
+                        ¿Quieres cerrar sin guardar los cambios o guardarlos
+                        ahora?
                       </p>
                       <DialogFooter>
                         <Button
@@ -773,7 +881,9 @@ export default function DashboardPage() {
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl text-gray-900">Tus itinerarios recientes</CardTitle>
+                    <CardTitle className="text-xl text-gray-900">
+                      Tus itinerarios recientes
+                    </CardTitle>
                     <Button asChild variant="outline" className="rounded-full">
                       <Link href="/itineraries">Ver todos</Link>
                     </Button>
@@ -788,24 +898,35 @@ export default function DashboardPage() {
                       <Skeleton className="h-24" />
                     </div>
                   ) : recentItins.length === 0 ? (
-                    <div className="text-sm text-gray-600">No hay itinerarios aún. ¡Crea tu primer itinerario!</div>
+                    <div className="text-sm text-gray-600">
+                      No hay itinerarios aún. ¡Crea tu primer itinerario!
+                    </div>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-4">
                       {recentItins.map((it) => (
-                        <Link key={it.itinerary_id} href={`/itinerary/${it.itinerary_id}`} className="group">
+                        <Link
+                          key={it.itinerary_id}
+                          href={`/itinerary/${it.itinerary_id}`}
+                          className="group"
+                        >
                           <div className="rounded-2xl border border-gray-100 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-start justify-between">
                               <div>
                                 <div className="text-base font-semibold text-gray-900 group-hover:text-sky-600">
                                   {it.trip_name}
                                 </div>
-                                <div className="text-sm text-gray-600">{it.destination || it.trip_name}</div>
+                                <div className="text-sm text-gray-600">
+                                  {it.destination || it.trip_name}
+                                </div>
                               </div>
                               <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
                                 {it.duration_days} días
                               </span>
                             </div>
-                            <div className="text-xs text-gray-400 mt-2">Creado el {new Date(it.created_at).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-400 mt-2">
+                              Creado el{" "}
+                              {new Date(it.created_at).toLocaleDateString()}
+                            </div>
                           </div>
                         </Link>
                       ))}
@@ -819,15 +940,26 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                 <CardHeader>
-                  <CardTitle className="text-xl text-gray-900">Acciones rápidas</CardTitle>
+                  <CardTitle className="text-xl text-gray-900">
+                    Acciones rápidas
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button asChild className="w-full rounded-full bg-sky-500 hover:bg-sky-700">
+                    <Button
+                      asChild
+                      className="w-full rounded-full bg-sky-500 hover:bg-sky-700"
+                    >
                       <Link href="/create">Crear itinerario</Link>
                     </Button>
-                    <Button asChild variant="outline" className="w-full rounded-full">
-                      <Link href="/traveler-test">Descubrir mi perfil viajero</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full rounded-full"
+                    >
+                      <Link href="/traveler-test">
+                        Descubrir mi perfil viajero
+                      </Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -839,5 +971,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-

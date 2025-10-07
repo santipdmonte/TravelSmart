@@ -14,16 +14,17 @@ interface FogOptions {
 const DEFAULT_VISITED_CODES = ["ARG"] as const;
 
 const normalizeCountryCode = (value: string | null | undefined): string =>
-  (value ?? "")
-    .trim()
-    .toUpperCase();
+  (value ?? "").trim().toUpperCase();
 
 interface PlainMapProps {
   visitedCountries?: string[];
   fallbackCountries?: string[];
 }
 
-export default function PlainMap({ visitedCountries, fallbackCountries }: PlainMapProps) {
+export default function PlainMap({
+  visitedCountries,
+  fallbackCountries,
+}: PlainMapProps) {
   const { user } = useAuth();
   const STORAGE_KEY = "dashboard_plain_map_view";
   const styleLoadedRef = useRef(false);
@@ -50,29 +51,26 @@ export default function PlainMap({ visitedCountries, fallbackCountries }: PlainM
   }, [token]);
 
   // Load persisted view state
-  const initialViewState = useMemo(
-    () => {
-      if (typeof window !== "undefined") {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && typeof parsed.longitude === "number") {
-              return parsed;
-            }
+  const initialViewState = useMemo(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed.longitude === "number") {
+            return parsed;
           }
-        } catch {}
-      }
-      return {
-        longitude: 0,
-        latitude: 20,
-        zoom: 2,
-        bearing: 0,
-        pitch: 0,
-      } as const;
-    },
-    []
-  );
+        }
+      } catch {}
+    }
+    return {
+      longitude: 0,
+      latitude: 20,
+      zoom: 2,
+      bearing: 0,
+      pitch: 0,
+    } as const;
+  }, []);
 
   // Persist view on moveend
   useEffect(() => {
@@ -159,7 +157,11 @@ export default function PlainMap({ visitedCountries, fallbackCountries }: PlainM
         >
           {/* Mock visited countries highlight */}
           {styleReady && (
-            <Source id="country-boundaries" type="vector" url="mapbox://mapbox.country-boundaries-v1">
+            <Source
+              id="country-boundaries"
+              type="vector"
+              url="mapbox://mapbox.country-boundaries-v1"
+            >
               {/* Soft fill for visited countries */}
               <Layer
                 id="visited-fill"
@@ -203,5 +205,3 @@ export default function PlainMap({ visitedCountries, fallbackCountries }: PlainM
     </div>
   );
 }
-
-
