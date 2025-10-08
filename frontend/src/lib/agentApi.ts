@@ -209,7 +209,7 @@ export async function sendAgentMessageStream(
 export async function getAgentState(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}?itinerary_id=${itineraryId}`);
 
   if (response.error) {
     return { error: response.error };
@@ -228,7 +228,7 @@ export async function getAgentState(
 export async function getAgentStateWithHIL(
   itineraryId: string
 ): Promise<ApiResponse<{ agentState: AgentState; hilResponse: HILResponse }>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}?itinerary_id=${itineraryId}`);
 
   if (response.error) {
     return { error: response.error };
