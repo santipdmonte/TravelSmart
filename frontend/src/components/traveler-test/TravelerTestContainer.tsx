@@ -173,74 +173,84 @@ export default function TravelerTestContainer() {
     : false;
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <h1 className="text-3xl font-bold text-center mb-2">
-        Descubre tu personalidad viajera
-      </h1>
-      <p className="text-center text-gray-600 mb-6">
-        Responde estas preguntas para obtener un perfil de viaje personalizado.
-      </p>
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">
+          Descubre tu personalidad viajera
+        </h1>
+        <p className="text-gray-600 text-lg">
+          Responde estas preguntas para obtener un perfil de viaje personalizado.
+        </p>
+      </div>
 
-      <TestProgressBar
-        current={currentQuestionIndex + 1}
-        total={questions.length}
-      />
-
-      {hasCurrent ? (
-        <QuestionCard
-          question={currentQuestion}
-          onAnswer={handleAnswer}
-          selectedOptionIds={answers[currentQuestion.id] || []}
-          isMultiSelect={currentIsMulti}
-        />
-      ) : (
-        <div className="mt-6">
-          <p className="text-center text-gray-600">
-            No hay preguntas disponibles en este momento.
-          </p>
+      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="p-6">
+          <TestProgressBar
+            current={currentQuestionIndex + 1}
+            total={questions.length}
+          />
         </div>
-      )}
 
-      {hasCurrent && (
-        <div className="mt-6 flex justify-between items-center">
-          <Button
-            variant="outline"
-            onClick={() =>
-              setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
-            }
-            disabled={currentQuestionIndex === 0}
-          >
-            Anterior
-          </Button>
+        {hasCurrent ? (
+          <QuestionCard
+            question={currentQuestion}
+            onAnswer={handleAnswer}
+            selectedOptionIds={answers[currentQuestion.id] || []}
+            isMultiSelect={currentIsMulti}
+          />
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-gray-600">
+              No hay preguntas disponibles en este momento.
+            </p>
+          </div>
+        )}
 
-          {isLastQuestion ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={!allAnswered || status === "submitting"}
-              size="lg"
-            >
-              {status === "submitting" ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" /> Enviando...
-                </>
+        {hasCurrent && (
+          <div className="p-6 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))
+                }
+                disabled={currentQuestionIndex === 0}
+                className="rounded-full px-6 py-2.5"
+              >
+                Anterior
+              </Button>
+
+              {isLastQuestion ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!allAnswered || status === "submitting"}
+                  className="rounded-full bg-sky-500 hover:bg-sky-700 shadow-lg hover:shadow-xl transform hover:scale-105 px-8 py-2.5"
+                >
+                  {status === "submitting" ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" /> Enviando...
+                    </>
+                  ) : (
+                    "Ver mis resultados"
+                  )}
+                </Button>
               ) : (
-                "Ver mis resultados"
+                <Button
+                  onClick={() =>
+                    setCurrentQuestionIndex((prev) =>
+                      Math.min(questions.length - 1, prev + 1)
+                    )
+                  }
+                  disabled={!currentQuestion || !canGoNext}
+                  className="rounded-full bg-sky-500 hover:bg-sky-700 shadow-lg hover:shadow-xl transform hover:scale-105 px-6 py-2.5"
+                >
+                  Siguiente
+                </Button>
               )}
-            </Button>
-          ) : (
-            <Button
-              onClick={() =>
-                setCurrentQuestionIndex((prev) =>
-                  Math.min(questions.length - 1, prev + 1)
-                )
-              }
-              disabled={!currentQuestion || !canGoNext}
-            >
-              Siguiente
-            </Button>
-          )}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

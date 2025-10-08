@@ -21,10 +21,10 @@ export default function Option({
       onClick={onClick}
       className={cn(
         // Fill parent height and center content vertically
-        "p-4 border rounded-lg text-left transition-all duration-200 flex flex-col items-center justify-center text-center overflow-hidden h-full w-full",
+        "p-6 border-2 rounded-2xl text-left transition-all duration-200 flex flex-col items-center justify-center text-center overflow-hidden h-full w-full shadow-sm hover:shadow-md",
         isSelected
-          ? "bg-amber-100 border-amber-500 ring-2 ring-amber-500"
-          : "bg-white hover:bg-gray-50 hover:border-gray-300",
+          ? "bg-sky-50 border-sky-500 ring-2 ring-sky-500 shadow-lg"
+          : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300",
         className
       )}
     >
@@ -40,9 +40,19 @@ export default function Option({
         </div>
       )}
       */}
-      <span className="font-semibold text-gray-800">{option.option}</span>
+      <span className={cn(
+        "font-semibold text-base",
+        isSelected ? "text-sky-800" : "text-gray-800"
+      )}>
+        {option.option}
+      </span>
       {option.description && (
-        <span className="text-sm text-gray-500 mt-1">{option.description}</span>
+        <span className={cn(
+          "text-sm mt-2 leading-relaxed",
+          isSelected ? "text-sky-600" : "text-gray-500"
+        )}>
+          {option.description}
+        </span>
       )}
     </button>
   );

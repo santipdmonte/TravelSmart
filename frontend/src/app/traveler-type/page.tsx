@@ -58,33 +58,50 @@ export default function TravelerTypePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Tu tipo de viajero</CardTitle>
-          <CardDescription>
-            {resolvedTravelerType ? "Basado en tu último test de viajero" : "Aún no has realizado el test de viajero"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {resolvedTravelerType ? (
-            <div className="space-y-3">
-              <h2 className="text-xl font-semibold">{resolvedTravelerType.name}</h2>
-              {resolvedTravelerType.description && (
-                <p className="text-muted-foreground whitespace-pre-line">{resolvedTravelerType.description}</p>
-              )}
-            </div>
-          ) : (
-            <p className="text-muted-foreground">Realiza el test para conocer tu tipo de viajero.</p>
-          )}
-
-          <div className="pt-2">
-            <Button asChild>
-              <Link href="/traveler-test">Volver a realizar test de viajero</Link>
-            </Button>
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 pl-3">Tu tipo de viajero</h1>
           </div>
-        </CardContent>
-      </Card>
+          
+          <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+            <CardHeader>
+              <CardTitle className="text-xl text-gray-900">Perfil de viajero</CardTitle>
+              <CardDescription className="text-gray-600">
+                {resolvedTravelerType ? "Basado en tu último test de viajero" : "Aún no has realizado el test de viajero"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {resolvedTravelerType ? (
+                <div className="space-y-4">
+                  <div className="p-6 bg-sky-50 rounded-2xl border border-sky-100">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3">{resolvedTravelerType.name}</h2>
+                    {resolvedTravelerType.description && (
+                      <p className="text-gray-700 whitespace-pre-line leading-relaxed">{resolvedTravelerType.description}</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-sky-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <span className="text-sky-600 text-2xl">🧳</span>
+                  </div>
+                  <p className="text-gray-600 mb-6">Realiza el test para conocer tu tipo de viajero y obtener recomendaciones personalizadas.</p>
+                </div>
+              )}
+
+              <div className="pt-4">
+                <Button asChild className="rounded-full bg-sky-500 hover:bg-sky-700 shadow-lg hover:shadow-xl transform hover:scale-105 px-8 py-3">
+                  <Link href="/traveler-test">
+                    {resolvedTravelerType ? "Volver a realizar test de viajero" : "Realizar test de viajero"}
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

@@ -17,7 +17,7 @@ export default function TestResultPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100">
+    <div className="bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <TestResult testId={testId} />
       </div>

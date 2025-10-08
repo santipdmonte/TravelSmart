@@ -22,62 +22,44 @@ export default function QuestionCard({
   isMultiSelect = false,
 }: QuestionCardProps) {
   return (
-    <Card className="mt-16 shadow-lg overflow-hidden">
-      <CardHeader>
-        {/*
-        {question.image_url && (
-          <div className="relative h-48 w-full mb-4">
-            <Image
-              src={question.image_url}
-              alt={question.question}
-              fill
-              className="rounded-lg object-cover"
-            />
-          </div>
-        )}
-        */}
-        <CardTitle className="text-xl text-center">
+    <div className="px-6 pb-6">
+      <div className="text-center mb-8">
+        <CardTitle className="text-2xl text-gray-900 mb-3">
           {question.question}
         </CardTitle>
-        {/*
-        {question.category && (
-          <CardDescription>Category: {question.category}</CardDescription>
-        )}
-        */}
         {isMultiSelect && (
-          <CardDescription className="text-amber-600 font-medium mt-1">
+          <CardDescription className="text-sky-600 font-medium">
             Puedes seleccionar más de una opción
           </CardDescription>
         )}
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          {question.question_options.map((option, idx) => {
-            const isLastSingle =
-              question.question_options.length % 2 === 1 &&
-              idx === question.question_options.length - 1;
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+        {question.question_options.map((option, idx) => {
+          const isLastSingle =
+            question.question_options.length % 2 === 1 &&
+            idx === question.question_options.length - 1;
 
-            return (
-              <div
-                key={option.id}
-                className={
-                  isLastSingle
-                    ? "h-full md:col-span-2 flex justify-center"
-                    : "h-full"
-                }
-              >
-                <Option
-                  option={option}
-                  isSelected={selectedOptionIds.includes(option.id)}
-                  onClick={() => onAnswer(question.id, option.id)}
-                  multi={isMultiSelect}
-                  className={isLastSingle ? "md:w-1/2" : undefined}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+          return (
+            <div
+              key={option.id}
+              className={
+                isLastSingle
+                  ? "h-full md:col-span-2 flex justify-center"
+                  : "h-full"
+              }
+            >
+              <Option
+                option={option}
+                isSelected={selectedOptionIds.includes(option.id)}
+                onClick={() => onAnswer(question.id, option.id)}
+                multi={isMultiSelect}
+                className={isLastSingle ? "md:w-1/2" : undefined}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
