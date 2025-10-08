@@ -76,9 +76,10 @@ export interface ItineraryBase {
   trip_name: string;
   trip_type: string | null;
   visibility: "private" | "public";
-  status: "draft" | "published";
+  status: "draft" | "confirmed";
   created_at: string;
   updated_at: string;
+  details_itinerary?: ItineraryDetails;
 }
 
 // Full itinerary interface (for detailed views)
