@@ -18,6 +18,8 @@ export interface ToolCall {
   args: {
     new_itinerary?: unknown;
     new_itinerary_modifications_summary?: string;
+    new_activities_day?: unknown;
+    new_activities_day_modifications_summary?: string;
   };
 }
 
