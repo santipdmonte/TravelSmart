@@ -24,7 +24,29 @@ export interface Destino {
   latitude?: number;
   longitude?: number;
   dias_en_destino: number;
-  actividades_sugeridas: string[];
+  // Optional helper copy for stays
+  sugerencias_alojamiento?: string;
+}
+
+export interface ActivityItinerary {
+  titulo: string; // Title or name of the activity
+  descripcion: string; // Brief description
+  horarios: string; // Schedule (range or open/close or recommendations)
+  precio: string; // Price (approximate if applicable)
+  requisitos_reserva: string; // Booking requirements (if applicable)
+  enlace: string; // Link to booking or official page (if applicable)
+  ubicacion: string; // Location (address / neighborhood / zone)
+  transporte_recomendado: string; // Recommended transport from previous activity
+}
+
+export interface DailyItineraryItem {
+  dia: string; // Day number (1, 2, 3, etc.)
+  ciudad: string; // City for this day
+  pais: string; // Country for this day
+  titulo: string; // Title of the day
+  actividades_mañana: ActivityItinerary[]; // Morning activities
+  actividades_tarde: ActivityItinerary[]; // Afternoon activities
+  actividades_noche: ActivityItinerary[]; // Evening activities
 }
 
 export interface ItineraryDetails {
@@ -35,6 +57,11 @@ export interface ItineraryDetails {
   justificacion_ruta_elegida: string;
   destinos: Destino[];
   transportes_entre_destinos?: TransporteEntreDestinos[] | null;
+  // New structured daily itinerary fields (added after route confirmation)
+  itinerario_diario?: DailyItineraryItem[];
+  resumen_itinerario?: string;
+  recomendaciones_generales?: string;
+  actividades_extras?: string;
 }
 
 // Base itinerary interface (for list views)

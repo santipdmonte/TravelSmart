@@ -26,7 +26,14 @@ import {
   Textarea,
   Alert,
   AlertDescription,
+  Slider,
 } from "@/components";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Opciones
 const WHEN_OPTIONS = [
@@ -75,6 +82,47 @@ const FOOD_PREFS = [
   "gluten_free",
   "budget",
   "fine_dining",
+] as const;
+
+const BUDGET_OPTIONS = [
+  { 
+    key: "economico", 
+    label: "Economico",
+    description: "Viaja ligero, vive la aventura y descubre cada rincón gastando lo mínimo. Ideal para quienes buscan experiencias auténticas sin preocuparse por el lujo"
+  },
+  { 
+    key: "intermedio", 
+    label: "Intermedio",
+    description: "Equilibrio perfecto entre cuidar el bolsillo y disfrutar con comodidad. Una forma flexible y eficiente de viajar sin complicaciones."
+  },
+  { 
+    key: "confort", 
+    label: "Confort",
+    description: "Viaja sin preocupaciones y con todo a tu alcance. Perfecto si valoras la comodidad y quieres experiencias bien organizadas y agradables"
+  },
+  { 
+    key: "lujo", 
+    label: "Lujo",
+    description: "Exclusividad, atención al detalle y experiencias inolvidables. La manera más sofisticada de viajar y disfrutar cada destino al máximo."
+  },
+] as const;
+
+const TRAVEL_PACE_OPTIONS = [
+  {
+    key: "relax",
+    label: "Relax",
+    description: "Viaja sin prisa, disfruta cada momento y relájate. Ideal si buscas descanso y tiempo para saborear cada destino."
+  },
+  {
+    key: "equilibrado",
+    label: "Equilibrado",
+    description: "Un ritmo armonioso entre explorar y descansar. Perfecto para quienes quieren ver cosas sin agotarse."
+  },
+  {
+    key: "activo",
+    label: "Activo",
+    description: "Mantente en movimiento y descubre mucho en cada día. Ideal si te gusta aprovechar el tiempo y experimentar varias actividades."
+  },
 ] as const;
 
 const TRIP_TYPE_LABELS: Record<(typeof TRIP_TYPES)[number], string> = {
@@ -222,10 +270,11 @@ const createItinerarySchema = z.object({
         )
         .optional(),
       budget: z
-        .string()
-        .regex(/^\d+$/u, "Usa solo números")
+        .enum(["economico", "intermedio", "confort", "lujo"])
         .optional(),
-      budget_currency: z.literal("USD").optional(),
+      travel_pace: z
+        .enum(["relax", "equilibrado", "activo"])
+        .optional(),
       notes: z.string().max(250).optional(),
     })
     .optional(),
@@ -254,8 +303,8 @@ export default function CreateItineraryPage() {
         city_view: undefined,
         travel_styles: [],
         food_preferences: [],
-        budget: undefined,
-        budget_currency: "USD",
+        budget: "intermedio",
+        travel_pace: "equilibrado",
         notes: "",
       },
     },
@@ -304,11 +353,6 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          if (k === "budget") {
-            const asNum = typeof v === "string" ? Number(v) : (v as number);
-            if (!Number.isNaN(asNum)) acc[k] = asNum;
-            return acc;
-          }
           acc[k] = v as unknown;
           return acc;
         },
@@ -376,11 +420,6 @@ export default function CreateItineraryPage() {
       });
       const cleanedPreferences = cleanedEntries.reduce<Record<string, unknown>>(
         (acc, [k, v]) => {
-          if (k === "budget") {
-            const asNum = typeof v === "string" ? Number(v) : (v as number);
-            if (!Number.isNaN(asNum)) acc[k] = asNum;
-            return acc;
-          }
           acc[k] = v as unknown;
           return acc;
         },
@@ -479,10 +518,10 @@ export default function CreateItineraryPage() {
                       name="trip_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="pl-3 pb-1 text-gray-800">Destino</FormLabel>
+                          <FormLabel className="pl-3 pb-1 text-gray-800">Destinos</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="¿Donde quieres ir?"
+                              placeholder="¿Donde quieres viajar?"
                               className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-rose-500 focus:border-rose-500 placeholder:text-gray-400"
                               disabled={loading}
                               {...field}
@@ -587,60 +626,208 @@ export default function CreateItineraryPage() {
                       )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="preferences.budget"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="flex items-center gap-3">
-                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto (USD)</FormLabel>
-                              {field.value !== undefined && (
-                                <button
-                                  type="button"
-                                  onClick={() => field.onChange(undefined)}
-                                  className="text-sm text-gray-500 hover:underline"
-                                >
-                                  limpiar
-                                </button>
-                              )}
-                            </div>
-                            <FormControl>
-                              <Input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                placeholder="¿Presupuesto por persona?"
-                                className="pl-6 h-14 text-base rounded-full border-gray-200 shadow-md focus:ring-sky-500 focus:border-sky-500 placeholder:text-gray-400"
-                                disabled={loading}
-                                value={(field.value as string | undefined) ?? ""}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value === "" || /^\d+$/.test(value)) {
-                                    field.onChange(value);
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <FormField
+                      control={form.control}
+                      name="preferences.budget"
+                      render={({ field }) => {
+                        const budgetIndex = field.value 
+                          ? BUDGET_OPTIONS.findIndex(opt => opt.key === field.value)
+                          : -1;
+                        
+                        const handleSliderChange = (value: number[]) => {
+                          field.onChange(BUDGET_OPTIONS[value[0]].key);
+                        };
 
-                      <FormField
-                        control={form.control}
-                        name="preferences.budget_currency"
-                        render={({ field }) => (
-                          <input type="hidden" value={field.value ?? "USD"} readOnly />
-                        )}
-                      />
-                    </div>
+                        return (
+                          <FormItem>
+                            <div className="flex items-center gap-3 mb-2">
+                              <FormLabel className="pl-3 pb-1 text-gray-800">Presupuesto*</FormLabel>
+                            </div>
+                            <div className="px-4 py-6">
+                              {/* Selected Value Display */}
+                              {budgetIndex >= 0 && (
+                                <div className="text-center mb-6">
+                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md">
+                                    {BUDGET_OPTIONS[budgetIndex].label}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Slider */}
+                              <div className="relative">
+                                {/* Centered slider at 80% width */}
+                                <div className="flex justify-center mb-4">
+                                  <div className="w-4/5">
+                                    <FormControl>
+                                      <Slider
+                                        min={0}
+                                        max={3}
+                                        step={1}
+                                        value={budgetIndex >= 0 ? [budgetIndex] : [1]}
+                                        onValueChange={handleSliderChange}
+                                        disabled={loading}
+                                        className="w-full"
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                
+                                {/* Labels below slider - full width */}
+                                <TooltipProvider>
+                                  <div className="flex justify-between px-1">
+                                    {BUDGET_OPTIONS.map((opt, idx) => (
+                                      <Tooltip key={opt.key} delayDuration={200}>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            onClick={() => field.onChange(opt.key)}
+                                            className={`text-xs font-medium transition-colors ${
+                                              budgetIndex === idx 
+                                                ? 'text-sky-600 font-semibold' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                            style={{ width: '25%', textAlign: 'center' }}
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent 
+                                          className="max-w-xs bg-gray-900 text-white p-3"
+                                          sideOffset={5}
+                                        >
+                                          <p className="text-xs leading-relaxed">{opt.description}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                  </div>
+                                </TooltipProvider>
+                              </div>
+                            </div>
+                          </FormItem>
+                        );
+                      }}
+                    />
                   </div>
                 )}
 
-                {/* Card 3: Compañía y Estilo de visita */}
+                {/* Card 3: Estilo de visita y Ritmo de viaje */}
                 {step === 3 && (
                   <div className="space-y-8">
+                    <FormField
+                      control={form.control}
+                      name="preferences.city_view"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-3">
+                            <FormLabel className="pl-3 pb-1 text-gray-800">¿Como te gustaría ver el destino?</FormLabel>
+                            {field.value && (
+                              <button
+                                type="button"
+                                onClick={() => field.onChange(undefined)}
+                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                              >
+                                limpiar
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-3">
+                            {(["touristy", "local", "off_beaten"] as const).map((key) => (
+                              <Chip key={key} active={field.value === key} onClick={() => field.onChange(key)}>
+                                {CITY_VIEW_LABELS[key]}
+                              </Chip>
+                            ))}
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="preferences.travel_pace"
+                      render={({ field }) => {
+                        const paceIndex = field.value 
+                          ? TRAVEL_PACE_OPTIONS.findIndex(opt => opt.key === field.value)
+                          : -1;
+                        
+                        const handleSliderChange = (value: number[]) => {
+                          field.onChange(TRAVEL_PACE_OPTIONS[value[0]].key);
+                        };
+
+                        return (
+                          <FormItem>
+                            <div className="flex items-center gap-3 mb-2">
+                              <FormLabel className="pl-3 pb-1 text-gray-800">Ritmo de viaje*</FormLabel>
+                            </div>
+                            <div className="px-4 py-6">
+                              {/* Selected Value Display */}
+                              {paceIndex >= 0 && (
+                                <div className="text-center mb-6">
+                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md">
+                                    {TRAVEL_PACE_OPTIONS[paceIndex].label}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Slider */}
+                              <div className="relative">
+                                {/* Centered slider at 80% width */}
+                                <div className="flex justify-center mb-4">
+                                  <div className="w-4/5">
+                                    <FormControl>
+                                      <Slider
+                                        min={0}
+                                        max={2}
+                                        step={1}
+                                        value={paceIndex >= 0 ? [paceIndex] : [1]}
+                                        onValueChange={handleSliderChange}
+                                        disabled={loading}
+                                        className="w-full"
+                                      />
+                                    </FormControl>
+                                  </div>
+                                </div>
+                                
+                                {/* Labels below slider - full width */}
+                                <TooltipProvider>
+                                  <div className="flex justify-between px-1">
+                                    {TRAVEL_PACE_OPTIONS.map((opt, idx) => (
+                                      <Tooltip key={opt.key} delayDuration={200}>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            type="button"
+                                            onClick={() => field.onChange(opt.key)}
+                                            className={`text-xs font-medium transition-colors ${
+                                              paceIndex === idx 
+                                                ? 'text-sky-600 font-semibold' 
+                                                : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                            style={{ width: '33.33%', textAlign: 'center' }}
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent 
+                                          className="max-w-xs bg-gray-900 text-white p-3"
+                                          sideOffset={5}
+                                        >
+                                          <p className="text-xs leading-relaxed">{opt.description}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                  </div>
+                                </TooltipProvider>
+                              </div>
+                            </div>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Card 4: Compañía y Notas */}
+                {step === 4 && (
+                  <div className="space-y-6">
                     <FormField
                       control={form.control}
                       name="preferences.trip_type"
@@ -669,39 +856,6 @@ export default function CreateItineraryPage() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="preferences.city_view"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center gap-3">
-                            <FormLabel className="pl-3 pb-1 text-gray-800">¿Como te gustaría ver el destino?</FormLabel>
-                            {field.value && (
-                              <button
-                                type="button"
-                                onClick={() => field.onChange(undefined)}
-                                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
-                              >
-                                limpiar
-                              </button>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-3">
-                            {(["touristy", "local", "off_beaten"] as const).map((key) => (
-                              <Chip key={key} active={field.value === key} onClick={() => field.onChange(key)}>
-                                {CITY_VIEW_LABELS[key]}
-                              </Chip>
-                            ))}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                {/* Card 4: Notas */}
-                {step === 4 && (
-                  <div className="space-y-6">
                     <FormField
                       control={form.control}
                       name="preferences.notes"

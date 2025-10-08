@@ -22,42 +22,77 @@ export function parseHILResponse(response: AgentResponse): HILResponse {
     const lastMessage = agentState.messages[agentState.messages.length - 1];
     
     if (lastMessage?.type === 'ai' && lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-      const toolCall = lastMessage.tool_calls.find(tc => tc.name === 'apply_itinerary_modifications');
+      // Check for apply_itinerary_modifications or modify_activities
+      const toolCall = lastMessage.tool_calls.find(
+        tc => tc.name === 'apply_itinerary_modifications' || tc.name === 'modify_activities'
+      );
       
       if (toolCall) {
         // Check for HIL confirmation message in the complex response structure
         const hilData = response[6]; // Array containing HIL information
         
         if (hilData && Array.isArray(hilData) && hilData.length > 0) {
-          const hilEntry = hilData[0];
-          // Type guard for hilEntry structure
-          if (hilEntry && 
-              typeof hilEntry === 'object' && 
-              hilEntry !== null &&
-              '4' in hilEntry &&
-              Array.isArray((hilEntry as Record<string, unknown>)[4]) &&
-              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] &&
-              typeof ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] === 'object' &&
-              ((hilEntry as Record<string, unknown>)[4] as unknown[])[0] !== null &&
-              'value' in (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>)) {
-            
-            const value = (((hilEntry as Record<string, unknown>)[4] as unknown[])[0] as Record<string, unknown>).value;
-            
+          let hilMessage: string | null = null;
+          
+          // Try different HIL structures
+          // Structure 1: response[6][0] is array -> response[6][0][0][4][0].value
+          if (Array.isArray(hilData[0]) && hilData[0].length > 0) {
+            const hilEntry = hilData[0][0];
+            if (hilEntry && 
+                typeof hilEntry === 'object' && 
+                hilEntry !== null &&
+                '4' in hilEntry &&
+                Array.isArray((hilEntry as Record<string, unknown>)[4])) {
+              
+              const valueObj = ((hilEntry as Record<string, unknown>)[4] as unknown[])[0];
+              if (valueObj && 
+                  typeof valueObj === 'object' && 
+                  valueObj !== null &&
+                  'value' in (valueObj as Record<string, unknown>)) {
+                hilMessage = (valueObj as Record<string, unknown>).value as string;
+              }
+            }
+          }
+          
+          // Structure 2: response[6][0] is object -> response[6][0][4][0].value
+          if (!hilMessage) {
+            const hilEntry = hilData[0];
+            if (hilEntry && 
+                typeof hilEntry === 'object' && 
+                hilEntry !== null &&
+                '4' in hilEntry &&
+                Array.isArray((hilEntry as Record<string, unknown>)[4])) {
+              
+              const valueObj = ((hilEntry as Record<string, unknown>)[4] as unknown[])[0];
+              if (valueObj && 
+                  typeof valueObj === 'object' && 
+                  valueObj !== null &&
+                  'value' in (valueObj as Record<string, unknown>)) {
+                hilMessage = (valueObj as Record<string, unknown>).value as string;
+              }
+            }
+          }
+          
+          if (hilMessage) {
             return {
               isHIL: true,
-              confirmationMessage: typeof value === 'string' ? value : 'Confirm changes?',
-              proposedChanges: toolCall.args.new_itinerary,
-              summary: toolCall.args.new_itinerary_modifications_summary
+              confirmationMessage: hilMessage,
+              proposedChanges: toolCall.args.new_itinerary || toolCall.args.new_activities_day,
+              summary: toolCall.args.new_itinerary_modifications_summary || 
+                       toolCall.args.new_activities_day_modifications_summary
             };
           }
         }
         
         // Fallback: if we have tool calls but no HIL structure, still might be HIL
+        const summary = toolCall.args.new_itinerary_modifications_summary || 
+                       toolCall.args.new_activities_day_modifications_summary;
+        
         return {
           isHIL: true,
-          confirmationMessage: `¿Confirmas estos cambios? ${toolCall.args.new_itinerary_modifications_summary || ''}`,
-          proposedChanges: toolCall.args.new_itinerary,
-          summary: toolCall.args.new_itinerary_modifications_summary
+          confirmationMessage: `¿Confirmas estos cambios? ${summary || ''}`,
+          proposedChanges: toolCall.args.new_itinerary || toolCall.args.new_activities_day,
+          summary: summary
         };
       }
     }
@@ -209,7 +244,7 @@ export async function sendAgentMessageStream(
 export async function getAgentState(
   itineraryId: string
 ): Promise<ApiResponse<AgentState>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}?itinerary_id=${itineraryId}`);
 
   if (response.error) {
     return { error: response.error };
@@ -228,7 +263,7 @@ export async function getAgentState(
 export async function getAgentStateWithHIL(
   itineraryId: string
 ): Promise<ApiResponse<{ agentState: AgentState; hilResponse: HILResponse }>> {
-  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}`);
+  const response = await agentApiRequest<AgentResponse>(`/api/itineraries/agent/${itineraryId}?itinerary_id=${itineraryId}`);
 
   if (response.error) {
     return { error: response.error };

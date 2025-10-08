@@ -4,10 +4,12 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ItineraryProvider } from "@/contexts/ItineraryContext";
 import { ChatProvider } from "@/contexts/AgentContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { __warnMissingApiBaseIfNeeded } from "@/lib/config";
 import ClientTravelerTestWelcome from "@/components/traveler-test/ClientTravelerTestWelcome";
+import { Toast } from "@/components/Toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,18 +42,22 @@ export default function RootLayout({
         <AuthProvider>
           <ItineraryProvider>
             <ChatProvider>
-              <SidebarProvider className="bg-gray-50">
-                <AppSidebar />
-                <SidebarInset>
-                  <div className="flex h-12 items-center gap-2 px-2 bg-gray-50">
-                    <SidebarTrigger />
-                    <span className="text-sm text-muted-foreground">Menú</span>
-                  </div>
-                  {children}
-                  {/* Client-only welcome traveler test prompt */}
-                  <ClientTravelerTestWelcome />
-                </SidebarInset>
-              </SidebarProvider>
+              <ToastProvider>
+                <SidebarProvider className="bg-gray-50">
+                  <AppSidebar />
+                  <SidebarInset>
+                    <div className="flex h-12 items-center gap-2 px-2 bg-gray-50">
+                      <SidebarTrigger />
+                      <span className="text-sm text-muted-foreground">Menú</span>
+                    </div>
+                    {children}
+                    {/* Client-only welcome traveler test prompt */}
+                    <ClientTravelerTestWelcome />
+                  </SidebarInset>
+                </SidebarProvider>
+                {/* Global Toast Notifications */}
+                <Toast />
+              </ToastProvider>
             </ChatProvider>
           </ItineraryProvider>
         </AuthProvider>

@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useItinerary } from "@/contexts/ItineraryContext";
 import { useItineraryActions } from "@/hooks/useItineraryActions";
 import { useChat } from "@/contexts/AgentContext";
 import { useChatActions } from "@/hooks/useChatActions";
+import { useToast } from "@/contexts/ToastContext";
 import { ChatPanel } from "@/components/chat";
 import { apiRequest } from "@/lib/api";
 import {
@@ -15,6 +16,7 @@ import {
   softDeleteAccommodation,
 } from "@/lib/accommodationApi";
 import { AccommodationResponse } from "@/types/accommodation";
+import type { Itinerary } from "@/types/itinerary";
 import { FloatingEditButton, Button, Input } from "@/components";
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
 import {
@@ -49,15 +51,22 @@ import {
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { currentItinerary, loading, error } = useItinerary();
   const { fetchItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
   const { clearChat, openChat, sendMessage } = useChatActions();
+  const { toastState, showToast } = useToast();
 
   const itineraryId = params.id as string;
+  
+  // Get initial tab from URL query param or default to "route"
+  const tabFromUrl = searchParams.get("tab") || "route";
 
   // Hover state for destinations (used by map) - declare early before any returns
   const [hoveredDestinationIndex, setHoveredDestinationIndex] = useState<
@@ -72,7 +81,7 @@ export default function ItineraryDetailsPage() {
   const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
   const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
   // Route tab no longer supports editing or reordering
-  const [activeTab, setActiveTab] = useState<string>("route");
+  const [activeTab, setActiveTab] = useState<string>(tabFromUrl);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
   const [tripStartDate, setTripStartDate] = useState<string>("");
   const [tripTravelersCount, setTripTravelersCount] = useState<number>(1);
@@ -84,6 +93,78 @@ export default function ItineraryDetailsPage() {
     useState<boolean>(false);
   // Toggle state for transport alternatives per item index
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
+  // Expand/collapse for daily itinerary details per destination
+  const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
+  // Expand/collapse for individual activities (by day index and activity index)
+  const [openActivities, setOpenActivities] = useState<Record<string, boolean>>({});
+  // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
+  const renderMarkdown = useCallback(function renderMarkdown(md: string) {
+    try {
+      const escapeHtml = (str: string) =>
+        str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      const lines = md.split(/\r?\n/);
+      let html = "";
+      let inList = false;
+      const flushList = () => {
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+      };
+      for (let raw of lines) {
+        let line = raw;
+        // Headings
+        const h3 = line.match(/^###\s+(.*)$/);
+        const h2 = line.match(/^##\s+(.*)$/);
+        const h1 = line.match(/^#\s+(.*)$/);
+        if (h3 || h2 || h1) {
+          flushList();
+          const text = escapeHtml((h3?.[1] || h2?.[1] || h1?.[1] || "").trim());
+          if (h1) html += `<h1 class=\"text-xl font-semibold mt-3 mb-2\">${text}</h1>`;
+          else if (h2) html += `<h2 class=\"text-lg font-semibold mt-3 mb-2\">${text}</h2>`;
+          else html += `<h3 class=\"text-base font-semibold mt-3 mb-2\">${text}</h3>`;
+          continue;
+        }
+        // Unordered list
+        const li = line.match(/^\s*[-*]\s+(.*)$/);
+        if (li) {
+          if (!inList) {
+            html += '<ul class=\"list-disc pl-5 space-y-1\">';
+            inList = true;
+          }
+          let item = escapeHtml(li[1]);
+          item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
+          item = item.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
+          item = item.replace(/_(.*?)_/g, '<em>$1<\/em>');
+          html += `<li>${item}</li>`;
+          continue;
+        }
+        // Empty line -> paragraph break
+        if (!line.trim()) {
+          flushList();
+          html += "<br/>";
+          continue;
+        }
+        // Paragraph
+        flushList();
+        let paragraph = escapeHtml(line);
+        paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
+        paragraph = paragraph.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
+        paragraph = paragraph.replace(/_(.*?)_/g, '<em>$1<\/em>');
+        html += `<p class=\"leading-relaxed\">${paragraph}</p>`;
+      }
+      if (inList) html += "</ul>";
+      return html;
+    } catch (_) {
+      return md;
+    }
+  }, []);
+  // Confirm route modal state
+  const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
+  const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -203,6 +284,24 @@ export default function ItineraryDetailsPage() {
     }
   }, [activeTab, fetchSavedAccommodations]);
 
+  // Sync activeTab with URL query param
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
+
+  // Helper function to change tab and update URL
+  const handleTabChange = useCallback((newTab: string) => {
+    setActiveTab(newTab);
+    // Update URL with new tab param using replaceState (faster, no navigation)
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", newTab);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -258,16 +357,7 @@ export default function ItineraryDetailsPage() {
 
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
-
-  const handleAskMoreInfo = async (city: string, activity: string) => {
-    try {
-      await openChat(itineraryId);
-      const msg = `Me gustaria saber mas informacion sobre la actividad sugerida "${activity}" de ${city}`;
-      await sendMessage(itineraryId, msg);
-    } catch (_) {
-      // no-op
-    }
-  };
+  const isRouteConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
 
   const handleSetTransportPrimary = async (fromCity: string, toCity: string, transport: string) => {
     try {
@@ -276,6 +366,56 @@ export default function ItineraryDetailsPage() {
       await sendMessage(itineraryId, msg);
     } catch (_) {
       // no-op
+    }
+  };
+
+  const handleGenerateDailyActivities = async () => {
+    setIsConfirmRouteOpen(true);
+  };
+
+  const handleConfirmRoute = async () => {
+    setIsConfirmRouteOpen(true);
+  };
+
+  const handleConfirmRouteProceed = async () => {
+    try {
+      setConfirmingRoute(true);
+      // Close modal immediately and switch to activities tab
+      setIsConfirmRouteOpen(false);
+      handleTabChange("itinerary");
+      
+      // Show pending toast
+      showToast("pending", "Generando actividades diarias...", "", 5000);
+      
+      // Fire POST request and track its status
+      (async () => {
+        try {
+          const response = await apiRequest(`/api/itineraries/${itineraryId}/route_confirmed`, {
+            method: "POST",
+          });
+          
+          if (response.data && !response.error) {
+            // Success: show toast for 4 seconds with link to activities tab
+            showToast("success", "¡Actividades diarias generadas!", `<a href="/itinerary/${itineraryId}?tab=itinerary">Ver en Actividades</a>`, 4000);
+            // Refresh to get updated itinerary with confirmed status
+            fetchItinerary(itineraryId);
+          } else {
+            // Error response or no data - only log if unexpected
+            const errorMsg = response.error || "Unknown error";
+            // Only log 5xx server errors, not 4xx client errors
+            if (!errorMsg.includes("404") && !errorMsg.includes("400") && !errorMsg.includes("403")) {
+              console.error("Error confirming route:", errorMsg);
+            }
+            showToast("error", "Error al generar actividades", "Inténtalo de nuevo más tarde", 5000);
+          }
+        } catch (err) {
+          // Unexpected errors (network, etc)
+          console.error("Unexpected error confirming route:", err);
+          showToast("error", "Error al confirmar", "Inténtalo de nuevo más tarde", 5000);
+        }
+      })();
+    } finally {
+      setConfirmingRoute(false);
     }
   };
 
@@ -365,7 +505,7 @@ export default function ItineraryDetailsPage() {
 
           {/* Tabs container */}
           <div>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <div className="flex justify-between">
                 <div>
                   <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
@@ -378,12 +518,6 @@ export default function ItineraryDetailsPage() {
                       </TabsTrigger>
                     )}
                     <TabsTrigger
-                      value="itinerary"
-                      className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
-                    >
-                      Actividades
-                    </TabsTrigger>
-                    <TabsTrigger
                       value="transport"
                       className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
                     >
@@ -394,6 +528,12 @@ export default function ItineraryDetailsPage() {
                       className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
                     >
                       Alojamientos
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="itinerary"
+                      className="rounded-full px-4 py-2 data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700"
+                    >
+                      Actividades
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -425,54 +565,204 @@ export default function ItineraryDetailsPage() {
               </div>
 
               <TabsContent value="itinerary">
-                {/* Destinations */}
-                <div className="space-y-4">
-                  {details_itinerary.destinos.map((destination, destIndex) => (
-                    <div
-                      key={destIndex}
-                      className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
-                            <MapPinIcon className="w-4 h-4" />
+                {!isRouteConfirmed && (
+                  <>
+                    {toastState.status === "idle" ? (
+                      <div className="flex items-center justify-center min-h-[400px] px-4">
+                        <div className="max-w-2xl w-full">
+                          <div className="bg-gradient-to-br from-sky-50 to-blue-50 border-2 border-sky-300 rounded-2xl shadow-lg p-8">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center mb-4">
+                                <CircleHelpIcon className="h-8 w-8 text-white" />
+                              </div>
+                              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                Confirma tu ruta para continuar
+                              </h3>
+                              <p className="text-base text-gray-700 mb-6 leading-relaxed max-w-xl">
+                                Luego de confirmar la ruta elegida (destinos y días) se generarán las actividades diarias organizadas por mañana, tarde y noche, con detalles como horarios, precios, ubicaciones y links de reserva.
+                              </p>
+                              <Button
+                                size="lg"
+                                className="rounded-full bg-sky-500 hover:bg-sky-700 text-white px-8 py-6 text-lg font-semibold shadow-md"
+                                onClick={handleGenerateDailyActivities}
+                              >
+                                Confirmar ruta y generar actividades diarias
+                              </Button>
+                            </div>
                           </div>
-                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-                            {destination.ciudad}
-                          </h2>
                         </div>
-                        <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap flex-shrink-0">
-                          {destination.dias_en_destino} días
-                        </span>
                       </div>
-                      <div className="ml-11">
-                        <div className="h-px bg-gray-200 mb-2"></div>
-                        {Array.isArray(destination.actividades_sugeridas) && destination.actividades_sugeridas.length > 0 ? (
-                          <ul className="pl-0 list-none text-gray-900 space-y-1">
-                            {destination.actividades_sugeridas.map((actividad, i) => (
-                              <li key={`act-${destIndex}-${i}`}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
+                    ) : (
+                      <div className="flex items-center justify-center min-h-[400px] px-4">
+                        <div className="max-w-2xl w-full">
+                          <div className="bg-gradient-to-br from-sky-50 to-blue-50 border-2 border-sky-300 rounded-2xl shadow-lg p-8">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="relative w-20 h-20 mb-6">
+                                <div className="absolute inset-0 rounded-full border-4 border-sky-200"></div>
+                                <div className="absolute inset-0 rounded-full border-4 border-sky-500 border-t-transparent animate-spin"></div>
+                              </div>
+                              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                Generando actividades diarias...
+                              </h3>
+                              <p className="text-base text-gray-700 leading-relaxed max-w-xl">
+                                Estamos creando tu itinerario personalizado con actividades organizadas por horarios, precios, ubicaciones y enlaces de reserva.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                {/* Check if we have itinerario_diario in details_itinerary */}
+                {isRouteConfirmed && Array.isArray(details_itinerary.itinerario_diario) && details_itinerary.itinerario_diario.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Display resumen_itinerario if available */}
+                    {details_itinerary.resumen_itinerario && (
+                      <div className="rounded-2xl border border-gray-100 p-6 bg-white shadow-sm">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-3">Resumen del Itinerario</h2>
+                        <div className="h-px bg-gray-200 mb-4"></div>
+                        <div
+                          className="prose max-w-none text-gray-800"
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(details_itinerary.resumen_itinerario) }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Display daily itineraries - Days shown expanded, activities collapsed */}
+                    {details_itinerary.itinerario_diario.map((dailyItem: any, dayIndex: number) => {
+                      const renderActivitySection = (activities: any[], timeOfDay: string) => {
+                        if (!Array.isArray(activities) || activities.length === 0) return null;
+                        
+                        return (
+                          <div className="mb-4">
+                            <h4 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
+                              {timeOfDay === 'mañana' && '🌅 Mañana'}
+                              {timeOfDay === 'tarde' && '☀️ Tarde'}
+                              {timeOfDay === 'noche' && '🌙 Noche'}
+                            </h4>
+                            <div className="space-y-2">
+                              {activities.map((activity, actIdx) => {
+                                const activityKey = `${dayIndex}-${timeOfDay}-${actIdx}`;
+                                const isActivityOpen = !!openActivities[activityKey];
+                                
+                                return (
+                                  <div
+                                    key={activityKey}
+                                    className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
+                                  >
                                     <button
-                                      className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
+                                      onClick={() =>
+                                        setOpenActivities((prev) => ({
+                                          ...prev,
+                                          [activityKey]: !prev[activityKey],
+                                        }))
+                                      }
+                                      className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors text-left"
                                     >
-                                      {actividad}
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <span className="text-gray-900 font-medium">
+                                          {activity.titulo}
+                                        </span>
+                                      </div>
+                                      {isActivityOpen ? (
+                                        <ChevronUpIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                      ) : (
+                                        <ChevronDownIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                      )}
                                     </button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start">
-                                    <DropdownMenuItem onClick={() => handleAskMoreInfo(destination.ciudad, actividad)}>
-                                      Consultar mas informacion con la IA
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                                    
+                                    {isActivityOpen && (
+                                      <div className="px-3 pb-3 space-y-2 text-sm">
+                                        {activity.descripcion && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Descripción: </span>
+                                            <span className="text-gray-600">{activity.descripcion}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.ubicacion && (
+                                          <div className="flex items-start gap-1">
+                                            <MapPinIcon className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
+                                            <span className="text-gray-600">{activity.ubicacion}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.horarios && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Horarios: </span>
+                                            <span className="text-gray-600">{activity.horarios}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.precio && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Precio: </span>
+                                            <span className="text-gray-600">{activity.precio}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.transporte_recomendado && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Transporte: </span>
+                                            <span className="text-gray-600">{activity.transporte_recomendado}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.requisitos_reserva && (
+                                          <div>
+                                            <span className="font-semibold text-gray-700">Reserva: </span>
+                                            <span className="text-gray-600">{activity.requisitos_reserva}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {activity.enlace && (
+                                          <div>
+                                            <a
+                                              href={activity.enlace}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 hover:underline"
+                                            >
+                                              Ver más información →
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      };
+                      
+                      return (
+                        <div
+                          key={`day-${dayIndex}`}
+                          className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm"
+                        >
+                          <div className="flex items-center mb-4">
+                            <div className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-sky-500 text-white mr-3 flex-shrink-0">
+                              <span className="text-base font-bold">{dailyItem.dia || dayIndex + 1}</span>
+                            </div>
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                              {dailyItem.titulo || `Día ${dailyItem.dia || dayIndex + 1} - ${dailyItem.ciudad}`}
+                            </h2>
+                          </div>
+                          
+                          <div className="ml-12">
+                            {renderActivitySection(dailyItem.actividades_mañana, 'mañana')}
+                            {renderActivitySection(dailyItem.actividades_tarde, 'tarde')}
+                            {renderActivitySection(dailyItem.actividades_noche, 'noche')}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </TabsContent>
 
               {/* Route tab content */}
@@ -510,6 +800,7 @@ export default function ItineraryDetailsPage() {
                           {details_itinerary.resumen_viaje}
                         </div>
                       </div>
+                      
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -558,6 +849,16 @@ export default function ItineraryDetailsPage() {
                           </div>
                         );
                       })}
+                      {!isRouteConfirmed && toastState.status === "idle" && (
+                        <div>
+                          <Button
+                            className="w-full rounded-xl bg-sky-500 hover:bg-sky-700 px-4 py-6 text-white text-base font-semibold shadow-sm"
+                            onClick={handleConfirmRoute}
+                          >
+                            Confirmar ruta
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Right: Interactive map */}
@@ -652,6 +953,46 @@ export default function ItineraryDetailsPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
+            {/* Confirm route modal */}
+            <Dialog
+              open={isConfirmRouteOpen}
+              onOpenChange={setIsConfirmRouteOpen}
+            >
+              <DialogContent className="sm:max-w-[520px]">
+                <DialogHeader>
+                  <DialogTitle>Confirmar ruta</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 text-gray-700">
+                  <p>
+                    Al confirmar la ruta:
+                  </p>
+                  <ul className="list-disc pl-5">
+                    <li>Se confirmarán los destinos.</li>
+                    <li>Se confirmará la cantidad de días por destino.</li>
+                    <li>Se generará un itinerario diario con las actividades organizadas por día y recomendaciones.</li>
+                  </ul>
+                  <p>¿Deseas continuar?</p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={() => setIsConfirmRouteOpen(false)}
+                    disabled={confirmingRoute}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="rounded-full bg-sky-500 hover:bg-sky-700"
+                    onClick={handleConfirmRouteProceed}
+                    disabled={confirmingRoute}
+                  >
+                    {confirmingRoute ? "Confirmando..." : "Confirmar"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
@@ -778,23 +1119,26 @@ export default function ItineraryDetailsPage() {
               </TabsContent>
 
               <TabsContent value="stays">
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {details_itinerary.destinos.map((dest, idx) => (
                     <div
                       key={`stay-${idx}`}
-                      className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8"
+                      className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm hover:shadow-md transition-colors"
                     >
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
                         <div className="flex items-center">
-                          <h2 className="text-2xl font-bold text-gray-900">
+                          <div className="inline-flex w-8 h-8 items-center justify-center rounded-full bg-sky-100 text-sky-600 mr-3">
+                            <MapPinIcon className="w-4 h-4" />
+                          </div>
+                          <h2 className="text-lg md:text-xl font-semibold text-gray-900">
                             {dest.ciudad}
                           </h2>
-                          <p className="text-gray-700 ml-1">
-                            • {dest.dias_en_destino} días
-                          </p>
+                          <span className="inline-flex rounded-full bg-sky-100 text-sky-700 px-2.5 py-0.5 text-xs font-medium ml-2">
+                            {dest.dias_en_destino} días
+                          </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
                           {loadingAccommodationLinks && (
                             <span className="text-sm text-gray-600">
                               Generando enlaces...
@@ -807,15 +1151,15 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all hover:shadow-md hover:scale-105"
                             style={{ backgroundColor: "#FF5A5F" }}
                           >
                             <Image
                               src="/accommodations-ico/airbnb.avif"
                               alt="Airbnb"
-                              width={20}
-                              height={20}
-                              className="rounded-sm h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="rounded-sm h-4 w-4"
                             />
                             Airbnb
                           </a>
@@ -827,14 +1171,14 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#003580] hover:bg-[#00224F]"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all bg-[#003580] hover:bg-[#00224F] hover:shadow-md hover:scale-105"
                           >
                             <Image
                               src="/accommodations-ico/booking.svg"
                               alt="Booking.com"
-                              width={20}
-                              height={20}
-                              className="h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="h-4 w-4"
                             />
                             Booking
                           </a>
@@ -846,23 +1190,24 @@ export default function ItineraryDetailsPage() {
                             }
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-white shadow-md transition-colors bg-[#1F2B6C] hover:bg-[#172059]"
+                            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-white text-sm border border-gray-200 shadow-sm transition-all bg-[#1F2B6C] hover:bg-[#172059] hover:shadow-md hover:scale-105"
                           >
                             <Image
                               src="/accommodations-ico/expedia.ico"
                               alt="Expedia"
-                              width={20}
-                              height={20}
-                              className="h-5 w-5"
+                              width={16}
+                              height={16}
+                              className="h-4 w-4"
                             />
                             Expedia
                           </a>
                         </div>
                       </div>
 
-                      {/* Saved accommodations (mock) */}
-                      <div className="mt-6 pt-6 border-t border-gray-100">
-                        <div className="flex items-center gap-2 max-w-md">
+                      {/* Saved accommodations */}
+                      <div className="ml-11">
+                        <div className="h-px bg-gray-200 mb-4"></div>
+                        <div className="flex items-center gap-2 mb-4">
                           <Input
                             placeholder="Pega un enlace de Airbnb, Booking o Expedia"
                             value={newLinkByDest[idx] ?? ""}
@@ -873,21 +1218,22 @@ export default function ItineraryDetailsPage() {
                                 )
                               )
                             }
-                            className="rounded-full"
+                            className="rounded-full w-full max-w-md"
                           />
                           <Button
-                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5"
+                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5 flex-shrink-0"
                             onClick={() => handleAddLink(idx)}
                           >
-                            + Agregar
+                            Agregar
                           </Button>
                         </div>
 
-                        <div className="mt-4 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        {((accommodationsByDest[idx] ?? []).length > 0 || isCreatingByDest[idx]) && (
+                          <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                           <div className="flex pb-4 gap-4">
                             {isCreatingByDest[idx] && (
                               <div className="relative w-56 flex-none">
-                                <Card className="rounded-3xl overflow-hidden pt-0">
+                                <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm pt-0">
                                   <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                     <Skeleton className="h-full w-full" />
                                   </div>
@@ -913,7 +1259,7 @@ export default function ItineraryDetailsPage() {
                                     rel="noopener noreferrer"
                                     className="block"
                                   >
-                                    <Card className="rounded-3xl overflow-hidden hover:shadow-lg transition-shadow pt-0">
+                                    <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow pt-0">
                                       <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                         {currentUrl ? (
                                           <img
@@ -992,7 +1338,8 @@ export default function ItineraryDetailsPage() {
                               );
                             })}
                           </div>
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
