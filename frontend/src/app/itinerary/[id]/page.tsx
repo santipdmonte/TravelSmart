@@ -16,9 +16,8 @@ import {
   softDeleteAccommodation,
 } from "@/lib/accommodationApi";
 import { AccommodationResponse } from "@/types/accommodation";
-import type { Itinerary } from "@/types/itinerary";
 import { FloatingEditButton, Button, Input } from "@/components";
-import { Card, CardContent, CardHeader, CardTitle, Skeleton } from "@/components/ui";
+import { Card, CardContent, CardTitle, Skeleton } from "@/components/ui";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +26,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -53,7 +51,6 @@ import {
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ItineraryDetailsPage() {
   const params = useParams();
@@ -95,8 +92,8 @@ export default function ItineraryDetailsPage() {
     useState<boolean>(false);
   // Toggle state for transport alternatives per item index
   const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
-  // Expand/collapse for daily itinerary details per destination
-  const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
+  // Toggle state for accommodation suggestions per destination index
+  const [openAccommodationSuggestions, setOpenAccommodationSuggestions] = useState<Record<number, boolean>>({});
   // Expand/collapse for individual activities (by day index and activity index)
   const [openActivities, setOpenActivities] = useState<Record<string, boolean>>({});
   // Delete itinerary dialog state
@@ -1260,25 +1257,49 @@ export default function ItineraryDetailsPage() {
                       {/* Saved accommodations */}
                       <div className="ml-11">
                         <div className="h-px bg-gray-200 mb-4"></div>
-                        <div className="flex items-center gap-2 mb-4">
-                          <Input
-                            placeholder="Pega un enlace de Airbnb, Booking o Expedia"
-                            value={newLinkByDest[idx] ?? ""}
-                            onChange={(e) =>
-                              setNewLinkByDest((prev) =>
-                                prev.map((v, i) =>
-                                  i === idx ? e.target.value : v
+                        <div className="flex items-center gap-2 justify-between">
+                          <div className="flex items-center gap-2 mb-4 w-2/5">
+                            <Input
+                              placeholder="Pega un enlace de Airbnb, Booking o Expedia"
+                              value={newLinkByDest[idx] ?? ""}
+                              onChange={(e) =>
+                                setNewLinkByDest((prev) =>
+                                  prev.map((v, i) =>
+                                    i === idx ? e.target.value : v
+                                  )
                                 )
-                              )
-                            }
-                            className="rounded-full w-full max-w-md"
-                          />
-                          <Button
-                            className="rounded-full bg-sky-500 hover:bg-sky-700 px-5 flex-shrink-0"
-                            onClick={() => handleAddLink(idx)}
-                          >
-                            Agregar
-                          </Button>
+                              }
+                              className="rounded-full w-full max-w-md"
+                            />
+                            <Button
+                              className="rounded-full bg-sky-500 hover:bg-sky-700 px-5 flex-shrink-0"
+                              onClick={() => handleAddLink(idx)}
+                            >
+                              Agregar
+                            </Button>
+                          </div>
+
+                          <div>
+                            <button
+                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
+                                onClick={() =>
+                                  setOpenAccommodationSuggestions((prev) => ({
+                                    ...prev,
+                                    [idx]: !prev[idx],
+                                  }))
+                                }
+                                aria-expanded={!!openAccommodationSuggestions[idx]}
+                                aria-controls={`accommodation-suggestions-${idx}`}
+                              >
+                                {openAccommodationSuggestions[idx] ? (
+                                  <ChevronUpIcon className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDownIcon className="h-4 w-4" />
+                                )}
+                                Sugerencias de alojamiento
+                              </button>
+                          </div>
+
                         </div>
 
                         {((accommodationsByDest[idx] ?? []).length > 0 || isCreatingByDest[idx]) && (
@@ -1394,8 +1415,28 @@ export default function ItineraryDetailsPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Accommodation suggestions dropdown */}
+                      {dest.sugerencias_alojamiento && (
+                        <div className="ml-11">
+                          <div>
+                            {openAccommodationSuggestions[idx] && (
+                              <div
+                                id={`accommodation-suggestions-${idx}`}
+                                className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                              >
+                                <div className="text-gray-900 whitespace-pre-line">
+                                  {dest.sugerencias_alojamiento}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    
                   ))}
+                  
                 </div>
               </TabsContent>
             </Tabs>
