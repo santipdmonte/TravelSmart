@@ -1258,7 +1258,7 @@ export default function ItineraryDetailsPage() {
                       <div className="ml-11">
                         <div className="h-px bg-gray-200 mb-4"></div>
                         <div className="flex items-center gap-2 justify-between">
-                          <div className="flex items-center gap-2 mb-4 w-2/5">
+                          <div className="flex items-center gap-2 w-2/5">
                             <Input
                               placeholder="Pega un enlace de Airbnb, Booking o Expedia"
                               value={newLinkByDest[idx] ?? ""}
@@ -1281,7 +1281,7 @@ export default function ItineraryDetailsPage() {
 
                           <div>
                             <button
-                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
+                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-2 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
                                 onClick={() =>
                                   setOpenAccommodationSuggestions((prev) => ({
                                     ...prev,
