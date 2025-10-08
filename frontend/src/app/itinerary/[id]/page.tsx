@@ -79,6 +79,8 @@ export default function ItineraryDetailsPage() {
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
   const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
   const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
+  // Cache to track if accommodations have been fetched for current itinerary
+  const [accommodationsFetched, setAccommodationsFetched] = useState<boolean>(false);
   // Route tab no longer supports editing or reordering
   const [activeTab, setActiveTab] = useState<string>(tabFromUrl);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
@@ -230,6 +232,8 @@ export default function ItineraryDetailsPage() {
     const destinos = currentItinerary?.details_itinerary?.destinos ?? [];
     setNewLinkByDest(destinos.map(() => ""));
     setIsCreatingByDest(destinos.map(() => false));
+    // Reset accommodations cache when itinerary changes
+    setAccommodationsFetched(false);
   }, [currentItinerary?.details_itinerary?.destinos]);
 
   // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
@@ -261,28 +265,40 @@ export default function ItineraryDetailsPage() {
   }, [fetchAccommodationLinks]);
 
   // Load saved accommodations from backend per destination
-  const fetchSavedAccommodations = useCallback(async () => {
+  const fetchSavedAccommodations = useCallback(async (force: boolean = false) => {
     if (!currentItinerary) return;
+    
+    // If already fetched and not forcing, skip the API calls
+    if (accommodationsFetched && !force) return;
+    
     const destinos = currentItinerary.details_itinerary.destinos ?? [];
     if (!Array.isArray(destinos) || destinos.length === 0) {
       setAccommodationsByDest([]);
+      setAccommodationsFetched(true);
       return;
     }
-    const results = await Promise.all(
-      destinos.map((d) =>
-        listAccommodationsByItineraryAndCity(itineraryId, d.ciudad)
-      )
-    );
-    const mapped: AccommodationResponse[][] = results.map((res) =>
-      (res.data ?? []).filter((a) => a.status !== "deleted")
-    );
-    setAccommodationsByDest(mapped);
-  }, [currentItinerary, itineraryId]);
+    
+    try {
+      const results = await Promise.all(
+        destinos.map((d) =>
+          listAccommodationsByItineraryAndCity(itineraryId, d.ciudad)
+        )
+      );
+      const mapped: AccommodationResponse[][] = results.map((res) =>
+        (res.data ?? []).filter((a) => a.status !== "deleted")
+      );
+      setAccommodationsByDest(mapped);
+      setAccommodationsFetched(true);
+    } catch (error) {
+      console.error('Error fetching accommodations:', error);
+      // Don't set accommodationsFetched to true on error so it can be retried
+    }
+  }, [currentItinerary, itineraryId, accommodationsFetched]);
 
   // Fetch when opening the stays tab or when itinerary changes
   useEffect(() => {
     if (activeTab === "stays") {
-      fetchSavedAccommodations();
+      fetchSavedAccommodations(false);
     }
   }, [activeTab, fetchSavedAccommodations]);
 
@@ -459,7 +475,7 @@ export default function ItineraryDetailsPage() {
         city,
         url,
       });
-      await fetchSavedAccommodations();
+      await fetchSavedAccommodations(true);
       setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? "" : v)));
     } finally {
       setIsCreatingByDest((prev) => prev.map((v, i) => (i === destIndex ? false : v)));
@@ -468,7 +484,7 @@ export default function ItineraryDetailsPage() {
 
   const handleDeleteLink = async (accommodationId: string) => {
     await softDeleteAccommodation(accommodationId);
-    await fetchSavedAccommodations();
+    await fetchSavedAccommodations(true);
   };
 
   const getCurrentImageUrl = (acc: AccommodationResponse): string | undefined => {
