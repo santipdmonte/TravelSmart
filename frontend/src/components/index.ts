@@ -3,6 +3,7 @@ export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as ErrorMessage } from "./ErrorMessage";
 export { default as Navigation } from "./Navigation";
 export { default as TravelerTestPromptModal } from "./traveler-test/TravelerTestPromptModal";
+export { default as DashboardSkeleton } from "./loader/DashboardSkeleton";
 export { Toast } from "./Toast";
 
 export * from "./ui";
