@@ -98,21 +98,31 @@ export default function ItinerariesPage() {
           <h3 className="text-xl font-bold text-gray-900 group-hover:text-sky-600 transition-colors">
             {itinerary.details_itinerary?.nombre_viaje || itinerary.trip_name}
           </h3>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+          <div className={`w-3 h-3 rounded-full ${
             itinerary.status === 'confirmed' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {itinerary.status === 'confirmed' ? 'Confirmado' : 'Borrador'}
-          </span>
+              ? 'bg-green-200' 
+              : 'bg-yellow-200'
+          }`}></div>
         </div>
         
-        <p className="text-gray-600 mb-4">
-          {itinerary.destination || itinerary.trip_name}
-        </p>
-        
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <span>{itinerary.duration_days} días</span>
+        {/* Trip summary chips - same as in itinerary detail page */}
+        <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
+          <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+            {itinerary.details_itinerary?.destinos?.length || 1} destinos
+          </span>
+          <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+            {itinerary.details_itinerary?.cantidad_dias || itinerary.duration_days} días
+          </span>
+          {typeof itinerary.travelers_count === "number" && (
+            <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+              {itinerary.travelers_count} viajero{itinerary.travelers_count > 1 ? "s" : ""}
+            </span>
+          )}
+          {itinerary.start_date && (
+            <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
+              Inicio {new Date(itinerary.start_date).toLocaleDateString('es-ES')}
+            </span>
+          )}
         </div>
         
         <div className="text-xs text-gray-400">
