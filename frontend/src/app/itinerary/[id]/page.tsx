@@ -1320,7 +1320,7 @@ export default function ItineraryDetailsPage() {
 
                         {((accommodationsByDest[idx] ?? []).length > 0 || isCreatingByDest[idx]) && (
                           <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                          <div className="flex pb-4 gap-4">
+                          <div className="flex pb-4 gap-4 pt-3">
                             {isCreatingByDest[idx] && (
                               <div className="relative w-56 flex-none">
                                 <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm pt-0">
