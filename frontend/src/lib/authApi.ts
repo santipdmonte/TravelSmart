@@ -50,7 +50,9 @@ export function getAccessToken(): string | null {
 // Ensure only one refresh happens at a time across the app
 let refreshInFlight: Promise<boolean> | null = null;
 
-async function refreshWithLock(providedRefreshToken?: string): Promise<boolean> {
+async function refreshWithLock(
+  providedRefreshToken?: string
+): Promise<boolean> {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       const result = await refreshToken(providedRefreshToken);
@@ -62,6 +64,63 @@ async function refreshWithLock(providedRefreshToken?: string): Promise<boolean> 
   return await refreshInFlight;
 }
 
+function extractErrorMessage(data: unknown, status: number): string {
+  const fallback = `HTTP error! status: ${status}`;
+
+  if (data === null || data === undefined) {
+    return fallback;
+  }
+
+  if (typeof data === "string") {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    const messages = data
+      .map((item) => extractErrorMessage(item, status))
+      .filter((msg) => typeof msg === "string" && msg.length > 0);
+    return messages.length > 0 ? messages.join(" ") : fallback;
+  }
+
+  if (typeof data === "object") {
+    const record = data as Record<string, unknown>;
+
+    if (
+      typeof record.message === "string" &&
+      record.message.trim().length > 0
+    ) {
+      return record.message;
+    }
+
+    const detail = record.detail;
+    if (typeof detail === "string" && detail.trim().length > 0) {
+      return detail;
+    }
+    if (Array.isArray(detail)) {
+      const detailMessage = extractErrorMessage(detail, status);
+      if (detailMessage && detailMessage !== fallback) {
+        return detailMessage;
+      }
+    }
+
+    if (typeof record.msg === "string" && record.msg.trim().length > 0) {
+      return record.msg;
+    }
+
+    if (typeof record.error === "string" && record.error.trim().length > 0) {
+      return record.error;
+    }
+
+    try {
+      return JSON.stringify(record);
+    } catch {
+      return fallback;
+    }
+  }
+
+  return String(data);
+}
+
 // Base fetch wrapper for auth and other root-mounted endpoints
 async function authApiRequest<T>(
   endpoint: string,
@@ -71,13 +130,28 @@ async function authApiRequest<T>(
     const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
     const url = `${ROOT_BASE_URL}${path}`;
 
+    const {
+      headers: rawHeaders,
+      credentials: customCredentials,
+      ...restOptions
+    } = options;
+
+    const mergedHeaders = new Headers({
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    });
+
+    if (rawHeaders) {
+      const headerEntries = new Headers(rawHeaders);
+      headerEntries.forEach((value, key) => {
+        mergedHeaders.set(key, value);
+      });
+    }
+
     const response = await fetch(url.replace(/([^:])\/\//g, "$1/"), {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      credentials: "include",
-      ...options,
+      ...restOptions,
+      headers: mergedHeaders,
+      credentials: customCredentials ?? "include",
     });
 
     // Handle different response types
@@ -90,9 +164,7 @@ async function authApiRequest<T>(
 
     if (!response.ok) {
       return {
-        error:
-          (data && (data.message || data.detail)) ||
-          `HTTP error! status: ${response.status}`,
+        error: extractErrorMessage(data, response.status),
         status: response.status,
       };
     }
@@ -250,9 +322,19 @@ export async function verifyEmail(
  */
 export async function verifyEmailValidationToken(
   token: string
-): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+): Promise<
+  ApiResponse<{
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+  }>
+> {
   const url = `/auth/email/verify-token/?token=${encodeURIComponent(token)}`;
-  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
+  return authApiRequest<{
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+  }>(url, {
     method: "GET",
   });
 }
@@ -264,9 +346,19 @@ export async function verifyEmailValidationToken(
  */
 export async function verifyGoogleToken(
   token: string
-): Promise<ApiResponse<{ access_token: string; refresh_token: string; token_type: string }>> {
+): Promise<
+  ApiResponse<{
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+  }>
+> {
   const url = `/auth/google/verify-token/?token=${encodeURIComponent(token)}`;
-  return authApiRequest<{ access_token: string; refresh_token: string; token_type: string }>(url, {
+  return authApiRequest<{
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+  }>(url, {
     method: "GET",
   });
 }
@@ -338,7 +430,10 @@ export async function updateUserProfile(profileData: {
 export async function updateUserVisitedCountries(
   visited_countries: string[]
 ): Promise<ApiResponse<User>> {
-  console.log("API: Updating visited countries:", JSON.stringify({ visited_countries }));
+  console.log(
+    "API: Updating visited countries:",
+    JSON.stringify({ visited_countries })
+  );
   return authenticatedRequest<User>("/users/profile", {
     method: "PUT",
     body: JSON.stringify({ visited_countries }),
