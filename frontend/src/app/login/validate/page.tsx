@@ -43,7 +43,7 @@ export default function ValidateLoginPage() {
 
         // Hydrate profile and then redirect
         await refreshProfile();
-        router.replace("/itineraries");
+        router.replace("/dashboard");
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Ocurrió un error inesperado."

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
 import {
   Sidebar,
@@ -41,7 +42,13 @@ import {
 
 export function AppSidebar() {
   const { isAuthenticated, hasRole, logout, user, userDisplayName } = useAuth()
+  const router = useRouter()
   const hasTravelerType = !!(user?.traveler_type_id || user?.traveler_type)
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/login")
+  }
 
   const mainItems = [
     { title: "Inicio", href: "/dashboard", icon: Home },
@@ -160,7 +167,7 @@ export function AppSidebar() {
                       </>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => logout()}>
+                    <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 size-4" /> Cerrar sesión
                     </DropdownMenuItem>
                   </>

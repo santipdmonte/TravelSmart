@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { loginSchema, LoginFormData } from "@/lib/validationSchemas";
@@ -31,6 +32,7 @@ export default function LoginForm({
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, clearError } = useAuth();
+  const router = useRouter();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -55,6 +57,8 @@ export default function LoginForm({
         form.reset();
         // Call success callback
         onSuccess?.();
+        // Redirect to dashboard
+        router.push("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);

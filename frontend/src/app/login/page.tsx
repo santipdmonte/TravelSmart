@@ -13,8 +13,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && user) {
-      // Redirect authenticated users to home
-      router.replace("/");
+      // Redirect authenticated users to dashboard
+      router.replace("/dashboard");
     }
   }, [user, isLoading, router]);
 

@@ -42,7 +42,7 @@ export default function GoogleValidatePage() {
 
         // Hydrate profile then redirect
         await refreshProfile();
-        router.replace("/itineraries");
+        router.replace("/dashboard");
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Error inesperado al validar Google."
