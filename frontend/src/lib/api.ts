@@ -96,6 +96,10 @@ export async function apiRequest<T>(
         });
 
         if (retryResponse.ok) {
+          // Handle 204 No Content responses
+          if (retryResponse.status === 204) {
+            return { data: null as T };
+          }
           const data = await retryResponse.json();
           return { data };
         }
@@ -107,6 +111,11 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle 204 No Content responses
+    if (response.status === 204) {
+      return { data: null as T };
     }
 
     const data = await response.json();

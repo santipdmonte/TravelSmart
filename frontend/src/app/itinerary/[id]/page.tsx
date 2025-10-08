@@ -48,6 +48,8 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  MoreVerticalIcon,
+  TrashIcon,
 } from "lucide-react";
 import ItineraryMap from "@/components/itinerary/ItineraryMap";
 import Image from "next/image";
@@ -97,6 +99,9 @@ export default function ItineraryDetailsPage() {
   const [openDailyByDest, setOpenDailyByDest] = useState<Record<number, boolean>>({});
   // Expand/collapse for individual activities (by day index and activity index)
   const [openActivities, setOpenActivities] = useState<Record<string, boolean>>({});
+  // Delete itinerary dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   // Minimal markdown to HTML renderer for headings, lists, bold/italic/code and paragraphs
   const renderMarkdown = useCallback(function renderMarkdown(md: string) {
     try {
@@ -301,6 +306,32 @@ export default function ItineraryDetailsPage() {
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
   }, []);
+
+  // Delete itinerary function
+  const handleDeleteItinerary = async () => {
+    if (!itineraryId) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await apiRequest(`/api/itineraries/${itineraryId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.error) {
+        showToast('error', 'Error al eliminar el itinerario', 'No se pudo eliminar el itinerario. Inténtalo de nuevo.');
+        return;
+      }
+
+      // Redirect to itineraries page with success message
+      router.push('/itineraries?deleted=true');
+    } catch (error) {
+      console.error('Error deleting itinerary:', error);
+      showToast('error', 'Error al eliminar el itinerario', 'Ha ocurrido un error inesperado. Inténtalo de nuevo.');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -773,9 +804,31 @@ export default function ItineraryDetailsPage() {
                   <div className="mb-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                       <div className="flex-1">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                          {details_itinerary.nombre_viaje}
-                        </h1>
+                        <div className="flex items-start justify-between">
+                          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                            {details_itinerary.nombre_viaje}
+                          </h1>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-gray-100"
+                              >
+                                <MoreVerticalIcon className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setIsDeleteDialogOpen(true)}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <TrashIcon className="h-4 w-4 mr-2" />
+                                Eliminar itinerario
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                         {/* Trip summary chips */}
                         <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
                           <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
@@ -1355,6 +1408,44 @@ export default function ItineraryDetailsPage() {
 
       {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>¿Eliminar itinerario?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              Esta acción no se puede deshacer. Se eliminará permanentemente el itinerario 
+              <span className="font-semibold"> "{details_itinerary.nombre_viaje}"</span>.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteItinerary}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Eliminando...
+                </>
+              ) : (
+                'Eliminar'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,15 +2,20 @@
 
 import { useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/contexts/ToastContext';
 import { Button } from '@/components';
 
 export default function ItinerariesPage() {
   const { itineraries, loading, error } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
+  const { showToast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const fetchedFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -20,6 +25,18 @@ export default function ItinerariesPage() {
     fetchedFor.current = mode;
     fetchAllItineraries();
   }, [isInitialized, isLoading, isAuthenticated, fetchAllItineraries]);
+
+  // Check for deletion success message
+  useEffect(() => {
+    const deleted = searchParams.get('deleted');
+    if (deleted === 'true') {
+      showToast('success', 'Itinerario eliminado', 'El itinerario se ha eliminado correctamente.');
+      // Clean up the URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete('deleted');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, showToast]);
 
   // Organize itineraries by status and sort by creation date
   const { confirmedItineraries, draftItineraries } = useMemo(() => {
