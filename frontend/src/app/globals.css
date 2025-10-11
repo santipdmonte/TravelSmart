@@ -119,6 +119,36 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Cursor pointer para elementos clickeables */
+  button,
+  a,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="switch"],
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select,
+  label[for],
+  summary,
+  [onclick],
+  [data-slot="dropdown-menu-trigger"],
+  [data-slot="tabs-trigger"],
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"] {
+    cursor: pointer !important;
+  }
+  
+  button:disabled,
+  [disabled],
+  [data-disabled] {
+    cursor: not-allowed !important;
+  }
 }
 
 /* AI Futuristic button style */
@@ -138,6 +168,7 @@
     0 10px 30px -10px oklch(0.65 0.18 255 / 0.65),
     inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.2);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  cursor: pointer;
 }
 
 .ai-button:before {
@@ -287,6 +318,7 @@
     0 10px 22px -10px oklch(0.65 0.18 255 / 0.55),
     inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.22),
     inset 0 1px 0 oklch(1 0 0 / .12);
+  cursor: pointer;
 }
 
 .ai-composer .ai-send:hover { filter: saturate(1.1); transform: translateY(-1px); }
@@ -343,6 +375,7 @@
     0 20px 56px -12px oklch(0.78 0.15 250 / .46);
   backdrop-filter: blur(14px) saturate(1.25);
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  cursor: pointer;
 }
 
 .ai-fab:hover { transform: translateY(-2px) scale(1.03); filter: saturate(1.05); }
