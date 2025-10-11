@@ -580,7 +580,7 @@ export default function ItineraryDetailsPage() {
           {/* Tabs container */}
           <div>
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between">
                 <div>
                   <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
                     {hasMultipleDestinations && (
@@ -611,7 +611,7 @@ export default function ItineraryDetailsPage() {
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center">
                   {activeTab === "stays" && (
                     <Button
                       className="rounded-full bg-sky-500 hover:bg-sky-700"
@@ -635,34 +635,6 @@ export default function ItineraryDetailsPage() {
                         : "Agregar fecha viaje"}
                     </Button>
                   )}
-                  {/* Actions dropdown - visible on all tabs */}
-                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full h-9 w-9 p-0"
-                      >
-                        <MoreVerticalIcon className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onSelect={(e) => {
-                          e.preventDefault();
-                          setIsDropdownOpen(false);
-                          // Use setTimeout to ensure dropdown closes before opening dialog
-                          setTimeout(() => {
-                            setIsDeleteModalOpen(true);
-                          }, 100);
-                        }}
-                      >
-                        <TrashIcon className="h-4 w-4 mr-2" />
-                        Eliminar itinerario
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
 
@@ -872,7 +844,38 @@ export default function ItineraryDetailsPage() {
               {/* Route tab content */}
               <TabsContent value="route">
                 {/* Integrated card with header, summary and content */}
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative">
+                  {/* Actions dropdown - top right corner */}
+                  <div className="absolute top-6 right-6">
+                    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full h-9 w-9 p-0"
+                        >
+                          <MoreVerticalIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setIsDropdownOpen(false);
+                            // Use setTimeout to ensure dropdown closes before opening dialog
+                            setTimeout(() => {
+                              setIsDeleteModalOpen(true);
+                            }, 100);
+                          }}
+                        >
+                          <TrashIcon className="h-4 w-4 mr-2" />
+                          Eliminar itinerario
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  
                   {/* Header + Summary */}
                   <div className="mb-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
