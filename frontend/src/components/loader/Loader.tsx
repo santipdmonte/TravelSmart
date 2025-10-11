@@ -38,7 +38,6 @@ function useLogProgress(totalMs: number) {
     // Desired: around 50% at ~10s, then slow down.
     // We'll use p = log(1 + a*t) / log(1 + a*T). Choose a so t=10s -> ~0.5
     const T = totalMs;
-    const t50 = 10_000; // 10s
     // Solve for a in log(1+a*t50)/log(1+a*T)=0.5 -> (1+a*t50) = (1+a*T)^0.5
     // We'll approximate by trying a reasonable value.
     const a = 0.00025; // tuned constant

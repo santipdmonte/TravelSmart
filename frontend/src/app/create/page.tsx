@@ -21,7 +21,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
   Input,
   Textarea,
   Alert,
@@ -43,46 +42,7 @@ const WHEN_OPTIONS = [
   { key: "fall", label: "Otoño" },
 ] as const;
 
-const TRIP_TYPES = [
-  "business",
-  "couples",
-  "friends",
-  "boys",
-  "girls",
-  "solo",
-  "family_teen",
-  "family_young_kids",
-] as const;
-const OCCASIONS = [
-  "anniversary",
-  "bachelorette",
-  "bachelor",
-  "birthday",
-  "graduation",
-  "honeymoon",
-  "spring_break",
-  "christmas",
-  "new_years",
-] as const;
-const CITY_VIEWS = ["touristy", "off_beaten", "local"] as const;
-const TRAVEL_STYLES = [
-  "cultural",
-  "relaxing",
-  "adventurous",
-  "romantic",
-  "adrenaline",
-  "gastronomic",
-  "festive",
-] as const;
-const FOOD_PREFS = [
-  "vegan",
-  "vegetarian",
-  "meat",
-  "pescatarian",
-  "gluten_free",
-  "budget",
-  "fine_dining",
-] as const;
+type CityView = "touristy" | "off_beaten" | "local";
 
 const BUDGET_OPTIONS = [
   { 
@@ -125,53 +85,10 @@ const TRAVEL_PACE_OPTIONS = [
   },
 ] as const;
 
-const TRIP_TYPE_LABELS: Record<(typeof TRIP_TYPES)[number], string> = {
-  business: "Viaje de negocios",
-  couples: "Viaje en pareja",
-  friends: "Viaje con amigos",
-  boys: "Viaje de chicos",
-  girls: "Viaje de chicas",
-  solo: "Viaje en solitario",
-  family_teen: "Familia (adolescentes/adultos)",
-  family_young_kids: "Familia (niños pequeños)",
-};
-
-const OCCASION_LABELS: Record<(typeof OCCASIONS)[number], string> = {
-  anniversary: "Aniversario",
-  bachelorette: "Despedida de soltera",
-  bachelor: "Despedida de soltero",
-  birthday: "Cumpleaños",
-  graduation: "Graduación",
-  honeymoon: "Luna de miel",
-  spring_break: "Receso de primavera",
-  christmas: "Navidad",
-  new_years: "Año nuevo",
-};
-
-const CITY_VIEW_LABELS: Record<(typeof CITY_VIEWS)[number], string> = {
+const CITY_VIEW_LABELS: Record<CityView, string> = {
   touristy: "Turístico",
   off_beaten: "Fuera de lo común",
   local: "Como un local",
-};
-
-const TRAVEL_STYLE_LABELS: Record<(typeof TRAVEL_STYLES)[number], string> = {
-  cultural: "Cultural",
-  relaxing: "Relajado",
-  adventurous: "Aventurero",
-  romantic: "Romántico",
-  adrenaline: "Adrenalina",
-  gastronomic: "Gastronómico",
-  festive: "Festivo",
-};
-
-const FOOD_PREF_LABELS: Record<(typeof FOOD_PREFS)[number], string> = {
-  vegan: "Vegano",
-  vegetarian: "Vegetariano",
-  meat: "Amante de la carne",
-  pescatarian: "Pescetariano",
-  gluten_free: "Sin gluten",
-  budget: "Económico",
-  fine_dining: "Alta cocina",
 };
 
 // Simple chip button

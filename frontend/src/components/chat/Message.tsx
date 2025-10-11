@@ -7,15 +7,7 @@ interface MessageProps {
 
 export default function Message({ message }: MessageProps) {
   const isAI = message.type === "ai";
-  if (message.type === 'tool') {
-    return null;
-  }
-  const isEmptyAIPlaceholder = isAI && (!message.content || message.content.trim().length === 0);
-
-  if (isEmptyAIPlaceholder) {
-    return null;
-  }
-
+  
   const renderMarkdown = useCallback((md: string) => {
     try {
       const escapeHtml = (str: string) =>
@@ -32,8 +24,8 @@ export default function Message({ message }: MessageProps) {
           inList = false;
         }
       };
-      for (let raw of lines) {
-        let line = raw;
+      for (const raw of lines) {
+        const line = raw;
         // Headings
         const h3 = line.match(/^###\s+(.*)$/);
         const h2 = line.match(/^##\s+(.*)$/);
@@ -82,10 +74,20 @@ export default function Message({ message }: MessageProps) {
       }
       if (inList) html += "</ul>";
       return html;
-    } catch (_) {
+    } catch {
       return md;
     }
   }, []);
+
+  if (message.type === 'tool') {
+    return null;
+  }
+  
+  const isEmptyAIPlaceholder = isAI && (!message.content || message.content.trim().length === 0);
+
+  if (isEmptyAIPlaceholder) {
+    return null;
+  }
 
   return (
     <div className={`flex ${isAI ? "justify-start" : "justify-end"} mb-4`}>

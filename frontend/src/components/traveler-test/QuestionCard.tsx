@@ -1,8 +1,5 @@
 import { QuestionWithOptions } from "@/types/travelerTest";
 import {
-  Card,
-  CardContent,
-  CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";

@@ -1,21 +1,20 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/contexts/ToastContext';
 import { Button } from '@/components';
 
-export default function ItinerariesPage() {
+function ItinerariesContent() {
   const { itineraries, loading, error } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
   const { showToast } = useToast();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const fetchedFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -87,7 +86,20 @@ export default function ItinerariesPage() {
     );
   }
 
-  const renderItineraryCard = (itinerary: any) => (
+  const renderItineraryCard = (itinerary: {
+    itinerary_id: string;
+    details_itinerary?: {
+      nombre_viaje?: string;
+      destinos?: unknown[];
+      cantidad_dias?: number;
+    };
+    trip_name: string;
+    duration_days: number;
+    travelers_count?: number;
+    start_date?: string | null;
+    created_at: string;
+    status: string;
+  }) => (
     <Link
       key={itinerary.itinerary_id}
       href={`/itinerary/${itinerary.itinerary_id}`}
@@ -231,5 +243,20 @@ export default function ItinerariesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ItinerariesPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando tus itinerarios...</p>
+        </div>
+      </div>
+    }>
+      <ItinerariesContent />
+    </Suspense>
   );
 } 

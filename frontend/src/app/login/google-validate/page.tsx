@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { setTokens, verifyGoogleToken } from "@/lib/authApi";
 import type { TokenData } from "@/types/auth";
 
-export default function GoogleValidatePage() {
+function GoogleValidateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { dispatch, refreshProfile } = useAuth();
@@ -90,6 +90,21 @@ export default function GoogleValidatePage() {
   }
 
   return null;
+}
+
+export default function GoogleValidatePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center gap-3 text-gray-700">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          <span>Cargando...</span>
+        </div>
+      </div>
+    }>
+      <GoogleValidateContent />
+    </Suspense>
+  );
 }
 
 

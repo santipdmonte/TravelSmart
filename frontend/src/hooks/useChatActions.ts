@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useChat } from '@/contexts/AgentContext';
 import { useItineraryActions } from '@/hooks/useItineraryActions';
-import { sendAgentMessage, getAgentState, sendAgentMessageStream, getAgentStateWithHIL } from '@/lib/agentApi';
+import { getAgentState, sendAgentMessageStream, getAgentStateWithHIL } from '@/lib/agentApi';
 import { useSidebar } from '@/components/ui/sidebar';
 
 export function useChatActions() {
@@ -118,7 +118,7 @@ export function useChatActions() {
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
       return false;
     }
-  }, [dispatch, fetchItinerary]);
+  }, [dispatch]);
 
   const confirmChanges = useCallback(async (itineraryId: string) => {
     dispatch({ type: 'SET_ERROR', payload: null });

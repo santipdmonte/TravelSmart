@@ -65,9 +65,6 @@ export default function MessageList() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   useEffect(() => {
     // After new messages or when opening, jump to bottom without visible animation

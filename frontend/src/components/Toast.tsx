@@ -3,7 +3,7 @@
 import { useToast } from "@/contexts/ToastContext";
 
 export function Toast() {
-  const { toastState, hideToast } = useToast();
+  const { toastState } = useToast();
 
   if (toastState.status === "idle") {
     return null;

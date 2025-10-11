@@ -2,10 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/login-form";
-import { MapPin } from "lucide-react";
 
 export default function LoginPage() {
   const { user, isLoading } = useAuth();

@@ -36,11 +36,9 @@ export function __warnMissingApiBaseIfNeeded(opts?: {
 
   if (typeof window !== "undefined") {
     // Browser console with styling
-    // eslint-disable-next-line no-console
     console.error(title, badge, body);
   } else {
     // Server-side console (fallback)
-    // eslint-disable-next-line no-console
     console.error(
       "[TravelSmart] Falta configurar NEXT_PUBLIC_API_BASE_URL. Edita frontend/.env.local y agrega:\n  NEXT_PUBLIC_API_BASE_URL=http://localhost:8001\nReinicia el servidor de desarrollo."
     );

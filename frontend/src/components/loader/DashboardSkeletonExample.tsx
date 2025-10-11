@@ -13,11 +13,9 @@ import DashboardPage from "@/app/dashboard/page";
  */
 export default function DashboardSkeletonExample() {
   const { state: authState } = useAuth();
-  const { itineraries, loading } = useItinerary();
+  const { loading } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
   const [isLoading, setIsLoading] = useState(true);
-
-  const user = authState.user;
   const isInitialized = Boolean(authState.isInitialized);
   const isAuthLoading = authState.isLoading;
 
