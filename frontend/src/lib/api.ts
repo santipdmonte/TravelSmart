@@ -110,7 +110,32 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Map common HTTP errors to friendly, localized messages
+      let friendlyMessage = "";
+      switch (response.status) {
+        case 400:
+          friendlyMessage = "Solicitud inválida. Verifica los datos e inténtalo de nuevo.";
+          break;
+        case 401:
+          friendlyMessage = "Tu sesión ha expirado o no estás autenticado.";
+          break;
+        case 403:
+          friendlyMessage = "No tienes permiso para realizar esta acción.";
+          break;
+        case 404:
+          friendlyMessage = "No encontramos este recurso (404). Puede haber sido eliminado o no existe.";
+          break;
+        case 429:
+          friendlyMessage = "Demasiadas solicitudes. Inténtalo nuevamente en unos minutos.";
+          break;
+        default:
+          if (response.status >= 500 && response.status <= 599) {
+            friendlyMessage = "Tuvimos un problema en el servidor. Inténtalo más tarde.";
+          } else {
+            friendlyMessage = `Ocurrió un error (${response.status}).`;
+          }
+      }
+      return { error: friendlyMessage };
     }
 
     // Handle 204 No Content - no body to parse

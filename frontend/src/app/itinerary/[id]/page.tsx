@@ -336,18 +336,39 @@ export default function ItineraryDetailsPage() {
   }
 
   if (error) {
+    const isNotFound = /404|no encontrado|no encontramos/i.test(error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-            <p className="text-gray-700 mb-6">{error}</p>
-            <Button
-              asChild
-              className="bg-sky-500 hover:bg-sky-700 rounded-full"
-            >
-              <Link href="/itineraries">Volver a itinerarios</Link>
-            </Button>
+            {isNotFound ? (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">No encontramos tu itinerario</h2>
+                <p className="text-gray-700 mb-6">
+                  Es posible que haya sido eliminado o que el enlace esté incompleto.
+                  {itineraryId ? ` (ID: ${String(itineraryId).slice(0, 8)}…)` : ""}
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <Button asChild variant="outline" className="rounded-full">
+                    <Link href="/itineraries">Volver a itinerarios</Link>
+                  </Button>
+                  <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full">
+                    <Link href="/create">Crear nuevo</Link>
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
+                <p className="text-gray-700 mb-6">{error}</p>
+                <Button
+                  asChild
+                  className="bg-sky-500 hover:bg-sky-700 rounded-full"
+                >
+                  <Link href="/itineraries">Volver a itinerarios</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
