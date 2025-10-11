@@ -57,7 +57,7 @@ export default function ItineraryDetailsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { currentItinerary, loading, error } = useItinerary();
-  const { fetchItinerary } = useItineraryActions();
+  const { fetchItinerary, removeItinerary } = useItineraryActions();
   const { isOpen: isChatOpen, threadId } = useChat();
   const { clearChat, openChat, sendMessage } = useChatActions();
   const { toastState, showToast } = useToast();
@@ -169,6 +169,11 @@ export default function ItineraryDetailsPage() {
   // Confirm route modal state
   const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
   const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
+  
+  // Delete itinerary modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [deletingItinerary, setDeletingItinerary] = useState<boolean>(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
   // Helper to format short dates for display in the Ruta list
   const formatDateShort = (date: Date) =>
@@ -487,6 +492,31 @@ export default function ItineraryDetailsPage() {
     await fetchSavedAccommodations(true);
   };
 
+  const handleDeleteItinerary = async () => {
+    try {
+      setDeletingItinerary(true);
+      const result = await removeItinerary(itineraryId);
+      
+      if (result.success) {
+        // Close modal before showing toast and redirecting
+        setIsDeleteModalOpen(false);
+        showToast("success", "Itinerario eliminado", "El itinerario ha sido eliminado exitosamente", 3000);
+        // Small delay before redirect to ensure modal closes properly
+        setTimeout(() => {
+          router.push("/itineraries");
+        }, 100);
+      } else {
+        // Show error but keep modal open so user can try again or cancel
+        showToast("error", "Error al eliminar", result.error || "No se pudo eliminar el itinerario", 5000);
+        setDeletingItinerary(false);
+      }
+    } catch (error) {
+      // Show error but keep modal open
+      showToast("error", "Error al eliminar", "Ocurrió un error inesperado", 5000);
+      setDeletingItinerary(false);
+    }
+  };
+
   const getCurrentImageUrl = (acc: AccommodationResponse): string | undefined => {
     const total = acc.img_urls?.length ?? 0;
     if (total === 0) return undefined;
@@ -550,7 +580,7 @@ export default function ItineraryDetailsPage() {
           {/* Tabs container */}
           <div>
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-start">
                 <div>
                   <TabsList className="bg-white border border-gray-200 rounded-full shadow-sm p-1 mb-2">
                     {hasMultipleDestinations && (
@@ -581,7 +611,7 @@ export default function ItineraryDetailsPage() {
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   {activeTab === "stays" && (
                     <Button
                       className="rounded-full bg-sky-500 hover:bg-sky-700"
@@ -605,6 +635,34 @@ export default function ItineraryDetailsPage() {
                         : "Agregar fecha viaje"}
                     </Button>
                   )}
+                  {/* Actions dropdown - visible on all tabs */}
+                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full h-9 w-9 p-0"
+                      >
+                        <MoreVerticalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setIsDropdownOpen(false);
+                          // Use setTimeout to ensure dropdown closes before opening dialog
+                          setTimeout(() => {
+                            setIsDeleteModalOpen(true);
+                          }, 100);
+                        }}
+                      >
+                        <TrashIcon className="h-4 w-4 mr-2" />
+                        Eliminar itinerario
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -868,7 +926,6 @@ export default function ItineraryDetailsPage() {
                           {details_itinerary.resumen_viaje}
                         </div>
                       </div>
-                      
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -1057,6 +1114,52 @@ export default function ItineraryDetailsPage() {
                     disabled={confirmingRoute}
                   >
                     {confirmingRoute ? "Confirmando..." : "Confirmar"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Delete itinerary confirmation modal */}
+            <Dialog
+              open={isDeleteModalOpen}
+              onOpenChange={(open) => {
+                if (!deletingItinerary) {
+                  setIsDeleteModalOpen(open);
+                }
+              }}
+              modal={true}
+            >
+              <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                  <DialogTitle>¿Eliminar itinerario?</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 text-gray-700">
+                  <p>
+                    Esta acción eliminará permanentemente el itinerario{" "}
+                    <strong>"{details_itinerary.nombre_viaje}"</strong>.
+                  </p>
+                  <p>
+                    No podrás recuperar esta información después de eliminarla.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    ¿Estás seguro de que deseas continuar?
+                  </p>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    disabled={deletingItinerary}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="rounded-full bg-red-500 hover:bg-red-700"
+                    onClick={handleDeleteItinerary}
+                    disabled={deletingItinerary}
+                  >
+                    {deletingItinerary ? "Eliminando..." : "Eliminar"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

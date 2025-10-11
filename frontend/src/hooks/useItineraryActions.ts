@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useItinerary } from '@/contexts/ItineraryContext';
 import { useAuth } from '@/hooks/useAuth';
-import { generateItinerary, getItinerary, getSessionItineraries, getUserItineraries } from '@/lib/api';
+import { generateItinerary, getItinerary, getSessionItineraries, getUserItineraries, deleteItinerary } from '@/lib/api';
 import { GenerateItineraryRequest, ItineraryBase, Itinerary } from '@/types/itinerary';
 
 // Coalesce in-flight list fetches by mode (auth vs anon) to avoid duplicate calls under StrictMode
@@ -144,11 +144,33 @@ export function useItineraryActions() {
     dispatch({ type: 'CLEAR_STATE' });
   }, [dispatch]);
 
+  const removeItinerary = useCallback(async (itineraryId: string) => {
+    try {
+      const response = await deleteItinerary(itineraryId);
+      
+      if (response.error) {
+        return { success: false, error: response.error };
+      }
+
+      // Remove from local state
+      dispatch({ 
+        type: 'SET_ITINERARIES', 
+        payload: [] // Will be refetched by the component
+      });
+      
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete itinerary';
+      return { success: false, error: errorMessage };
+    }
+  }, [dispatch]);
+
   return {
     createItinerary,
     fetchItinerary,
     fetchAllItineraries,
     clearError,
     clearState,
+    removeItinerary,
   };
 } 

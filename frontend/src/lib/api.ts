@@ -96,9 +96,9 @@ export async function apiRequest<T>(
         });
 
         if (retryResponse.ok) {
-          // Handle 204 No Content responses
+          // Handle 204 No Content - no body to parse
           if (retryResponse.status === 204) {
-            return { data: null as T };
+            return { data: undefined as T };
           }
           const data = await retryResponse.json();
           return { data };
@@ -113,9 +113,9 @@ export async function apiRequest<T>(
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Handle 204 No Content responses
+    // Handle 204 No Content - no body to parse
     if (response.status === 204) {
-      return { data: null as T };
+      return { data: undefined as T };
     }
 
     const data = await response.json();
@@ -158,4 +158,13 @@ export async function getUserItineraries(
   userId: string
 ): Promise<ApiResponse<ItineraryBase[]>> {
   return apiRequest<ItineraryBase[]>(`/api/itineraries/user/${userId}`);
+}
+
+// Delete itinerary
+export async function deleteItinerary(
+  itineraryId: string
+): Promise<ApiResponse<void>> {
+  return apiRequest<void>(`/api/itineraries/${itineraryId}`, {
+    method: "DELETE",
+  });
 }
