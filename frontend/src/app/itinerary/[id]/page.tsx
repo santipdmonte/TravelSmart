@@ -118,8 +118,8 @@ export default function ItineraryDetailsPage() {
           inList = false;
         }
       };
-      for (let raw of lines) {
-        let line = raw;
+      for (const raw of lines) {
+        const line = raw;
         // Headings
         const h3 = line.match(/^###\s+(.*)$/);
         const h2 = line.match(/^##\s+(.*)$/);
@@ -162,7 +162,7 @@ export default function ItineraryDetailsPage() {
       }
       if (inList) html += "</ul>";
       return html;
-    } catch (_) {
+    } catch {
       return md;
     }
   }, []);
@@ -192,7 +192,7 @@ export default function ItineraryDetailsPage() {
         cursor = new Date(end);
         cursor.setDate(cursor.getDate() + 1);
       }
-    } catch (_) {
+    } catch {
       return results;
     }
     return results;
@@ -252,7 +252,7 @@ export default function ItineraryDetailsPage() {
         setAccommodationLinks({});
       }
       fetchedLinksForRef.current = itineraryId;
-    } catch (err) {
+    } catch {
       // Silently keep fallbacks in the UI links
       setAccommodationLinks({});
     } finally {
@@ -408,7 +408,7 @@ export default function ItineraryDetailsPage() {
       await openChat(itineraryId);
       const msg = `Establecer "${transport}" como transporte principal entre ${fromCity} y ${toCity}`;
       await sendMessage(itineraryId, msg);
-    } catch (_) {
+    } catch {
       // no-op
     }
   };
@@ -675,7 +675,9 @@ export default function ItineraryDetailsPage() {
                     )}
                     
                     {/* Display daily itineraries - Days shown expanded, activities collapsed */}
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {details_itinerary.itinerario_diario.map((dailyItem: any, dayIndex: number) => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const renderActivitySection = (activities: any[], timeOfDay: string) => {
                         if (!Array.isArray(activities) || activities.length === 0) return null;
                         
@@ -1297,7 +1299,7 @@ export default function ItineraryDetailsPage() {
 
                           <div>
                             <button
-                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-2 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
+                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
                                 onClick={() =>
                                   setOpenAccommodationSuggestions((prev) => ({
                                     ...prev,
@@ -1352,11 +1354,13 @@ export default function ItineraryDetailsPage() {
                                     <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow pt-0">
                                       <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
                                         {currentUrl ? (
-                                          <img
+                                          <Image
                                             src={currentUrl}
                                             alt={acc.title || "Alojamiento"}
                                             className="h-full w-full object-cover"
                                             loading="lazy"
+                                            fill
+                                            sizes="224px"
                                           />
                                         ) : (
                                           <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200" />
@@ -1475,7 +1479,7 @@ export default function ItineraryDetailsPage() {
           <div className="py-4">
             <p className="text-gray-600">
               Esta acción no se puede deshacer. Se eliminará permanentemente el itinerario 
-              <span className="font-semibold"> "{details_itinerary.nombre_viaje}"</span>.
+              <span className="font-semibold"> &ldquo;{details_itinerary.nombre_viaje}&rdquo;</span>.
             </p>
           </div>
           <DialogFooter>
