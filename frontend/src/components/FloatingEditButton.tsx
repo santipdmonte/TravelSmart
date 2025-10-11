@@ -106,9 +106,12 @@ export default function FloatingEditButton({
               await openChat(itineraryId);
             }}
           >
-            {/* Leftward open icon */}
+            {/* Chat bubble icon */}
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 12l6-6v4h6v4h-6v4l-6-6z" fill="currentColor" opacity=".9"/>
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3.04 1.05 4.35L2 22l5.65-1.05C9.96 21.64 11.46 22 13 22h-.5c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="currentColor" opacity=".9"/>
+              <circle cx="8.5" cy="12" r="1.5" fill="blue"/>
+              <circle cx="12" cy="12" r="1.5" fill="blue"/>
+              <circle cx="15.5" cy="12" r="1.5" fill="blue"/>
             </svg>
           </button>
         </div>

@@ -24,7 +24,7 @@ export default function ChatPanel() {
         className={`fixed top-16 lg:top-20 right-0 lg:right-4 bottom-0 lg:bottom-4 left-0 lg:left-auto
         w-full lg:w-1/3 lg:max-w-md bg-white lg:rounded-3xl lg:shadow-xl lg:border lg:border-gray-100 z-40 flex flex-col
         transform transition-transform duration-400 ease-out will-change-transform
-        ${isOpen ? "translate-x-0" : "translate-x-full"}
+        ${isOpen ? "translate-x-0" : "translate-x-[110%]"}
         overscroll-contain`}
         aria-hidden={!isOpen}
       >

@@ -366,14 +366,14 @@
   height: 56px;
   border-radius: 9999px;
   color: white;
-  background: linear-gradient(180deg, oklch(0.96 0.045 250 / .22), oklch(0.94 0.035 250 / .12));
-  border: 1px solid oklch(0.92 0.06 250 / .28);
+  /* Match the blue gradient used by the send button */
+  background: linear-gradient(135deg, oklch(0.7 0.14 275) 0%, oklch(0.65 0.18 255) 50%, oklch(0.6 0.2 245) 100%);
+  border: 0;
   box-shadow:
-    inset 0 1px 0 oklch(0.98 0.02 250 / .16),
-    inset 0 -1px 0 oklch(0.98 0.02 250 / .08),
-    0 18px 48px -14px oklch(0 0 0 / .42),
-    0 20px 56px -12px oklch(0.78 0.15 250 / .46);
-  backdrop-filter: blur(14px) saturate(1.25);
+    0 10px 22px -10px oklch(0.65 0.18 255 / 0.55),
+    inset 0 -2px 6px oklch(0.06 0.014 245.83 / 0.22),
+    inset 0 1px 0 oklch(1 0 0 / .12);
+  backdrop-filter: none;
   transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
   cursor: pointer;
 }
