@@ -1551,43 +1551,6 @@ export default function ItineraryDetailsPage() {
       {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>¿Eliminar itinerario?</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-gray-600">
-              Esta acción no se puede deshacer. Se eliminará permanentemente el itinerario 
-              <span className="font-semibold"> &ldquo;{details_itinerary.nombre_viaje}&rdquo;</span>.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteItinerary}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Eliminando...
-                </>
-              ) : (
-                'Eliminar'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
