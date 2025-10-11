@@ -45,27 +45,29 @@ export default function MessageInput() {
   }, [message]);
 
   return (
-    <div className="border-t border-gray-200 p-4">
-      <form onSubmit={handleSubmit} className="flex space-x-2">
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Escribe tu mensaje aquí..."
-          className="flex-1 resize-none rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-opacity-20 disabled:bg-gray-50 disabled:text-gray-500 min-h-[38px] max-h-[120px]"
-          disabled={loading}
-          onInput={adjustHeight}
-        />
+    <div className="border-t border-blue-100 bg-gradient-to-r from-blue-50/30 to-indigo-50/30 p-4">
+      <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+        <div className="flex-1 relative">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Escribe tu mensaje aquí..."
+            className="flex-1 resize-none rounded-2xl border-2 border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 min-h-[44px] max-h-[120px] bg-white shadow-sm transition-all duration-200 pr-3 pl-4 py-3 text-sm overflow-hidden scrollbar-none"
+            disabled={loading}
+            onInput={adjustHeight}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          />
+        </div>
         <Button
           type="submit"
           disabled={!message.trim() || loading}
-          size="sm"
-          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 self-end"
+          className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center p-0 flex-shrink-0"
         >
           {loading ? (
             <svg
-              className="animate-spin h-4 w-4"
+              className="animate-spin h-5 w-5 text-white"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -86,7 +88,7 @@ export default function MessageInput() {
             </svg>
           ) : (
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -94,7 +96,7 @@ export default function MessageInput() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
               />
             </svg>

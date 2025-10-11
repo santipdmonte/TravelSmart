@@ -379,3 +379,13 @@
 }
 
 .ai-fab:hover { transform: translateY(-2px) scale(1.03); filter: saturate(1.05); }
+
+/* Hide scrollbars for chat input */
+.scrollbar-none {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}

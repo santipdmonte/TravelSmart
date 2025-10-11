@@ -125,9 +125,27 @@ export default function MessageList() {
         {hilState?.isHIL && threadId && <ConfirmationMessage />}
 
         {loading && (
-          <div className="flex items-center space-x-2 p-4 text-gray-700">
-            <div className="animate-spin w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
-            <span className="text-sm">La IA está pensando...</span>
+          <div className="flex justify-start mb-4">
+            <div className="max-w-[80%] rounded-lg rounded-bl-none px-5 py-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 shadow-sm">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    </svg>
+                  </div>
+                  <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-blue-900">Procesando tu solicitud...</span>
+                  <div className="flex space-x-1 mt-1.5">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
