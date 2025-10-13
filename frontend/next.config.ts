@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.muscache.com", // Airbnb CDN for accommodation images
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
