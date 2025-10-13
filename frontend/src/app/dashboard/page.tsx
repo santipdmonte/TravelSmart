@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useItinerary } from "@/contexts/ItineraryContext";
@@ -40,6 +41,7 @@ const normalizeSearchText = (value: string | null | undefined): string =>
     .replace(/\p{Diacritic}/gu, "");
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { state: authState, dispatch } = useAuth();
   const { itineraries, loading } = useItinerary();
   const { fetchAllItineraries } = useItineraryActions();
@@ -64,6 +66,13 @@ export default function DashboardPage() {
   const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSavingVisited, setIsSavingVisited] = useState(false);
+
+  // Protect route - redirect to login if not authenticated
+  useEffect(() => {
+    if (authState.isInitialized && !authState.isAuthenticated) {
+      router.push("/login");
+    }
+  }, [authState.isInitialized, authState.isAuthenticated, router]);
 
   useEffect(() => {
     fetchAllItineraries();

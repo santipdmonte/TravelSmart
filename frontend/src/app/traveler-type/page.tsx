@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,9 +11,17 @@ import { getTravelerTypeDetails } from "@/lib/travelerTestApi"
 import type { TravelerType } from "@/types/travelerTest"
 
 export default function TravelerTypePage() {
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, isAuthenticated, isInitialized } = useAuth()
   const [resolvedTravelerType, setResolvedTravelerType] = useState<TravelerType | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Protect route - redirect to login if not authenticated
+  useEffect(() => {
+    if (isInitialized && !isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isInitialized, isAuthenticated, router])
 
   useEffect(() => {
     let isMounted = true
