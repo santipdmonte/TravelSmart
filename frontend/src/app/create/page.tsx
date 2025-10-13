@@ -388,9 +388,18 @@ export default function CreateItineraryPage() {
             zIndex: 1000,
             display: "grid",
             placeItems: "center",
+            pointerEvents: "all",
           }}
+          onClick={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.preventDefault()}
+          onTouchStart={(e) => e.preventDefault()}
         >
-          <div style={{ textAlign: "center" }}>
+          <div 
+            style={{ 
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
+          >
             <Loader size={180} />
             <TextType
               text={[

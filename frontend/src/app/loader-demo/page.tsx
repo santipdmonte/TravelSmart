@@ -5,14 +5,24 @@ import TextType from '@/components/TextType';
 
 export default function LoaderDemoPage() {
   return (
-    <main style={{
-      minHeight: "100dvh",
-      display: "grid",
-      placeItems: "center",
-      padding: 24,
-      gap: 24,
-    }}>
-        <div style={{ textAlign: "center" }}>
+    <main 
+      style={{
+        minHeight: "100dvh",
+        display: "grid",
+        placeItems: "center",
+        padding: 24,
+        gap: 24,
+      }}
+      onClick={(e) => e.preventDefault()}
+      onMouseDown={(e) => e.preventDefault()}
+      onTouchStart={(e) => e.preventDefault()}
+    >
+        <div 
+          style={{ 
+            textAlign: "center",
+            pointerEvents: "none",
+          }}
+        >
             {/* <TextType 
                 text={["Generando itinerario...", "Planificando actividades...", "Optimizando Rutas..."]}
                 typingSpeed={100}

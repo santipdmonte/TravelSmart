@@ -31,28 +31,25 @@ function useLogProgress(totalMs: number) {
   const [value, setValue] = React.useState(0); // 0-100
 
   React.useEffect(() => {
-    const start = performance.now();
-    let raf = 0;
-
-    // Map elapsed time to percentage using a logarithmic-like easing.
-    // Desired: around 50% at ~10s, then slow down.
-    // We'll use p = log(1 + a*t) / log(1 + a*T). Choose a so t=10s -> ~0.5
+    const startTime = Date.now();
+    const a = 0.00025; // tuned constant for logarithmic easing
     const T = totalMs;
-    // Solve for a in log(1+a*t50)/log(1+a*T)=0.5 -> (1+a*t50) = (1+a*T)^0.5
-    // We'll approximate by trying a reasonable value.
-    const a = 0.00025; // tuned constant
 
-    const tick = () => {
-      const now = performance.now();
-      const elapsed = Math.min(now - start, T);
+    // Use setInterval instead of requestAnimationFrame to ensure consistent updates
+    // regardless of user interactions or browser optimizations
+    const interval = setInterval(() => {
+      const elapsed = Math.min(Date.now() - startTime, T);
       const numerator = Math.log(1 + a * elapsed);
       const denominator = Math.log(1 + a * T);
       const pct = (numerator / denominator) * 100;
       setValue(pct);
-      if (elapsed < T) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+      
+      if (elapsed >= T) {
+        clearInterval(interval);
+      }
+    }, 16); // ~60fps
+
+    return () => clearInterval(interval);
   }, [totalMs]);
 
   return value;
