@@ -10,6 +10,7 @@ import { useChatActions } from "@/hooks/useChatActions";
 import { useToast } from "@/contexts/ToastContext";
 import { ChatPanel } from "@/components/chat";
 import { apiRequest } from "@/lib/api";
+import { parseLocalDate } from "@/lib/utils";
 import {
   listAccommodationsByItineraryAndCity,
   createAccommodation,
@@ -184,7 +185,7 @@ export default function ItineraryDetailsPage() {
     const destinos = currentItinerary?.details_itinerary?.destinos ?? [];
     if (!startDateStr || destinos.length === 0) return results;
     try {
-      let cursor = new Date(startDateStr);
+      let cursor = parseLocalDate(startDateStr);
       for (const dest of destinos) {
         const start = new Date(cursor);
         const end = new Date(cursor);
@@ -556,9 +557,9 @@ export default function ItineraryDetailsPage() {
                 <p className="text-gray-700">
                   {details_itinerary.destino_general}
                   {currentItinerary.start_date
-                    ? ` • ${new Date(
+                    ? ` • ${parseLocalDate(
                         currentItinerary.start_date
-                      ).toLocaleDateString()} (${
+                      ).toLocaleDateString('es-ES')} (${
                         details_itinerary.cantidad_dias
                       } días)`
                     : ` • ${details_itinerary.cantidad_dias} días`}
@@ -613,11 +614,7 @@ export default function ItineraryDetailsPage() {
                       className="rounded-full bg-sky-500 hover:bg-sky-700"
                       onClick={() => {
                         setTripStartDate(
-                          currentItinerary.start_date
-                            ? new Date(currentItinerary.start_date)
-                                .toISOString()
-                                .slice(0, 10)
-                            : ""
+                          currentItinerary.start_date || ""
                         );
                         setTripTravelersCount(
                           currentItinerary.travelers_count ?? 1
@@ -916,7 +913,7 @@ export default function ItineraryDetailsPage() {
                           )}
                           {currentItinerary.start_date && (
                             <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
-                              Inicio {new Date(currentItinerary.start_date).toLocaleDateString()}
+                              Inicio {parseLocalDate(currentItinerary.start_date).toLocaleDateString('es-ES')}
                             </span>
                           )}
                         </div>

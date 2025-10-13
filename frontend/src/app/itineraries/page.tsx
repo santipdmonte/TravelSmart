@@ -8,6 +8,7 @@ import { useItineraryActions } from '@/hooks/useItineraryActions';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/contexts/ToastContext';
 import { Button } from '@/components';
+import { parseLocalDate } from '@/lib/utils';
 
 function ItinerariesContent() {
   const { itineraries, loading, error } = useItinerary();
@@ -132,7 +133,7 @@ function ItinerariesContent() {
           )}
           {itinerary.start_date && (
             <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
-              Inicio {new Date(itinerary.start_date).toLocaleDateString('es-ES')}
+              Inicio {parseLocalDate(itinerary.start_date).toLocaleDateString('es-ES')}
             </span>
           )}
         </div>
