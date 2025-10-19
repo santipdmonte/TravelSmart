@@ -121,13 +121,13 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Card 2 */}
-          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-yellow-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-sky-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-cyan-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-3xl">⚡</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-yellow-700 transition-colors duration-300">
+              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-sky-700 transition-colors duration-300">
                 Rápido y fácil
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -138,13 +138,13 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Card 3 */}
-          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-cyan-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/50 to-teal-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-sky-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-cyan-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-3xl">🗺️</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
+              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-sky-700 transition-colors duration-300">
                 Planes detallados
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
