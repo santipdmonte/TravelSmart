@@ -10,15 +10,15 @@ export default function LandingPage() {
   const { isAuthenticated, userDisplayName } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-sky-50 to-blue-50">
       {/* Hero Section */}
       <div className="container mx-auto px-4 pt-12 pb-8 md:pt-16 md:pb-10">
         {/* Badge/Announcement */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-indigo-200 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-sky-200 shadow-sm">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600"></span>
             </span>
             <span className="text-sm font-medium text-gray-700">
               Impulsado por IA de última generación
@@ -30,7 +30,7 @@ export default function LandingPage() {
         <header className="text-center mb-8">
           {isAuthenticated ? (
             <>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 mb-4 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 mb-4 leading-tight">
                 Bienvenido de nuevo,{" "}
                 <span className="block mt-2">{userDisplayName}!</span>
               </h1>
@@ -44,7 +44,7 @@ export default function LandingPage() {
             </>
           ) : (
             <>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 mb-4 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 mb-4 leading-tight">
                 Bienvenido a <span className="block mt-2">TravelSmart</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
@@ -65,7 +65,7 @@ export default function LandingPage() {
             <Button
               asChild
               size="lg"
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 px-8 py-4 text-base font-semibold rounded-xl group"
+              className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 shadow-lg hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 px-8 py-4 text-base font-semibold rounded-xl group text-white"
             >
               <Link href="/create" className="flex items-center gap-2">
                 <span>Crear tu itinerario</span>
@@ -89,7 +89,7 @@ export default function LandingPage() {
               asChild
               variant="outline"
               size="lg"
-              className="border-2 border-indigo-300 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all duration-300 px-7 py-4 text-sm font-medium rounded-xl"
+              className="border-2 border-sky-300 text-sky-700 hover:bg-sky-50 hover:border-sky-400 shadow-sm hover:shadow-md transition-all duration-300 px-7 py-4 text-sm font-medium rounded-xl"
             >
               <Link href="/itineraries">Ver mis itinerarios</Link>
             </Button>
@@ -103,13 +103,13 @@ export default function LandingPage() {
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
           {/* Feature Card 1 */}
-          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-sky-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-cyan-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-3xl">🤖</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
+              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-sky-700 transition-colors duration-300">
                 Impulsado por IA
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -121,13 +121,13 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Card 2 */}
-          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-yellow-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-3xl">⚡</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
+              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-yellow-700 transition-colors duration-300">
                 Rápido y fácil
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -138,13 +138,13 @@ export default function LandingPage() {
           </div>
 
           {/* Feature Card 3 */}
-          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-cyan-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/50 to-teal-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <span className="text-white text-3xl">🗺️</span>
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-indigo-700 transition-colors duration-300">
+              <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-cyan-700 transition-colors duration-300">
                 Planes detallados
               </h3>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -157,10 +157,10 @@ export default function LandingPage() {
       </div>
 
       {/* MagicBento Section */}
-      <div className="relative py-24 bg-gradient-to-b from-transparent via-indigo-50/30 to-transparent">
+      <div className="relative py-24 bg-gradient-to-b from-transparent via-sky-50/30 to-transparent">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4">
+            <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-4">
               Características Innovadoras
             </h2>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
@@ -181,21 +181,21 @@ export default function LandingPage() {
             clickEffect={false}
             spotlightRadius={300}
             particleCount={12}
-            glowColor="132, 0, 255"
+            glowColor="14, 165, 233"
           />
         </div>
       </div>
 
       {/* Team Section */}
-      <div className="relative py-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+      <div className="relative py-24 bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-indigo-200 shadow-sm mb-6">
-              <span className="text-sm font-medium text-indigo-600">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-sky-200 shadow-sm mb-6">
+              <span className="text-sm font-medium text-sky-600">
                 👥 Nuestro Equipo
               </span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-5">
+            <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-5">
               Las Mentes Detrás de TravelSmart
             </h2>
             <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
@@ -277,7 +277,7 @@ export default function LandingPage() {
           </div>
 
           {/* Call to Action Final */}
-          <div className="text-center mt-16 pt-12 border-t border-indigo-200 col-span-full">
+          <div className="text-center mt-16 pt-12 border-t border-sky-200 col-span-full">
             <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
               ¿Listo para comenzar tu próxima aventura?
             </h3>
@@ -288,7 +288,7 @@ export default function LandingPage() {
             <Button
               asChild
               size="lg"
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 px-10 py-6 text-lg font-semibold rounded-xl"
+              className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 px-10 py-6 text-lg font-semibold rounded-xl text-white"
             >
               <Link href="/create">Crear mi primer itinerario</Link>
             </Button>
