@@ -205,48 +205,39 @@ export default function ItineraryMap({
           return "default";
       }
     };
+
+    // Crear lookup bidireccional (ambas direcciones)
     for (const s of segs) {
       if (!s.ciudad_origen || !s.ciudad_destino) continue;
-      const key = `${norm(s.ciudad_origen)}__${norm(s.ciudad_destino)}`;
-      map[key] = mapType(s.tipo_transporte);
+      const ciudadOrigenNorm = norm(s.ciudad_origen);
+      const ciudadDestinoNorm = norm(s.ciudad_destino);
+      const transportType = mapType(s.tipo_transporte);
+
+      // Clave directa (orden del backend)
+      const keyForward = `${ciudadOrigenNorm}__${ciudadDestinoNorm}`;
+      map[keyForward] = transportType;
+
+      // Clave inversa (orden opuesto)
+      const keyReverse = `${ciudadDestinoNorm}__${ciudadOrigenNorm}`;
+      map[keyReverse] = transportType;
     }
+
     return map;
   }, [itinerary.details_itinerary.transportes_entre_destinos]);
 
-  // Build great-circle legs with real transport data if available
-  const routesGeoJSON = useMemo<FeatureCollection<LineString>>(
+  // Mapeo de transporte interno a perfiles de Mapbox Directions API
+  const transportToMapboxProfile: Record<string, string | null> = useMemo(
     () => ({
-      type: "FeatureCollection",
-      features: destinationPoints
-        .slice(0, -1)
-        .map((item, i): Feature<LineString> => {
-          const next = destinationPoints[i + 1];
-          const norm = (s: string) =>
-            s
-              .trim()
-              .toLowerCase()
-              .normalize("NFD")
-              .replace(/\p{Diacritic}/gu, "");
-          const key = `${norm(item.d.ciudad)}__${norm(next.d.ciudad)}`;
-          const transport = transportLookup[key] || "default";
-          return {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: greatCircle(item.coord, next.coord, 96),
-            },
-            properties: {
-              from: item.index,
-              to: next.index,
-              transport,
-              hovered:
-                hoveredDestinationIndex === item.index ||
-                hoveredDestinationIndex === next.index,
-            },
-          };
-        }),
+      car: "mapbox/driving",
+      bus: "mapbox/driving",
+      walk: "mapbox/walking",
+      bike: "mapbox/cycling",
+      train: "mapbox/driving", // Placeholder: no hay perfil público de tren
+      plane: null, // Usar greatCircle
+      boat: null, // Usar greatCircle
+      default: null, // Usar greatCircle
     }),
-    [destinationPoints, greatCircle, hoveredDestinationIndex, transportLookup]
+    []
   );
 
   // Resolve Mapbox token from env (client-safe NEXT_PUBLIC_ vars only)
@@ -269,6 +260,130 @@ export default function ItineraryMap({
       );
     }
   }, [token]);
+
+  // Función para obtener geometría de ruta desde Mapbox Directions API
+  const fetchRouteGeometry = useCallback(
+    async (
+      startCoords: [number, number],
+      endCoords: [number, number],
+      profile: string,
+      accessToken: string
+    ): Promise<[number, number][] | null> => {
+      try {
+        const url = `https://api.mapbox.com/directions/v5/${profile}/${startCoords[0]},${startCoords[1]};${endCoords[0]},${endCoords[1]}?geometries=geojson&access_token=${accessToken}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          console.warn(
+            `[Mapbox Directions] Error ${response.status} para ruta ${profile}`
+          );
+          return null;
+        }
+
+        const data = await response.json();
+
+        if (data.routes && data.routes[0] && data.routes[0].geometry) {
+          return data.routes[0].geometry.coordinates as [number, number][];
+        }
+
+        return null;
+      } catch (error) {
+        console.error(
+          "[Mapbox Directions] Error al obtener geometría de ruta:",
+          error
+        );
+        return null;
+      }
+    },
+    []
+  );
+
+  // Estado para rutas GeoJSON con geometrías realistas
+  const [routesGeoJSON, setRoutesGeoJSON] =
+    useState<FeatureCollection<LineString> | null>(null);
+
+  // Efecto para generar rutas con Mapbox Directions API o greatCircle como fallback
+  useEffect(() => {
+    if (!token || destinationPoints.length < 2) {
+      setRoutesGeoJSON({
+        type: "FeatureCollection",
+        features: [],
+      });
+      return;
+    }
+
+    const generateRoutes = async () => {
+      const routePromises = destinationPoints
+        .slice(0, -1)
+        .map(async (item, i): Promise<Feature<LineString>> => {
+          const next = destinationPoints[i + 1];
+          const norm = (s: string) =>
+            s
+              .trim()
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/\p{Diacritic}/gu, "");
+          const key = `${norm(item.d.ciudad)}__${norm(next.d.ciudad)}`;
+          const transport = transportLookup[key] || "default";
+          const mapboxProfile = transportToMapboxProfile[transport];
+
+          let coordinates: [number, number][];
+
+          if (mapboxProfile) {
+            // Intentar obtener geometría de Mapbox Directions API
+            const routeCoords = await fetchRouteGeometry(
+              item.coord,
+              next.coord,
+              mapboxProfile,
+              token
+            );
+
+            if (routeCoords) {
+              coordinates = routeCoords;
+            } else {
+              // Fallback a greatCircle si la API falla
+              coordinates = greatCircle(item.coord, next.coord, 96);
+            }
+          } else {
+            // Usar greatCircle directamente para modos no soportados
+            coordinates = greatCircle(item.coord, next.coord, 96);
+          }
+
+          return {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates,
+            },
+            properties: {
+              from: item.index,
+              to: next.index,
+              transport,
+              hovered:
+                hoveredDestinationIndex === item.index ||
+                hoveredDestinationIndex === next.index,
+            },
+          };
+        });
+
+      const features = await Promise.all(routePromises);
+
+      setRoutesGeoJSON({
+        type: "FeatureCollection",
+        features,
+      });
+    };
+
+    generateRoutes();
+  }, [
+    destinationPoints,
+    transportLookup,
+    transportToMapboxProfile,
+    hoveredDestinationIndex,
+    token,
+    fetchRouteGeometry,
+    greatCircle,
+  ]);
 
   const [popup, setPopup] = useState<{
     lngLat: [number, number];
@@ -462,93 +577,95 @@ export default function ItineraryMap({
                 />
               </Source>
 
-              <Source id="arcs" type="geojson" data={routesGeoJSON}>
-                {/* Default (unknown) transport: gray dotted */}
-                <Layer
-                  id="arcs-line-default"
-                  type="line"
-                  filter={["==", "transport", "default"]}
-                  layout={{ "line-cap": "round", "line-join": "round" }}
-                  paint={{
-                    "line-color": transportColor.default,
-                    "line-width": 2.5,
-                    "line-opacity": 0.7,
-                    "line-dasharray": [2, 2],
-                  }}
-                />
-                {/* Walk transport: same gray, solid */}
-                <Layer
-                  id="arcs-line-walk"
-                  type="line"
-                  filter={["==", "transport", "walk"]}
-                  layout={{ "line-cap": "round", "line-join": "round" }}
-                  paint={{
-                    "line-color": transportColor.walk,
-                    "line-width": 2.5,
-                    "line-opacity": 0.7,
-                  }}
-                />
-                {/* Other transports retain color mapping, solid */}
-                <Layer
-                  id="arcs-line-other"
-                  type="line"
-                  // Exclude default & walk (handled by previous layers). Legacy filter syntax uses property name directly.
-                  filter={["all", ["!in", "transport", "default", "walk"]]}
-                  layout={{ "line-cap": "round", "line-join": "round" }}
-                  paint={{
-                    "line-color": [
-                      "match",
-                      ["get", "transport"],
-                      "car",
-                      transportColor.car,
-                      "bike",
-                      transportColor.bike,
-                      "train",
-                      transportColor.train,
-                      "plane",
-                      transportColor.plane,
-                      "bus",
-                      transportColor.bus,
-                      "boat",
-                      transportColor.boat,
-                      transportColor.default,
-                    ],
-                    "line-width": 2.5,
-                    "line-opacity": 0.7,
-                  }}
-                />
-                {/* Hover highlight (solid, above others) */}
-                <Layer
-                  id="arcs-line-hover"
-                  type="line"
-                  filter={["==", "hovered", true]}
-                  layout={{ "line-cap": "round", "line-join": "round" }}
-                  paint={{
-                    "line-color": [
-                      "match",
-                      ["get", "transport"],
-                      "car",
-                      transportColor.car,
-                      "walk",
-                      transportColor.walk,
-                      "bike",
-                      transportColor.bike,
-                      "train",
-                      transportColor.train,
-                      "plane",
-                      transportColor.plane,
-                      "bus",
-                      transportColor.bus,
-                      "boat",
-                      transportColor.boat,
-                      transportColor.default,
-                    ],
-                    "line-width": 4.5,
-                    "line-opacity": 0.95,
-                    "line-blur": 0.2,
-                  }}
-                />
-              </Source>
+              {routesGeoJSON && (
+                <Source id="arcs" type="geojson" data={routesGeoJSON}>
+                  {/* Default (unknown) transport: gray dotted */}
+                  <Layer
+                    id="arcs-line-default"
+                    type="line"
+                    filter={["==", "transport", "default"]}
+                    layout={{ "line-cap": "round", "line-join": "round" }}
+                    paint={{
+                      "line-color": transportColor.default,
+                      "line-width": 2.5,
+                      "line-opacity": 0.7,
+                      "line-dasharray": [2, 2],
+                    }}
+                  />
+                  {/* Walk transport: same gray, solid */}
+                  <Layer
+                    id="arcs-line-walk"
+                    type="line"
+                    filter={["==", "transport", "walk"]}
+                    layout={{ "line-cap": "round", "line-join": "round" }}
+                    paint={{
+                      "line-color": transportColor.walk,
+                      "line-width": 2.5,
+                      "line-opacity": 0.7,
+                    }}
+                  />
+                  {/* Other transports retain color mapping, solid */}
+                  <Layer
+                    id="arcs-line-other"
+                    type="line"
+                    // Exclude default & walk (handled by previous layers). Legacy filter syntax uses property name directly.
+                    filter={["all", ["!in", "transport", "default", "walk"]]}
+                    layout={{ "line-cap": "round", "line-join": "round" }}
+                    paint={{
+                      "line-color": [
+                        "match",
+                        ["get", "transport"],
+                        "car",
+                        transportColor.car,
+                        "bike",
+                        transportColor.bike,
+                        "train",
+                        transportColor.train,
+                        "plane",
+                        transportColor.plane,
+                        "bus",
+                        transportColor.bus,
+                        "boat",
+                        transportColor.boat,
+                        transportColor.default,
+                      ],
+                      "line-width": 2.5,
+                      "line-opacity": 0.7,
+                    }}
+                  />
+                  {/* Hover highlight (solid, above others) */}
+                  <Layer
+                    id="arcs-line-hover"
+                    type="line"
+                    filter={["==", "hovered", true]}
+                    layout={{ "line-cap": "round", "line-join": "round" }}
+                    paint={{
+                      "line-color": [
+                        "match",
+                        ["get", "transport"],
+                        "car",
+                        transportColor.car,
+                        "walk",
+                        transportColor.walk,
+                        "bike",
+                        transportColor.bike,
+                        "train",
+                        transportColor.train,
+                        "plane",
+                        transportColor.plane,
+                        "bus",
+                        transportColor.bus,
+                        "boat",
+                        transportColor.boat,
+                        transportColor.default,
+                      ],
+                      "line-width": 4.5,
+                      "line-opacity": 0.95,
+                      "line-blur": 0.2,
+                    }}
+                  />
+                </Source>
+              )}
 
               {popup && (
                 <Popup
