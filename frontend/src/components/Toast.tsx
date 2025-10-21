@@ -1,11 +1,23 @@
 "use client";
 
 import { useToast } from "@/contexts/ToastContext";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export function Toast() {
   const { toastState } = useToast();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   if (toastState.status === "idle") {
+    return null;
+  }
+
+  // Ocultar el toast pending si estamos en la pestaña de actividades del itinerario
+  const isItineraryPage = pathname?.startsWith("/itinerary/");
+  const currentTab = searchParams?.get("tab");
+  const isItineraryTab = currentTab === "itinerary";
+
+  if (toastState.status === "pending" && isItineraryPage && isItineraryTab) {
     return null;
   }
 

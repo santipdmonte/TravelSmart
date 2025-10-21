@@ -64,7 +64,7 @@ export default function ItineraryDetailsPage() {
   const { toastState, showToast } = useToast();
 
   const itineraryId = params.id as string;
-  
+
   // Get initial tab from URL query param or default to "route"
   const tabFromUrl = searchParams.get("tab") || "route";
 
@@ -79,9 +79,12 @@ export default function ItineraryDetailsPage() {
   >([]);
   const [newLinkByDest, setNewLinkByDest] = useState<string[]>([]);
   const [isCreatingByDest, setIsCreatingByDest] = useState<boolean[]>([]);
-  const [imageIndexByAccId, setImageIndexByAccId] = useState<Record<string, number>>({});
+  const [imageIndexByAccId, setImageIndexByAccId] = useState<
+    Record<string, number>
+  >({});
   // Cache to track if accommodations have been fetched for current itinerary
-  const [accommodationsFetched, setAccommodationsFetched] = useState<boolean>(false);
+  const [accommodationsFetched, setAccommodationsFetched] =
+    useState<boolean>(false);
   // Route tab no longer supports editing or reordering
   const [activeTab, setActiveTab] = useState<string>(tabFromUrl);
   const [isTripDetailsOpen, setIsTripDetailsOpen] = useState<boolean>(false);
@@ -94,11 +97,16 @@ export default function ItineraryDetailsPage() {
   const [loadingAccommodationLinks, setLoadingAccommodationLinks] =
     useState<boolean>(false);
   // Toggle state for transport alternatives per item index
-  const [openAlternatives, setOpenAlternatives] = useState<Record<number, boolean>>({});
+  const [openAlternatives, setOpenAlternatives] = useState<
+    Record<number, boolean>
+  >({});
   // Toggle state for accommodation suggestions per destination index
-  const [openAccommodationSuggestions, setOpenAccommodationSuggestions] = useState<Record<number, boolean>>({});
+  const [openAccommodationSuggestions, setOpenAccommodationSuggestions] =
+    useState<Record<number, boolean>>({});
   // Expand/collapse for individual activities (by day index and activity index)
-  const [openActivities, setOpenActivities] = useState<Record<string, boolean>>({});
+  const [openActivities, setOpenActivities] = useState<Record<string, boolean>>(
+    {}
+  );
   // Delete itinerary dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -106,10 +114,7 @@ export default function ItineraryDetailsPage() {
   const renderMarkdown = useCallback(function renderMarkdown(md: string) {
     try {
       const escapeHtml = (str: string) =>
-        str
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+        str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const lines = md.split(/\r?\n/);
       let html = "";
       let inList = false;
@@ -128,22 +133,28 @@ export default function ItineraryDetailsPage() {
         if (h3 || h2 || h1) {
           flushList();
           const text = escapeHtml((h3?.[1] || h2?.[1] || h1?.[1] || "").trim());
-          if (h1) html += `<h1 class=\"text-xl font-semibold mt-3 mb-2\">${text}</h1>`;
-          else if (h2) html += `<h2 class=\"text-lg font-semibold mt-3 mb-2\">${text}</h2>`;
-          else html += `<h3 class=\"text-base font-semibold mt-3 mb-2\">${text}</h3>`;
+          if (h1)
+            html += `<h1 class=\"text-xl font-semibold mt-3 mb-2\">${text}</h1>`;
+          else if (h2)
+            html += `<h2 class=\"text-lg font-semibold mt-3 mb-2\">${text}</h2>`;
+          else
+            html += `<h3 class=\"text-base font-semibold mt-3 mb-2\">${text}</h3>`;
           continue;
         }
         // Unordered list
         const li = line.match(/^\s*[-*]\s+(.*)$/);
         if (li) {
           if (!inList) {
-            html += '<ul class=\"list-disc pl-5 space-y-1\">';
+            html += '<ul class="list-disc pl-5 space-y-1">';
             inList = true;
           }
           let item = escapeHtml(li[1]);
-          item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
-          item = item.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
-          item = item.replace(/_(.*?)_/g, '<em>$1<\/em>');
+          item = item.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+          item = item.replace(
+            /`([^`]+)`/g,
+            '<code class="px-1 py-0.5 bg-gray-100 rounded">$1</code>'
+          );
+          item = item.replace(/_(.*?)_/g, "<em>$1</em>");
           html += `<li>${item}</li>`;
           continue;
         }
@@ -156,9 +167,12 @@ export default function ItineraryDetailsPage() {
         // Paragraph
         flushList();
         let paragraph = escapeHtml(line);
-        paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1<\/strong>');
-        paragraph = paragraph.replace(/`([^`]+)`/g, '<code class=\"px-1 py-0.5 bg-gray-100 rounded\">$1<\/code>');
-        paragraph = paragraph.replace(/_(.*?)_/g, '<em>$1<\/em>');
+        paragraph = paragraph.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        paragraph = paragraph.replace(
+          /`([^`]+)`/g,
+          '<code class="px-1 py-0.5 bg-gray-100 rounded">$1</code>'
+        );
+        paragraph = paragraph.replace(/_(.*?)_/g, "<em>$1</em>");
         html += `<p class=\"leading-relaxed\">${paragraph}</p>`;
       }
       if (inList) html += "</ul>";
@@ -170,7 +184,7 @@ export default function ItineraryDetailsPage() {
   // Confirm route modal state
   const [isConfirmRouteOpen, setIsConfirmRouteOpen] = useState<boolean>(false);
   const [confirmingRoute, setConfirmingRoute] = useState<boolean>(false);
-  
+
   // Delete itinerary modal state
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
@@ -242,62 +256,68 @@ export default function ItineraryDetailsPage() {
 
   // Fetch accommodation links from backend for 'stays' tab (supports with/without dates)
   const fetchedLinksForRef = useRef<string | null>(null);
-  const fetchAccommodationLinks = useCallback(async (force: boolean = false) => {
-    if (!itineraryId) return;
-    if (!force && fetchedLinksForRef.current === itineraryId) return;
-    try {
-      setLoadingAccommodationLinks(true);
-      const res = await apiRequest<
-        Record<string, { airbnb: string; booking: string; expedia: string }>
-      >(`/api/itineraries/${itineraryId}/accommodations/links`);
-      if (res.data) {
-        setAccommodationLinks(res.data);
-      } else {
+  const fetchAccommodationLinks = useCallback(
+    async (force: boolean = false) => {
+      if (!itineraryId) return;
+      if (!force && fetchedLinksForRef.current === itineraryId) return;
+      try {
+        setLoadingAccommodationLinks(true);
+        const res = await apiRequest<
+          Record<string, { airbnb: string; booking: string; expedia: string }>
+        >(`/api/itineraries/${itineraryId}/accommodations/links`);
+        if (res.data) {
+          setAccommodationLinks(res.data);
+        } else {
+          setAccommodationLinks({});
+        }
+        fetchedLinksForRef.current = itineraryId;
+      } catch {
+        // Silently keep fallbacks in the UI links
         setAccommodationLinks({});
+      } finally {
+        setLoadingAccommodationLinks(false);
       }
-      fetchedLinksForRef.current = itineraryId;
-    } catch {
-      // Silently keep fallbacks in the UI links
-      setAccommodationLinks({});
-    } finally {
-      setLoadingAccommodationLinks(false);
-    }
-  }, [itineraryId]);
+    },
+    [itineraryId]
+  );
 
   useEffect(() => {
     fetchAccommodationLinks(false);
   }, [fetchAccommodationLinks]);
 
   // Load saved accommodations from backend per destination
-  const fetchSavedAccommodations = useCallback(async (force: boolean = false) => {
-    if (!currentItinerary) return;
-    
-    // If already fetched and not forcing, skip the API calls
-    if (accommodationsFetched && !force) return;
-    
-    const destinos = currentItinerary.details_itinerary.destinos ?? [];
-    if (!Array.isArray(destinos) || destinos.length === 0) {
-      setAccommodationsByDest([]);
-      setAccommodationsFetched(true);
-      return;
-    }
-    
-    try {
-      const results = await Promise.all(
-        destinos.map((d) =>
-          listAccommodationsByItineraryAndCity(itineraryId, d.ciudad)
-        )
-      );
-      const mapped: AccommodationResponse[][] = results.map((res) =>
-        (res.data ?? []).filter((a) => a.status !== "deleted")
-      );
-      setAccommodationsByDest(mapped);
-      setAccommodationsFetched(true);
-    } catch (error) {
-      console.error('Error fetching accommodations:', error);
-      // Don't set accommodationsFetched to true on error so it can be retried
-    }
-  }, [currentItinerary, itineraryId, accommodationsFetched]);
+  const fetchSavedAccommodations = useCallback(
+    async (force: boolean = false) => {
+      if (!currentItinerary) return;
+
+      // If already fetched and not forcing, skip the API calls
+      if (accommodationsFetched && !force) return;
+
+      const destinos = currentItinerary.details_itinerary.destinos ?? [];
+      if (!Array.isArray(destinos) || destinos.length === 0) {
+        setAccommodationsByDest([]);
+        setAccommodationsFetched(true);
+        return;
+      }
+
+      try {
+        const results = await Promise.all(
+          destinos.map((d) =>
+            listAccommodationsByItineraryAndCity(itineraryId, d.ciudad)
+          )
+        );
+        const mapped: AccommodationResponse[][] = results.map((res) =>
+          (res.data ?? []).filter((a) => a.status !== "deleted")
+        );
+        setAccommodationsByDest(mapped);
+        setAccommodationsFetched(true);
+      } catch (error) {
+        console.error("Error fetching accommodations:", error);
+        // Don't set accommodationsFetched to true on error so it can be retried
+      }
+    },
+    [currentItinerary, itineraryId, accommodationsFetched]
+  );
 
   // Fetch when opening the stays tab or when itinerary changes
   useEffect(() => {
@@ -321,9 +341,8 @@ export default function ItineraryDetailsPage() {
     const params = new URLSearchParams(window.location.search);
     params.set("tab", newTab);
     const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState({}, '', newUrl);
+    window.history.replaceState({}, "", newUrl);
   }, []);
-
 
   if (loading) {
     return (
@@ -344,16 +363,24 @@ export default function ItineraryDetailsPage() {
           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 max-w-md">
             {isNotFound ? (
               <>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">No encontramos tu itinerario</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  No encontramos tu itinerario
+                </h2>
                 <p className="text-gray-700 mb-6">
-                  Es posible que haya sido eliminado o que el enlace esté incompleto.
-                  {itineraryId ? ` (ID: ${String(itineraryId).slice(0, 8)}…)` : ""}
+                  Es posible que haya sido eliminado o que el enlace esté
+                  incompleto.
+                  {itineraryId
+                    ? ` (ID: ${String(itineraryId).slice(0, 8)}…)`
+                    : ""}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <Button asChild variant="outline" className="rounded-full">
                     <Link href="/itineraries">Volver a itinerarios</Link>
                   </Button>
-                  <Button asChild className="bg-sky-500 hover:bg-sky-700 rounded-full">
+                  <Button
+                    asChild
+                    className="bg-sky-500 hover:bg-sky-700 rounded-full"
+                  >
                     <Link href="/create">Crear nuevo</Link>
                   </Button>
                 </div>
@@ -401,9 +428,15 @@ export default function ItineraryDetailsPage() {
 
   const { details_itinerary } = currentItinerary;
   const hasMultipleDestinations = details_itinerary.destinos.length > 1;
-  const isRouteConfirmed = ((currentItinerary as unknown as { status?: string })?.status || "") === "confirmed";
+  const isRouteConfirmed =
+    ((currentItinerary as unknown as { status?: string })?.status || "") ===
+    "confirmed";
 
-  const handleSetTransportPrimary = async (fromCity: string, toCity: string, transport: string) => {
+  const handleSetTransportPrimary = async (
+    fromCity: string,
+    toCity: string,
+    transport: string
+  ) => {
     try {
       await openChat(itineraryId);
       const msg = `Establecer "${transport}" como transporte principal entre ${fromCity} y ${toCity}`;
@@ -427,35 +460,57 @@ export default function ItineraryDetailsPage() {
       // Close modal immediately and switch to activities tab
       setIsConfirmRouteOpen(false);
       handleTabChange("itinerary");
-      
+
       // Show pending toast
       showToast("pending", "Generando actividades diarias...", "", 5000);
-      
+
       // Fire POST request and track its status
       (async () => {
         try {
-          const response = await apiRequest(`/api/itineraries/${itineraryId}/route_confirmed`, {
-            method: "POST",
-          });
-          
+          const response = await apiRequest(
+            `/api/itineraries/${itineraryId}/route_confirmed`,
+            {
+              method: "POST",
+            }
+          );
+
           if (response.data && !response.error) {
             // Success: show toast for 4 seconds with link to activities tab
-            showToast("success", "¡Actividades diarias generadas!", `<a href="/itinerary/${itineraryId}?tab=itinerary">Ver en Actividades</a>`, 4000);
+            showToast(
+              "success",
+              "¡Actividades diarias generadas!",
+              `<a href="/itinerary/${itineraryId}?tab=itinerary">Ver en Actividades</a>`,
+              4000
+            );
             // Refresh to get updated itinerary with confirmed status
             fetchItinerary(itineraryId);
           } else {
             // Error response or no data - only log if unexpected
             const errorMsg = response.error || "Unknown error";
             // Only log 5xx server errors, not 4xx client errors
-            if (!errorMsg.includes("404") && !errorMsg.includes("400") && !errorMsg.includes("403")) {
+            if (
+              !errorMsg.includes("404") &&
+              !errorMsg.includes("400") &&
+              !errorMsg.includes("403")
+            ) {
               console.error("Error confirming route:", errorMsg);
             }
-            showToast("error", "Error al generar actividades", "Inténtalo de nuevo más tarde", 5000);
+            showToast(
+              "error",
+              "Error al generar actividades",
+              "Inténtalo de nuevo más tarde",
+              5000
+            );
           }
         } catch (err) {
           // Unexpected errors (network, etc)
           console.error("Unexpected error confirming route:", err);
-          showToast("error", "Error al confirmar", "Inténtalo de nuevo más tarde", 5000);
+          showToast(
+            "error",
+            "Error al confirmar",
+            "Inténtalo de nuevo más tarde",
+            5000
+          );
         }
       })();
     } finally {
@@ -469,16 +524,22 @@ export default function ItineraryDetailsPage() {
     const city = currentItinerary.details_itinerary.destinos[destIndex]?.ciudad;
     if (!city) return;
     try {
-      setIsCreatingByDest((prev) => prev.map((v, i) => (i === destIndex ? true : v)));
+      setIsCreatingByDest((prev) =>
+        prev.map((v, i) => (i === destIndex ? true : v))
+      );
       await createAccommodation({
         itinerary_id: currentItinerary.itinerary_id,
         city,
         url,
       });
       await fetchSavedAccommodations(true);
-      setNewLinkByDest((prev) => prev.map((v, i) => (i === destIndex ? "" : v)));
+      setNewLinkByDest((prev) =>
+        prev.map((v, i) => (i === destIndex ? "" : v))
+      );
     } finally {
-      setIsCreatingByDest((prev) => prev.map((v, i) => (i === destIndex ? false : v)));
+      setIsCreatingByDest((prev) =>
+        prev.map((v, i) => (i === destIndex ? false : v))
+      );
     }
   };
 
@@ -489,32 +550,49 @@ export default function ItineraryDetailsPage() {
 
   const handleDeleteItinerary = async () => {
     if (!itineraryId) return;
-    
+
     setIsDeleting(true);
     try {
       const result = await removeItinerary(itineraryId);
-      
+
       if (result.success) {
         // Close modal before showing toast and redirecting
         setIsDeleteDialogOpen(false);
-        showToast("success", "Itinerario eliminado", "El itinerario ha sido eliminado exitosamente", 3000);
+        showToast(
+          "success",
+          "Itinerario eliminado",
+          "El itinerario ha sido eliminado exitosamente",
+          3000
+        );
         // Small delay before redirect to ensure modal closes properly
         setTimeout(() => {
           router.push("/itineraries");
         }, 100);
       } else {
         // Show error but keep modal open so user can try again or cancel
-        showToast("error", "Error al eliminar", result.error || "No se pudo eliminar el itinerario", 5000);
+        showToast(
+          "error",
+          "Error al eliminar",
+          result.error || "No se pudo eliminar el itinerario",
+          5000
+        );
         setIsDeleting(false);
       }
     } catch {
       // Show error but keep modal open
-      showToast("error", "Error al eliminar", "Ocurrió un error inesperado", 5000);
+      showToast(
+        "error",
+        "Error al eliminar",
+        "Ocurrió un error inesperado",
+        5000
+      );
       setIsDeleting(false);
     }
   };
 
-  const getCurrentImageUrl = (acc: AccommodationResponse): string | undefined => {
+  const getCurrentImageUrl = (
+    acc: AccommodationResponse
+  ): string | undefined => {
     const total = acc.img_urls?.length ?? 0;
     if (total === 0) return undefined;
     const idx = imageIndexByAccId[acc.id] ?? 0;
@@ -613,9 +691,7 @@ export default function ItineraryDetailsPage() {
                     <Button
                       className="rounded-full bg-sky-500 hover:bg-sky-700"
                       onClick={() => {
-                        setTripStartDate(
-                          currentItinerary.start_date || ""
-                        );
+                        setTripStartDate(currentItinerary.start_date || "");
                         setTripTravelersCount(
                           currentItinerary.travelers_count ?? 1
                         );
@@ -646,7 +722,11 @@ export default function ItineraryDetailsPage() {
                                 Confirma tu ruta para continuar
                               </h3>
                               <p className="text-base text-gray-700 mb-6 leading-relaxed max-w-xl">
-                                Luego de confirmar la ruta elegida (destinos y días) se generarán las actividades diarias organizadas por mañana, tarde y noche, con detalles como horarios, precios, ubicaciones y links de reserva.
+                                Luego de confirmar la ruta elegida (destinos y
+                                días) se generarán las actividades diarias
+                                organizadas por mañana, tarde y noche, con
+                                detalles como horarios, precios, ubicaciones y
+                                links de reserva.
                               </p>
                               <Button
                                 size="lg"
@@ -672,7 +752,9 @@ export default function ItineraryDetailsPage() {
                                 Generando actividades diarias...
                               </h3>
                               <p className="text-base text-gray-700 leading-relaxed max-w-xl">
-                                Estamos creando tu itinerario personalizado con actividades organizadas por horarios, precios, ubicaciones y enlaces de reserva.
+                                Estamos creando tu itinerario personalizado con
+                                actividades organizadas por horarios, precios,
+                                ubicaciones y enlaces de reserva.
                               </p>
                             </div>
                           </div>
@@ -681,155 +763,211 @@ export default function ItineraryDetailsPage() {
                     )}
                   </>
                 )}
-                
+
                 {/* Check if we have itinerario_diario in details_itinerary */}
-                {isRouteConfirmed && Array.isArray(details_itinerary.itinerario_diario) && details_itinerary.itinerario_diario.length > 0 ? (
+                {isRouteConfirmed &&
+                Array.isArray(details_itinerary.itinerario_diario) &&
+                details_itinerary.itinerario_diario.length > 0 ? (
                   <div className="space-y-4">
                     {/* Display resumen_itinerario if available */}
                     {details_itinerary.resumen_itinerario && (
                       <div className="rounded-2xl border border-gray-100 p-6 bg-white shadow-sm">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3">Resumen del Itinerario</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                          Resumen del Itinerario
+                        </h2>
                         <div className="h-px bg-gray-200 mb-4"></div>
                         <div
                           className="prose max-w-none text-gray-800"
-                          dangerouslySetInnerHTML={{ __html: renderMarkdown(details_itinerary.resumen_itinerario) }}
+                          dangerouslySetInnerHTML={{
+                            __html: renderMarkdown(
+                              details_itinerary.resumen_itinerario
+                            ),
+                          }}
                         />
                       </div>
                     )}
-                    
+
                     {/* Display daily itineraries - Days shown expanded, activities collapsed */}
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {details_itinerary.itinerario_diario.map((dailyItem: any, dayIndex: number) => {
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const renderActivitySection = (activities: any[], timeOfDay: string) => {
-                        if (!Array.isArray(activities) || activities.length === 0) return null;
-                        
-                        return (
-                          <div className="mb-4">
-                            <h4 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
-                              {timeOfDay === 'mañana' && '🌅 Mañana'}
-                              {timeOfDay === 'tarde' && '☀️ Tarde'}
-                              {timeOfDay === 'noche' && '🌙 Noche'}
-                            </h4>
-                            <div className="space-y-2">
-                              {activities.map((activity, actIdx) => {
-                                const activityKey = `${dayIndex}-${timeOfDay}-${actIdx}`;
-                                const isActivityOpen = !!openActivities[activityKey];
-                                
-                                return (
-                                  <div
-                                    key={activityKey}
-                                    className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
-                                  >
-                                    <button
-                                      onClick={() =>
-                                        setOpenActivities((prev) => ({
-                                          ...prev,
-                                          [activityKey]: !prev[activityKey],
-                                        }))
-                                      }
-                                      className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors text-left"
+                    {details_itinerary.itinerario_diario.map(
+                      (dailyItem: any, dayIndex: number) => {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const renderActivitySection = (
+                          activities: any[],
+                          timeOfDay: string
+                        ) => {
+                          if (
+                            !Array.isArray(activities) ||
+                            activities.length === 0
+                          )
+                            return null;
+
+                          return (
+                            <div className="mb-4">
+                              <h4 className="text-base font-semibold text-gray-700 mb-2 flex items-center">
+                                {timeOfDay === "mañana" && "🌅 Mañana"}
+                                {timeOfDay === "tarde" && "☀️ Tarde"}
+                                {timeOfDay === "noche" && "🌙 Noche"}
+                              </h4>
+                              <div className="space-y-2">
+                                {activities.map((activity, actIdx) => {
+                                  const activityKey = `${dayIndex}-${timeOfDay}-${actIdx}`;
+                                  const isActivityOpen =
+                                    !!openActivities[activityKey];
+
+                                  return (
+                                    <div
+                                      key={activityKey}
+                                      className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
                                     >
-                                      <div className="flex items-center gap-2 flex-1">
-                                        <span className="text-gray-900 font-medium">
-                                          {activity.titulo}
-                                        </span>
-                                      </div>
-                                      {isActivityOpen ? (
-                                        <ChevronUpIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                                      ) : (
-                                        <ChevronDownIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                      <button
+                                        onClick={() =>
+                                          setOpenActivities((prev) => ({
+                                            ...prev,
+                                            [activityKey]: !prev[activityKey],
+                                          }))
+                                        }
+                                        className="w-full flex items-center justify-between p-3 hover:bg-gray-100 transition-colors text-left"
+                                      >
+                                        <div className="flex items-center gap-2 flex-1">
+                                          <span className="text-gray-900 font-medium">
+                                            {activity.titulo}
+                                          </span>
+                                        </div>
+                                        {isActivityOpen ? (
+                                          <ChevronUpIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                        ) : (
+                                          <ChevronDownIcon className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                                        )}
+                                      </button>
+
+                                      {isActivityOpen && (
+                                        <div className="px-3 pb-3 space-y-2 text-sm">
+                                          {activity.descripcion && (
+                                            <div>
+                                              <span className="font-semibold text-gray-700">
+                                                Descripción:{" "}
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {activity.descripcion}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.ubicacion && (
+                                            <div className="flex items-start gap-1">
+                                              <MapPinIcon className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
+                                              <span className="text-gray-600">
+                                                {activity.ubicacion}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.horarios && (
+                                            <div>
+                                              <span className="font-semibold text-gray-700">
+                                                Horarios:{" "}
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {activity.horarios}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.precio && (
+                                            <div>
+                                              <span className="font-semibold text-gray-700">
+                                                Precio:{" "}
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {activity.precio}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.transporte_recomendado && (
+                                            <div>
+                                              <span className="font-semibold text-gray-700">
+                                                Transporte:{" "}
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {
+                                                  activity.transporte_recomendado
+                                                }
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.requisitos_reserva && (
+                                            <div>
+                                              <span className="font-semibold text-gray-700">
+                                                Reserva:{" "}
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {activity.requisitos_reserva}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                          {activity.enlace && (
+                                            <div>
+                                              <a
+                                                href={activity.enlace}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 hover:underline"
+                                              >
+                                                Ver más información →
+                                              </a>
+                                            </div>
+                                          )}
+                                        </div>
                                       )}
-                                    </button>
-                                    
-                                    {isActivityOpen && (
-                                      <div className="px-3 pb-3 space-y-2 text-sm">
-                                        {activity.descripcion && (
-                                          <div>
-                                            <span className="font-semibold text-gray-700">Descripción: </span>
-                                            <span className="text-gray-600">{activity.descripcion}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.ubicacion && (
-                                          <div className="flex items-start gap-1">
-                                            <MapPinIcon className="w-4 h-4 text-gray-600 mt-0.5 flex-shrink-0" />
-                                            <span className="text-gray-600">{activity.ubicacion}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.horarios && (
-                                          <div>
-                                            <span className="font-semibold text-gray-700">Horarios: </span>
-                                            <span className="text-gray-600">{activity.horarios}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.precio && (
-                                          <div>
-                                            <span className="font-semibold text-gray-700">Precio: </span>
-                                            <span className="text-gray-600">{activity.precio}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.transporte_recomendado && (
-                                          <div>
-                                            <span className="font-semibold text-gray-700">Transporte: </span>
-                                            <span className="text-gray-600">{activity.transporte_recomendado}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.requisitos_reserva && (
-                                          <div>
-                                            <span className="font-semibold text-gray-700">Reserva: </span>
-                                            <span className="text-gray-600">{activity.requisitos_reserva}</span>
-                                          </div>
-                                        )}
-                                        
-                                        {activity.enlace && (
-                                          <div>
-                                            <a
-                                              href={activity.enlace}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex items-center gap-1 text-sky-600 hover:text-sky-700 hover:underline"
-                                            >
-                                              Ver más información →
-                                            </a>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        };
+
+                        return (
+                          <div
+                            key={`day-${dayIndex}`}
+                            className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm"
+                          >
+                            <div className="flex items-center mb-4">
+                              <div className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-sky-500 text-white mr-3 flex-shrink-0">
+                                <span className="text-base font-bold">
+                                  {dailyItem.dia || dayIndex + 1}
+                                </span>
+                              </div>
+                              <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                                {dailyItem.titulo ||
+                                  `Día ${dailyItem.dia || dayIndex + 1} - ${
+                                    dailyItem.ciudad
+                                  }`}
+                              </h2>
+                            </div>
+
+                            <div className="ml-12">
+                              {renderActivitySection(
+                                dailyItem.actividades_mañana,
+                                "mañana"
+                              )}
+                              {renderActivitySection(
+                                dailyItem.actividades_tarde,
+                                "tarde"
+                              )}
+                              {renderActivitySection(
+                                dailyItem.actividades_noche,
+                                "noche"
+                              )}
                             </div>
                           </div>
                         );
-                      };
-                      
-                      return (
-                        <div
-                          key={`day-${dayIndex}`}
-                          className="rounded-2xl border border-gray-100 p-5 bg-white shadow-sm"
-                        >
-                          <div className="flex items-center mb-4">
-                            <div className="inline-flex w-9 h-9 items-center justify-center rounded-full bg-sky-500 text-white mr-3 flex-shrink-0">
-                              <span className="text-base font-bold">{dailyItem.dia || dayIndex + 1}</span>
-                            </div>
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-                              {dailyItem.titulo || `Día ${dailyItem.dia || dayIndex + 1} - ${dailyItem.ciudad}`}
-                            </h2>
-                          </div>
-                          
-                          <div className="ml-12">
-                            {renderActivitySection(dailyItem.actividades_mañana, 'mañana')}
-                            {renderActivitySection(dailyItem.actividades_tarde, 'tarde')}
-                            {renderActivitySection(dailyItem.actividades_noche, 'noche')}
-                          </div>
-                        </div>
-                      );
-                    })}
+                      }
+                    )}
                   </div>
                 ) : null}
               </TabsContent>
@@ -840,7 +978,10 @@ export default function ItineraryDetailsPage() {
                 <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 relative">
                   {/* Actions dropdown - top right corner */}
                   <div className="absolute top-6 right-6">
-                    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <DropdownMenu
+                      open={isDropdownOpen}
+                      onOpenChange={setIsDropdownOpen}
+                    >
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
@@ -868,7 +1009,7 @@ export default function ItineraryDetailsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  
+
                   {/* Header + Summary */}
                   <div className="mb-6">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -906,14 +1047,19 @@ export default function ItineraryDetailsPage() {
                           <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
                             {details_itinerary.cantidad_dias} días
                           </span>
-                          {typeof currentItinerary.travelers_count === "number" && (
+                          {typeof currentItinerary.travelers_count ===
+                            "number" && (
                             <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
-                              {currentItinerary.travelers_count} viajero{currentItinerary.travelers_count > 1 ? "s" : ""}
+                              {currentItinerary.travelers_count} viajero
+                              {currentItinerary.travelers_count > 1 ? "s" : ""}
                             </span>
                           )}
                           {currentItinerary.start_date && (
                             <span className="inline-flex rounded-full bg-sky-50 text-sky-700 px-3 py-1">
-                              Inicio {parseLocalDate(currentItinerary.start_date).toLocaleDateString('es-ES')}
+                              Inicio{" "}
+                              {parseLocalDate(
+                                currentItinerary.start_date
+                              ).toLocaleDateString("es-ES")}
                             </span>
                           )}
                         </div>
@@ -933,9 +1079,7 @@ export default function ItineraryDetailsPage() {
                           <div
                             key={`route-left-${idx}`}
                             className="rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm"
-                            onMouseEnter={() =>
-                              setHoveredDestinationIndex(idx)
-                            }
+                            onMouseEnter={() => setHoveredDestinationIndex(idx)}
                             onMouseLeave={() =>
                               setHoveredDestinationIndex(null)
                             }
@@ -1075,91 +1219,96 @@ export default function ItineraryDetailsPage() {
                 </DialogContent>
               </Dialog>
 
-            {/* Confirm route modal */}
-            <Dialog
-              open={isConfirmRouteOpen}
-              onOpenChange={setIsConfirmRouteOpen}
-            >
-              <DialogContent className="sm:max-w-[520px]">
-                <DialogHeader>
-                  <DialogTitle>Confirmar ruta</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    Al confirmar la ruta:
-                  </p>
-                  <ul className="list-disc pl-5">
-                    <li>Se confirmarán los destinos.</li>
-                    <li>Se confirmará la cantidad de días por destino.</li>
-                    <li>Se generará un itinerario diario con las actividades organizadas por día y recomendaciones.</li>
-                  </ul>
-                  <p>¿Deseas continuar?</p>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => setIsConfirmRouteOpen(false)}
-                    disabled={confirmingRoute}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    className="rounded-full bg-sky-500 hover:bg-sky-700"
-                    onClick={handleConfirmRouteProceed}
-                    disabled={confirmingRoute}
-                  >
-                    {confirmingRoute ? "Confirmando..." : "Confirmar"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              {/* Confirm route modal */}
+              <Dialog
+                open={isConfirmRouteOpen}
+                onOpenChange={setIsConfirmRouteOpen}
+              >
+                <DialogContent className="sm:max-w-[520px]">
+                  <DialogHeader>
+                    <DialogTitle>Confirmar ruta</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-gray-700">
+                    <p>Al confirmar la ruta:</p>
+                    <ul className="list-disc pl-5">
+                      <li>Se confirmarán los destinos.</li>
+                      <li>Se confirmará la cantidad de días por destino.</li>
+                      <li>
+                        Se generará un itinerario diario con las actividades
+                        organizadas por día y recomendaciones.
+                      </li>
+                    </ul>
+                    <p>¿Deseas continuar?</p>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => setIsConfirmRouteOpen(false)}
+                      disabled={confirmingRoute}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="rounded-full bg-sky-500 hover:bg-sky-700"
+                      onClick={handleConfirmRouteProceed}
+                      disabled={confirmingRoute}
+                    >
+                      {confirmingRoute ? "Confirmando..." : "Confirmar"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-            {/* Delete itinerary confirmation modal */}
-            <Dialog
-              open={isDeleteDialogOpen}
-              onOpenChange={(open) => {
-                if (!isDeleting) {
-                  setIsDeleteDialogOpen(open);
-                }
-              }}
-              modal={true}
-            >
-              <DialogContent className="sm:max-w-[480px]">
-                <DialogHeader>
-                  <DialogTitle>¿Eliminar itinerario?</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    Esta acción eliminará permanentemente el itinerario{" "}
-                    <strong>&ldquo;{details_itinerary.nombre_viaje}&rdquo;</strong>.
-                  </p>
-                  <p>
-                    No podrás recuperar esta información después de eliminarla.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    ¿Estás seguro de que deseas continuar?
-                  </p>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => setIsDeleteDialogOpen(false)}
-                    disabled={isDeleting}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    className="rounded-full bg-red-500 hover:bg-red-700"
-                    onClick={handleDeleteItinerary}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? "Eliminando..." : "Eliminar"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+              {/* Delete itinerary confirmation modal */}
+              <Dialog
+                open={isDeleteDialogOpen}
+                onOpenChange={(open) => {
+                  if (!isDeleting) {
+                    setIsDeleteDialogOpen(open);
+                  }
+                }}
+                modal={true}
+              >
+                <DialogContent className="sm:max-w-[480px]">
+                  <DialogHeader>
+                    <DialogTitle>¿Eliminar itinerario?</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-gray-700">
+                    <p>
+                      Esta acción eliminará permanentemente el itinerario{" "}
+                      <strong>
+                        &ldquo;{details_itinerary.nombre_viaje}&rdquo;
+                      </strong>
+                      .
+                    </p>
+                    <p>
+                      No podrás recuperar esta información después de
+                      eliminarla.
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      ¿Estás seguro de que deseas continuar?
+                    </p>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => setIsDeleteDialogOpen(false)}
+                      disabled={isDeleting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      className="rounded-full bg-red-500 hover:bg-red-700"
+                      onClick={handleDeleteItinerary}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Eliminando..." : "Eliminar"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
               <TabsContent value="transport">
                 {details_itinerary.destinos.length > 1 ? (
@@ -1232,7 +1381,9 @@ export default function ItineraryDetailsPage() {
                                   )}
                                   Alternativas
                                 </button>
-                                {openAlternatives[idx] && Array.isArray(t.alternativas) && t.alternativas.length > 0 ? (
+                                {openAlternatives[idx] &&
+                                Array.isArray(t.alternativas) &&
+                                t.alternativas.length > 0 ? (
                                   <ul
                                     id={`alternatives-${idx}`}
                                     className="mt-2 pl-0 list-none text-gray-900 space-y-1"
@@ -1241,15 +1392,22 @@ export default function ItineraryDetailsPage() {
                                       <li key={`alt-${idx}-${aidx}`}>
                                         <DropdownMenu>
                                           <DropdownMenuTrigger asChild>
-                                            <button
-                                              className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700"
-                                            >
+                                            <button className="inline-block text-left whitespace-normal break-words rounded-full px-3 py-1 text-gray-900 hover:bg-sky-50 hover:text-sky-700 transition-colors cursor-pointer data-[state=open]:bg-sky-50 data-[state=open]:text-sky-700">
                                               {alt}
                                             </button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="start">
-                                            <DropdownMenuItem onClick={() => handleSetTransportPrimary(t.ciudad_origen, t.ciudad_destino, alt)}>
-                                              Establecer como transporte principal
+                                            <DropdownMenuItem
+                                              onClick={() =>
+                                                handleSetTransportPrimary(
+                                                  t.ciudad_origen,
+                                                  t.ciudad_destino,
+                                                  alt
+                                                )
+                                              }
+                                            >
+                                              Establecer como transporte
+                                              principal
                                             </DropdownMenuItem>
                                           </DropdownMenuContent>
                                         </DropdownMenu>
@@ -1398,139 +1556,146 @@ export default function ItineraryDetailsPage() {
 
                           <div>
                             <button
-                                className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
-                                onClick={() =>
-                                  setOpenAccommodationSuggestions((prev) => ({
-                                    ...prev,
-                                    [idx]: !prev[idx],
-                                  }))
-                                }
-                                aria-expanded={!!openAccommodationSuggestions[idx]}
-                                aria-controls={`accommodation-suggestions-${idx}`}
-                              >
-                                {openAccommodationSuggestions[idx] ? (
-                                  <ChevronUpIcon className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDownIcon className="h-4 w-4" />
-                                )}
-                                Sugerencias de alojamiento
-                              </button>
+                              className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
+                              onClick={() =>
+                                setOpenAccommodationSuggestions((prev) => ({
+                                  ...prev,
+                                  [idx]: !prev[idx],
+                                }))
+                              }
+                              aria-expanded={
+                                !!openAccommodationSuggestions[idx]
+                              }
+                              aria-controls={`accommodation-suggestions-${idx}`}
+                            >
+                              {openAccommodationSuggestions[idx] ? (
+                                <ChevronUpIcon className="h-4 w-4" />
+                              ) : (
+                                <ChevronDownIcon className="h-4 w-4" />
+                              )}
+                              Sugerencias de alojamiento
+                            </button>
                           </div>
-
                         </div>
 
-                        {((accommodationsByDest[idx] ?? []).length > 0 || isCreatingByDest[idx]) && (
+                        {((accommodationsByDest[idx] ?? []).length > 0 ||
+                          isCreatingByDest[idx]) && (
                           <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                          <div className="flex pb-4 gap-4 pt-3">
-                            {isCreatingByDest[idx] && (
-                              <div className="relative w-56 flex-none">
-                                <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm pt-0">
-                                  <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
-                                    <Skeleton className="h-full w-full" />
-                                  </div>
-                                  <CardContent>
-                                    <CardTitle className="text-sm font-semibold truncate">
-                                      <Skeleton className="h-4 w-3/4" />
-                                    </CardTitle>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                      <Skeleton className="h-3 w-1/2" />
+                            <div className="flex pb-4 gap-4 pt-3">
+                              {isCreatingByDest[idx] && (
+                                <div className="relative w-56 flex-none">
+                                  <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm pt-0">
+                                    <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
+                                      <Skeleton className="h-full w-full" />
                                     </div>
-                                  </CardContent>
-                                </Card>
-                              </div>
-                            )}
-                            {(accommodationsByDest[idx] ?? []).map((acc) => {
-                              const total = acc.img_urls?.length ?? 0;
-                              const currentUrl = getCurrentImageUrl(acc);
-                              return (
-                                <div key={`${idx}-${acc.id}`} className="relative group w-56 flex-none">
-                                  <a
-                                    href={acc.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block"
-                                  >
-                                    <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow pt-0">
-                                      <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
-                                        {currentUrl ? (
-                                          <Image
-                                            src={currentUrl}
-                                            alt={acc.title || "Alojamiento"}
-                                            className="h-full w-full object-cover"
-                                            loading="lazy"
-                                            fill
-                                            sizes="224px"
-                                          />
-                                        ) : (
-                                          <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200" />
-                                        )}
-                                        {total > 1 && (
-                                          <>
-                                            <button
-                                              className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                showPrevImage(acc.id, total);
-                                              }}
-                                              aria-label="Imagen anterior"
-                                            >
-                                              <ChevronLeftIcon className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                showNextImage(acc.id, total);
-                                              }}
-                                              aria-label="Imagen siguiente"
-                                            >
-                                              <ChevronRightIcon className="h-4 w-4" />
-                                            </button>
-                                          </>
-                                        )}
+                                    <CardContent>
+                                      <CardTitle className="text-sm font-semibold truncate">
+                                        <Skeleton className="h-4 w-3/4" />
+                                      </CardTitle>
+                                      <div className="text-xs text-gray-500 mt-1">
+                                        <Skeleton className="h-3 w-1/2" />
                                       </div>
-                                      <CardContent>
-                                        <CardTitle className="text-sm font-semibold truncate">
-                                          {acc.title || acc.url}
-                                        </CardTitle>
-                                        {acc.provider ? (
-                                          <div className="text-xs text-gray-500 mt-1">{acc.provider}</div>
-                                        ) : null}
-                                      </CardContent>
-                                    </Card>
-                                  </a>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur hover:bg-red-100"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      handleDeleteLink(acc.id);
-                                    }}
-                                    aria-label="Eliminar alojamiento"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-4 w-4 text-gray-600 group-hover:text-red-600 transition-colors"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                      stroke="currentColor"
-                                      strokeWidth={2}
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
-                                      />
-                                    </svg>
-                                  </Button>
+                                    </CardContent>
+                                  </Card>
                                 </div>
-                              );
-                            })}
-                          </div>
+                              )}
+                              {(accommodationsByDest[idx] ?? []).map((acc) => {
+                                const total = acc.img_urls?.length ?? 0;
+                                const currentUrl = getCurrentImageUrl(acc);
+                                return (
+                                  <div
+                                    key={`${idx}-${acc.id}`}
+                                    className="relative group w-56 flex-none"
+                                  >
+                                    <a
+                                      href={acc.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block"
+                                    >
+                                      <Card className="rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow pt-0">
+                                        <div className="relative h-40 w-full bg-gray-100 overflow-hidden">
+                                          {currentUrl ? (
+                                            <Image
+                                              src={currentUrl}
+                                              alt={acc.title || "Alojamiento"}
+                                              className="h-full w-full object-cover"
+                                              loading="lazy"
+                                              fill
+                                              sizes="224px"
+                                            />
+                                          ) : (
+                                            <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200" />
+                                          )}
+                                          {total > 1 && (
+                                            <>
+                                              <button
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  showPrevImage(acc.id, total);
+                                                }}
+                                                aria-label="Imagen anterior"
+                                              >
+                                                <ChevronLeftIcon className="h-4 w-4" />
+                                              </button>
+                                              <button
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-white/80 backdrop-blur text-gray-700 shadow hover:bg-white"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  showNextImage(acc.id, total);
+                                                }}
+                                                aria-label="Imagen siguiente"
+                                              >
+                                                <ChevronRightIcon className="h-4 w-4" />
+                                              </button>
+                                            </>
+                                          )}
+                                        </div>
+                                        <CardContent>
+                                          <CardTitle className="text-sm font-semibold truncate">
+                                            {acc.title || acc.url}
+                                          </CardTitle>
+                                          {acc.provider ? (
+                                            <div className="text-xs text-gray-500 mt-1">
+                                              {acc.provider}
+                                            </div>
+                                          ) : null}
+                                        </CardContent>
+                                      </Card>
+                                    </a>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="absolute top-3 right-3 rounded-full bg-white/80 backdrop-blur hover:bg-red-100"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDeleteLink(acc.id);
+                                      }}
+                                      aria-label="Eliminar alojamiento"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4 text-gray-600 group-hover:text-red-600 transition-colors"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m5 0H4"
+                                        />
+                                      </svg>
+                                    </Button>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1553,9 +1718,7 @@ export default function ItineraryDetailsPage() {
                         </div>
                       )}
                     </div>
-                    
                   ))}
-                  
                 </div>
               </TabsContent>
             </Tabs>
@@ -1568,7 +1731,6 @@ export default function ItineraryDetailsPage() {
 
       {/* Chat Panel - Fixed positioned */}
       <ChatPanel />
-
     </div>
   );
 }
