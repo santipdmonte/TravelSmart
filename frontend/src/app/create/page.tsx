@@ -259,6 +259,12 @@ export default function CreateItineraryPage() {
   // Ensure we only apply backend defaults once
   const appliedDefaultsRef = useRef(false);
 
+  // Local state for slider dragging
+  const [budgetSliderValue, setBudgetSliderValue] = useState<number | null>(
+    null
+  );
+  const [paceSliderValue, setPaceSliderValue] = useState<number | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(createItinerarySchema),
     defaultValues: {
@@ -635,8 +641,45 @@ export default function CreateItineraryPage() {
                           : -1;
 
                         const handleSliderChange = (value: number[]) => {
-                          field.onChange(BUDGET_OPTIONS[value[0]].key);
+                          console.log("📊 Budget slider change:", value);
+                          setBudgetSliderValue(value[0]);
                         };
+
+                        const handleSliderCommit = (value: number[]) => {
+                          console.log("📊 Budget slider commit:", value);
+                          // Snap to nearest option when released
+                          const snappedIndex = Math.round(value[0]);
+                          const clampedIndex = Math.max(
+                            0,
+                            Math.min(3, snappedIndex)
+                          );
+                          console.log(
+                            "📊 Snapped to index:",
+                            clampedIndex,
+                            "option:",
+                            BUDGET_OPTIONS[clampedIndex].key
+                          );
+                          setBudgetSliderValue(null); // Reset temp value
+                          field.onChange(BUDGET_OPTIONS[clampedIndex].key);
+                        };
+
+                        const currentValue =
+                          budgetSliderValue !== null
+                            ? [budgetSliderValue]
+                            : budgetIndex >= 0
+                            ? [budgetIndex]
+                            : [1];
+
+                        console.log(
+                          "📊 Budget render - budgetIndex:",
+                          budgetIndex,
+                          "field.value:",
+                          field.value,
+                          "loading:",
+                          loading,
+                          "currentValue:",
+                          currentValue
+                        );
 
                         return (
                           <FormItem>
@@ -648,8 +691,8 @@ export default function CreateItineraryPage() {
                             <div className="px-4 py-6">
                               {/* Selected Value Display */}
                               {budgetIndex >= 0 && (
-                                <div className="text-center mb-6">
-                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md">
+                                <div className="text-center mb-6 transition-all duration-300 ease-out">
+                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md transition-all duration-300 ease-out">
                                     {BUDGET_OPTIONS[budgetIndex].label}
                                   </span>
                                 </div>
@@ -664,11 +707,10 @@ export default function CreateItineraryPage() {
                                       <Slider
                                         min={0}
                                         max={3}
-                                        step={1}
-                                        value={
-                                          budgetIndex >= 0 ? [budgetIndex] : [1]
-                                        }
+                                        step={0.01}
+                                        value={currentValue}
                                         onValueChange={handleSliderChange}
+                                        onValueCommit={handleSliderCommit}
                                         disabled={loading}
                                         className="w-full"
                                       />
@@ -787,8 +829,26 @@ export default function CreateItineraryPage() {
                           : -1;
 
                         const handleSliderChange = (value: number[]) => {
-                          field.onChange(TRAVEL_PACE_OPTIONS[value[0]].key);
+                          setPaceSliderValue(value[0]);
                         };
+
+                        const handleSliderCommit = (value: number[]) => {
+                          // Snap to nearest option when released
+                          const snappedIndex = Math.round(value[0]);
+                          const clampedIndex = Math.max(
+                            0,
+                            Math.min(2, snappedIndex)
+                          );
+                          setPaceSliderValue(null); // Reset temp value
+                          field.onChange(TRAVEL_PACE_OPTIONS[clampedIndex].key);
+                        };
+
+                        const currentValue =
+                          paceSliderValue !== null
+                            ? [paceSliderValue]
+                            : paceIndex >= 0
+                            ? [paceIndex]
+                            : [1];
 
                         return (
                           <FormItem>
@@ -800,8 +860,8 @@ export default function CreateItineraryPage() {
                             <div className="px-4 py-6">
                               {/* Selected Value Display */}
                               {paceIndex >= 0 && (
-                                <div className="text-center mb-6">
-                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md">
+                                <div className="text-center mb-6 transition-all duration-300 ease-out">
+                                  <span className="inline-block px-6 py-2 bg-sky-500 text-white rounded-full text-base font-medium shadow-md transition-all duration-300 ease-out">
                                     {TRAVEL_PACE_OPTIONS[paceIndex].label}
                                   </span>
                                 </div>
@@ -816,11 +876,10 @@ export default function CreateItineraryPage() {
                                       <Slider
                                         min={0}
                                         max={2}
-                                        step={1}
-                                        value={
-                                          paceIndex >= 0 ? [paceIndex] : [1]
-                                        }
+                                        step={0.01}
+                                        value={currentValue}
                                         onValueChange={handleSliderChange}
+                                        onValueCommit={handleSliderCommit}
                                         disabled={loading}
                                         className="w-full"
                                       />
