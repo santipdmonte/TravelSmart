@@ -34,7 +34,7 @@ export default function RootLayout({
   // Log in server console when the app renders and the env var is missing
   __warnMissingApiBaseIfNeeded({ when: "onLoad" });
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className="bg-palette-light-sky">
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -43,12 +43,12 @@ export default function RootLayout({
           <ItineraryProvider>
             <ChatProvider>
               <ToastProvider>
-                <SidebarProvider className="bg-gray-50">
+                <SidebarProvider className="bg-palette-light-sky">
                   <AppSidebar />
-                  <SidebarInset>
-                    <div className="flex h-12 items-center gap-2 px-2 bg-gray-50">
+                  <SidebarInset className="min-h-screen bg-palette-light-sky">
+                    <div className="flex h-12 items-center gap-2 px-2 bg-palette-light-sky">
                       <SidebarTrigger />
-                      <span className="text-sm text-muted-foreground">Menú</span>
+                      <span className="text-sm text-muted-foreground text-palette-dark-sky font-bold">Menú</span>
                     </div>
                     {children}
                     {/* Client-only welcome traveler test prompt */}

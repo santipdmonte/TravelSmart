@@ -548,11 +548,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-palette-light-sky min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 pl-3">Inicio</h1>
+            <h1 className="text-3xl font-bold text-gray-900 pl-3 text-palette-dark-sky">Inicio</h1>
             <Button
               asChild
               className="bg-sky-500 hover:bg-sky-700 rounded-full px-6"

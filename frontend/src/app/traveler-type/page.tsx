@@ -67,7 +67,7 @@ export default function TravelerTypePage() {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="min-h-screen bg-palette-light-sky">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-6">

@@ -37,7 +37,7 @@ export default function TestResultPage() {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="min-h-screen bg-palette-light-sky">
       <div className="container mx-auto px-4 py-8">
         <TestResult testId={testId} />
       </div>

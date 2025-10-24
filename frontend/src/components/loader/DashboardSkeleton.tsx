@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardSkeleton() {
   return (
-    <div className="bg-gray-50">
+    <div className="bg-palette-light-sky">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}

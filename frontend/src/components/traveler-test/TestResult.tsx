@@ -128,7 +128,7 @@ export default function TestResult({ testId }: TestResultProps) {
   const { traveler_type } = result;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-palette-light-sky min-h-screen">
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-6">

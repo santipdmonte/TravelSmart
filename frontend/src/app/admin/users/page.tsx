@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
       ) : (
         <div className="overflow-x-auto rounded border">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-palette-light-sky">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ID

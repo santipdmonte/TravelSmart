@@ -436,7 +436,7 @@ export default function CreateItineraryPage() {
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-palette-light-sky min-h-screen">
       {loading && (
         <div
           style={{

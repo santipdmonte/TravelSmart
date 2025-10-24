@@ -24,7 +24,7 @@ export default function Option({
         "p-6 border-2 rounded-2xl text-left transition-all duration-200 flex flex-col items-center justify-center text-center overflow-hidden h-full w-full shadow-sm hover:shadow-md",
         isSelected
           ? "bg-sky-50 border-sky-500 ring-2 ring-sky-500 shadow-lg"
-          : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300",
+          : "bg-white border-gray-200 hover:bg-palette-light-sky hover:border-gray-300",
         className
       )}
     >
