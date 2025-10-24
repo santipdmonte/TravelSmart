@@ -10,7 +10,7 @@ export default function LandingPage() {
   const { isAuthenticated, userDisplayName } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-sky-50 to-blue-50">
+    <div className="min-h-screen bg-palette-light-sky">
       {/* Hero Section */}
       <div className="container mx-auto px-4 pt-12 pb-8 md:pt-16 md:pb-10">
         {/* Badge/Announcement */}
@@ -157,7 +157,7 @@ export default function LandingPage() {
       </div>
 
       {/* MagicBento Section */}
-      <div className="relative py-24 bg-gradient-to-b from-transparent via-sky-50/30 to-transparent">
+      <div className="relative py-24 bg-palette-light-sky">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-4">
@@ -187,7 +187,7 @@ export default function LandingPage() {
       </div>
 
       {/* Team Section */}
-      <div className="relative py-24 bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50">
+      <div className="relative py-24 bg-palette-light-sky">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-sky-200 shadow-sm mb-6">
