@@ -85,11 +85,51 @@ const TRAVEL_PACE_OPTIONS = [
   },
 ] as const;
 
-const CITY_VIEW_LABELS: Record<CityView, string> = {
-  touristy: "Turístico",
-  off_beaten: "Fuera de lo común",
-  local: "Como un local",
-};
+const CITY_VIEW_OPTIONS = [
+  { 
+    key: "touristy" as CityView, 
+    label: "Turístico",
+    description: "Visita los lugares más famosos y emblemáticos. Perfecto para conocer lo esencial y disfrutar de las atracciones principales."
+  },
+  { 
+    key: "off_beaten" as CityView, 
+    label: "Fuera de lo común",
+    description: "Descubre joyas escondidas y lugares poco conocidos. Ideal para quienes buscan experiencias únicas y diferentes."
+  },
+  { 
+    key: "local" as CityView, 
+    label: "Como un local",
+    description: "Vive el destino como lo hacen los habitantes locales. Perfecto para una experiencia auténtica y cultural."
+  },
+];
+
+const TRIP_TYPE_OPTIONS = [
+  { 
+    key: "solo" as const, 
+    label: "Viajo solo",
+    description: "Aventura en solitario con total libertad para explorar a tu ritmo y conocer nuevas personas."
+  },
+  { 
+    key: "friends" as const, 
+    label: "Amigos",
+    description: "Diversión y aventuras compartidas con tu grupo de amigos. Momentos inolvidables juntos."
+  },
+  { 
+    key: "couples" as const, 
+    label: "Pareja",
+    description: "Experiencias románticas y momentos especiales para compartir en pareja."
+  },
+  { 
+    key: "family_teen" as const, 
+    label: "Familia (adolescentes/adultos)",
+    description: "Actividades variadas y emocionantes para familias con hijos mayores. Algo para todos."
+  },
+  { 
+    key: "family_young_kids" as const, 
+    label: "Familia (niños pequeños)",
+    description: "Planes adaptados para los más pequeños con comodidad y seguridad. Diversión familiar garantizada."
+  },
+];
 
 // Simple chip button
 function Chip({
@@ -656,13 +696,27 @@ export default function CreateItineraryPage() {
                               </button>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-3">
-                            {(["touristy", "local", "off_beaten"] as const).map((key) => (
-                              <Chip key={key} active={field.value === key} onClick={() => field.onChange(key)}>
-                                {CITY_VIEW_LABELS[key]}
-                              </Chip>
-                            ))}
-                          </div>
+                          <TooltipProvider>
+                            <div className="flex flex-wrap gap-3">
+                              {CITY_VIEW_OPTIONS.map((opt) => (
+                                <Tooltip key={opt.key} delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <div>
+                                      <Chip active={field.value === opt.key} onClick={() => field.onChange(opt.key)}>
+                                        {opt.label}
+                                      </Chip>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    className="max-w-xs bg-gray-900 text-white p-3"
+                                    sideOffset={5}
+                                  >
+                                    <p className="text-xs leading-relaxed">{opt.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </div>
+                          </TooltipProvider>
                         </FormItem>
                       )}
                     />
@@ -771,13 +825,27 @@ export default function CreateItineraryPage() {
                               </button>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-3">
-                            <Chip active={field.value === "solo"} onClick={() => field.onChange("solo")}>Viajo solo</Chip>
-                            <Chip active={field.value === "friends"} onClick={() => field.onChange("friends")}>Amigos</Chip>
-                            <Chip active={field.value === "couples"} onClick={() => field.onChange("couples")}>Pareja</Chip>
-                            <Chip active={field.value === "family_teen"} onClick={() => field.onChange("family_teen")}>Familia (adolescentes/adultos)</Chip>
-                            <Chip active={field.value === "family_young_kids"} onClick={() => field.onChange("family_young_kids")}>Familia (niños pequeños)</Chip>
-                          </div>
+                          <TooltipProvider>
+                            <div className="flex flex-wrap gap-3">
+                              {TRIP_TYPE_OPTIONS.map((opt) => (
+                                <Tooltip key={opt.key} delayDuration={200}>
+                                  <TooltipTrigger asChild>
+                                    <div>
+                                      <Chip active={field.value === opt.key} onClick={() => field.onChange(opt.key)}>
+                                        {opt.label}
+                                      </Chip>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    className="max-w-xs bg-gray-900 text-white p-3"
+                                    sideOffset={5}
+                                  >
+                                    <p className="text-xs leading-relaxed">{opt.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </div>
+                          </TooltipProvider>
                         </FormItem>
                       )}
                     />
