@@ -12,40 +12,14 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-palette-light-sky">
       {/* Hero Section */}
-      <div className="container mx-auto px-4 pt-12 pb-8 md:pt-16 md:pb-10">
-        {/* Badge/Announcement */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-sky-200 shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600"></span>
-            </span>
-            <span className="text-sm font-medium text-gray-700">
-              Impulsado por IA de última generación
-            </span>
-          </div>
-        </div>
+      <div className="container mx-auto px-4 pt-12 pb-8 md:pt-16 md:pb-10 flex flex-col items-center justify-center
+                  bg-[url('/elements/visual.png')] bg-cover bg-center bg-no-repeat rounded-2xl min-h-[90vh]">
 
         {/* Header */}
         <header className="text-center mb-8">
-          {isAuthenticated ? (
             <>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 mb-4 leading-tight">
-                Bienvenido de nuevo,{" "}
-                <span className="block mt-2">{userDisplayName}!</span>
-              </h1>
-              <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
-                ¿Listo para planear tu próxima aventura?{" "}
-                <span className="font-medium text-gray-700">
-                  Crea un nuevo itinerario
-                </span>{" "}
-                o explora tus viajes existentes.
-              </p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 mb-4 leading-tight">
-                Bienvenido a <span className="block mt-2">TravelSmart</span>
+                Planifica tu viaje con <span className="block mt-2">TravelSmart</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
                 Crea itinerarios de viaje{" "}
@@ -56,7 +30,6 @@ export default function LandingPage() {
                 Planifica tu viaje perfecto en minutos.
               </p>
             </>
-          )}
         </header>
 
         {/* Main CTA Section */}
@@ -100,8 +73,30 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Features Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+      </div>
+
+
+{/* Features Section */}
+      <div>
+
+      </div>
+
+      {/* MagicBento Section */}
+      <div className="relative py-24 bg-palette-light-sky">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-4">
+              Características Innovadoras
+            </h2>
+            <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
+              Descubre todas las herramientas que hacen de TravelSmart la
+              plataforma más completa para planificar tus viajes
+            </p>
+          </div>
+        </div>
+
+{/* Features Section */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
           {/* Feature Card 1 */}
           <div className="group relative bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 hover:border-sky-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 to-cyan-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -156,51 +151,18 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* MagicBento Section */}
-      <div className="relative py-24 bg-palette-light-sky">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-4">
-              Características Innovadoras
-            </h2>
-            <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              Descubre todas las herramientas que hacen de TravelSmart la
-              plataforma más completa para planificar tus viajes
-            </p>
-          </div>
-        </div>
-
-        <div className="flex justify-center items-center">
-          <MagicBento
-            textAutoHide={true}
-            enableStars={true}
-            enableSpotlight={true}
-            enableBorderGlow={true}
-            enableTilt={false}
-            enableMagnetism={false}
-            clickEffect={false}
-            spotlightRadius={300}
-            particleCount={12}
-            glowColor="14, 165, 233"
-          />
-        </div>
-      </div>
-
       {/* Team Section */}
-      <div className="relative py-24 bg-palette-light-sky">
+      <div className="relative py-24 bg-palette-sky bg-cover bg-center bg-no-repeat rounded-2xl container mx-auto px-4 pt-12 pb-8 md:pt-16 md:pb-10 flex flex-col items-center justify-center
+                  bg-[url('/elements/visual.png')] bg-cover bg-center bg-no-repeat rounded-2xl">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-sky-200 shadow-sm mb-6">
-              <span className="text-sm font-medium text-sky-600">
-                👥 Nuestro Equipo
-              </span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-cyan-600 mb-5">
-              Las Mentes Detrás de TravelSmart
+            <h2 className="text-4xl md:text-5xl font-bold text-palette-dark-sky mb-5">
+              Nuestro Equipo
             </h2>
             <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-              Un equipo apasionado por la tecnología y los viajes, comprometido
-              en crear la mejor experiencia de planificación para ti
+              Somos un equipo de desarrolladores apasionados por la tecnología y los viajes, comprometidos en crear la mejor experiencia de planificación para ti
             </p>
           </div>
 
