@@ -285,11 +285,79 @@ export default function CreateItineraryPage() {
     mode: "onSubmit", // Only validate on submit, not while typing
   });
 
-  // Apply default travel styles from user profile on first load only (disabled en nuevo flujo)
+  // Apply user preferences from traveler type on first load only
   useEffect(() => {
-    if (appliedDefaultsRef.current) return;
+    // Early returns: skip if already applied or user not loaded yet
+    if (appliedDefaultsRef.current || !user) return;
+
+    // Mark as applied to prevent re-running
     appliedDefaultsRef.current = true;
-  }, []);
+
+    // Get current form values to preserve any user input
+    const currentValues = form.getValues();
+
+    // Apply user preferences if available, otherwise use defaults
+    form.reset({
+      ...currentValues, // Preserve any existing values (like trip_name if already typed)
+      preferences: {
+        ...currentValues.preferences, // Keep base defaults
+        // Override with user preferences if they exist, fallback to current or default values
+        budget:
+          (user.preferences?.budget as
+            | "economico"
+            | "intermedio"
+            | "confort"
+            | "lujo") ||
+          currentValues.preferences?.budget ||
+          "intermedio",
+        travel_pace:
+          (user.preferences?.travel_pace as
+            | "relax"
+            | "equilibrado"
+            | "activo") ||
+          currentValues.preferences?.travel_pace ||
+          "equilibrado",
+        city_view:
+          (user.preferences?.city_view as
+            | "touristy"
+            | "off_beaten"
+            | "local"
+            | undefined) ||
+          currentValues.preferences?.city_view ||
+          undefined,
+        travel_styles:
+          (user.preferences?.travel_styles as (
+            | "cultural"
+            | "relaxing"
+            | "adventurous"
+            | "romantic"
+            | "adrenaline"
+            | "gastronomic"
+            | "festive"
+          )[]) ||
+          currentValues.preferences?.travel_styles ||
+          [],
+        food_preferences:
+          (user.preferences?.food_preferences as (
+            | "vegan"
+            | "vegetarian"
+            | "meat"
+            | "pescatarian"
+            | "gluten_free"
+            | "budget"
+            | "fine_dining"
+          )[]) ||
+          currentValues.preferences?.food_preferences ||
+          [],
+        // Keep fields that don't come from preferences (user must specify these)
+        when: currentValues.preferences?.when || undefined,
+        trip_type: currentValues.preferences?.trip_type || undefined,
+        goal: currentValues.preferences?.goal || "",
+        occasion: currentValues.preferences?.occasion || undefined,
+        notes: currentValues.preferences?.notes || "",
+      },
+    });
+  }, [user, form]);
 
   const [showPreCreatePrompt, setShowPreCreatePrompt] = useState(false);
   const pendingSubmissionRef = useRef<FormData | null>(null);
