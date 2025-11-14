@@ -19,6 +19,16 @@ export interface User {
   // Eager-loaded traveler profile (if user has completed the test)
   traveler_type?: TravelerType | null;
   traveler_type_id?: string | null;
+  preferences?: {
+    budget?: string;
+    travel_pace?: string;
+    city_view?: string;
+    trip_type?: string;
+    when?: string;
+    travel_styles?: string[];
+    food_preferences?: string[];
+    [key: string]: unknown;
+  } | null;
   date_of_birth: string;
   phone_number: string;
   country: string;
