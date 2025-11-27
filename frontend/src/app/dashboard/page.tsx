@@ -22,11 +22,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { XIcon } from "lucide-react";
+import { XIcon, PlusIcon, MapIcon, RouteIcon, Compass, Sparkles } from "lucide-react";
 import { updateUserVisitedCountries } from "@/lib/authApi";
 import { getTravelerTypeDetails } from "@/lib/travelerTestApi";
 import type { TravelerType } from "@/types/travelerTest";
-import { PlusIcon } from "lucide-react";
 
 const DEFAULT_VISITED_CODES = ["ARG"] as const;
 const TOTAL_COUNTRIES = 195;
@@ -39,6 +38,13 @@ const normalizeSearchText = (value: string | null | undefined): string =>
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "");
+
+const capitalizeWords = (text: string): string => {
+  return text
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -561,135 +567,184 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Bento grid - Row 1 (map spans two rows to match left stack) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-6 mb-6 items-stretch">
-            {/* User summary card (row 1) */}
-            <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1">
-              <CardHeader>
-                <CardTitle className="text-xl text-gray-900">
-                  Tu perfil
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!isInitialized || isLoading ? (
-                  <div className="space-y-3">
-                    <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <div className="grid grid-cols-3 gap-3">
-                      <Skeleton className="h-16" />
-                      <Skeleton className="h-16" />
-                      <Skeleton className="h-16" />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="mb-2">
-                      <div className="text-2xl font-semibold text-gray-900">
-                        {user?.first_name && user?.last_name
-                          ? `${user.first_name} ${user.last_name}`
-                          : user?.username || user?.email}
-                      </div>
-                      <div className="text-gray-600">
-                        {user?.city
-                          ? `${user.city}${
-                              user.country ? ", " + user.country : ""
-                            }`
-                          : user?.country || ""}
+          {/* Bento grid - Cards left, Map right */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+            {/* Left column - Cards stack */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* User summary card */}
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <CardContent className="p-5">
+                  {!isInitialized || isLoading ? (
+                    <div className="space-y-3">
+                      <Skeleton className="h-5 w-1/3" />
+                      <Skeleton className="h-3 w-1/4" />
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <Skeleton className="h-20" />
+                        <Skeleton className="h-20" />
                       </div>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
-                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
+                  ) : (
+                    <div className="space-y-3">
+                      {/* User info - more subtle */}
+                      <div>
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          Tu perfil
+                        </div>
                         <div className="text-lg font-bold text-gray-900">
-                          {user?.total_trips_created ?? 0}
+                          {user?.first_name && user?.last_name
+                            ? capitalizeWords(`${user.first_name} ${user.last_name}`)
+                            : capitalizeWords(user?.username || user?.email || '')}
                         </div>
-                        <div className="text-xs text-gray-500">Itinerarios</div>
+                        {(user?.city || user?.country) && (
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {user?.city
+                              ? `${user.city}${
+                                  user.country ? ", " + user.country : ""
+                                }`
+                              : user?.country || ""}
+                          </div>
+                        )}
                       </div>
-                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
-                        <div className="text-lg font-bold text-gray-900">
-                          {visitedCount}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Países visitados
-                        </div>
-                      </div>
-                      <div className="rounded-2xl border border-gray-100 p-3 text-center">
-                        <div className="text-lg font-bold text-gray-900">
-                          {user?.languages_spoken?.length ?? 0}
-                        </div>
-                        <div className="text-xs text-gray-500">Idiomas</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* Traveler type card (row 2) */}
-            <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden h-full lg:col-span-1 lg:row-span-1 lg:row-start-2">
-              <CardHeader>
-                <CardTitle className="text-xl text-gray-900">
-                  Tipo de viajero
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                      {/* Stats - emphasized in horizontal layout */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Itineraries stat */}
+                        <div className="group relative bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl p-3 border border-sky-100 hover:border-sky-200 transition-all hover:shadow-md">
+                          <div className="flex flex-col items-center text-center gap-2">
+                            <div className="flex-shrink-0 w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center">
+                              <RouteIcon className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-gray-900">
+                                {user?.total_trips_created ?? 0}
+                              </div>
+                              <div className="text-xs font-medium text-gray-600">
+                                Itinerarios creados
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Countries stat */}
+                        <div className="group relative bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-3 border border-emerald-100 hover:border-emerald-200 transition-all hover:shadow-md">
+                          <div className="flex flex-col items-center text-center gap-2">
+                            <div className="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                              <MapIcon className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <div className="text-2xl font-bold text-gray-900">
+                                {visitedCount}
+                              </div>
+                              <div className="text-xs font-medium text-gray-600">
+                                Países visitados
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Traveler type card */}
+              <Card className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+              <CardContent className="p-5">
                 {loadingTravelerType ? (
                   <div className="space-y-3">
                     <Skeleton className="h-5 w-2/3" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-8 w-full" />
                   </div>
                 ) : resolvedTravelerType ? (
-                  <div className="space-y-2">
-                    <div className="text-lg font-semibold text-gray-900">
-                      {resolvedTravelerType.name}
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div>
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                        Tipo de viajero
+                      </div>
                     </div>
-                    {resolvedTravelerType.description ? (
-                      <p className="text-sm text-gray-700">
-                        {resolvedTravelerType.description}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-gray-600">
-                        Sin descripción disponible.
-                      </p>
-                    )}
-                    <div className="pt-2">
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="rounded-full"
-                      >
-                        <Link href="/traveler-type">Ver detalles</Link>
-                      </Button>
+
+                    {/* Traveler type with icon */}
+                    <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-100">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
+                          <Compass className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-lg font-bold text-gray-900 mb-1">
+                            {resolvedTravelerType.name}
+                          </div>
+                          {resolvedTravelerType.description ? (
+                            <p className="text-xs text-gray-700 line-clamp-3">
+                              {resolvedTravelerType.description}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500">
+                              Sin descripción disponible.
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Action button */}
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full rounded-full text-xs"
+                      size="sm"
+                    >
+                      <Link href="/traveler-type">Ver detalles completos</Link>
+                    </Button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-700">
-                      Aún no tienes un tipo de viajero asignado.
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Realiza el test para descubrir tu perfil y obtener
-                      recomendaciones más personalizadas.
-                    </p>
-                    <div className="pt-2">
-                      <Button
-                        asChild
-                        className="rounded-full bg-sky-500 hover:bg-sky-700"
-                      >
-                        <Link href="/traveler-test">
-                          Realizar test de viajero
-                        </Link>
-                      </Button>
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div>
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                        Tipo de viajero
+                      </div>
                     </div>
+
+                    {/* Empty state with icon */}
+                    <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-100">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                          <Sparkles className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-gray-900 mb-1">
+                            Descubre tu perfil
+                          </div>
+                          <p className="text-xs text-gray-700">
+                            Realiza el test para conocer tu tipo de viajero y obtener
+                            recomendaciones personalizadas.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action button */}
+                    <Button
+                      asChild
+                      className="w-full rounded-full bg-sky-500 hover:bg-sky-700 text-xs"
+                      size="sm"
+                    >
+                      <Link href="/traveler-test">
+                        Realizar test de viajero
+                      </Link>
+                    </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
+            </div>
 
             {/* Map mockup card */}
-            <div className="lg:col-span-2 lg:row-span-2">
+            <div className="lg:col-span-3">
               <Card className="bg-white rounded-3xl shadow-xl border-none overflow-hidden h-full p-0">
-                <CardContent className="relative h-full min-h-[16rem] md:min-h-[26rem] p-0">
+                <CardContent className="relative h-full min-h-[20rem] lg:min-h-[32rem] p-0">
                   <PlainMap
                     className="absolute inset-0"
                     visitedCountries={effectiveVisitedCodes}
