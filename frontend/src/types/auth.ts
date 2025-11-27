@@ -15,6 +15,7 @@ export interface User {
   first_name: string;
   last_name: string;
   bio: string;
+  avatar_url?: string;
   login_count?: number; // for traveler test prompt trigger on first login
   // Eager-loaded traveler profile (if user has completed the test)
   traveler_type?: TravelerType | null;

@@ -50,6 +50,12 @@ export function AppSidebar() {
     router.push("/login")
   }
 
+  // Get email initial for avatar fallback
+  const getEmailInitial = (): string => {
+    if (!user?.email) return "?"
+    return user.email.charAt(0).toUpperCase()
+  }
+
   const mainItems = [
     { title: "Inicio", href: "/dashboard", icon: Home },
     { title: "Itinerarios", href: "/itineraries", icon: MapPinned },
@@ -101,9 +107,9 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
                   <Avatar className="size-6">
-                    <AvatarImage src={"/avatars/spedemonte_avatar.png"} alt={userDisplayName} />
-                    <AvatarFallback>
-                      {userDisplayName.slice(0, 2).toUpperCase()}
+                    <AvatarImage src={user?.avatar_url} alt={userDisplayName} />
+                    <AvatarFallback className="bg-gray-300 text-gray-700 font-semibold">
+                      {getEmailInitial()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
@@ -121,9 +127,9 @@ export function AppSidebar() {
                 <DropdownMenuLabel className="p-0">
                   <div className="flex items-center gap-2 p-2">
                     <Avatar className="size-8">
-                      <AvatarImage src={"/avatars/spedemonte_avatar.png"} alt={userDisplayName} />
-                      <AvatarFallback>
-                        {userDisplayName.slice(0, 2).toUpperCase()}
+                      <AvatarImage src={user?.avatar_url} alt={userDisplayName} />
+                      <AvatarFallback className="bg-gray-300 text-gray-700 font-semibold">
+                        {getEmailInitial()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
