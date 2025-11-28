@@ -44,15 +44,10 @@ export default function ConfirmationMessage() {
         </span>
       </div>
 
-      {/* Confirmation Message */}
+      {/* Summary */}
       <div className="mb-4">
-        <p className="text-sm text-blue-800 leading-relaxed">
-          {hilState.confirmationMessage}
-        </p>
-
-        {/* Summary */}
         {hilState.summary && (
-          <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+          <div className="p-3 bg-blue-100 rounded-lg">
             <p className="text-sm text-blue-900 font-medium">
               Resumen de cambios:
             </p>
