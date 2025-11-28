@@ -66,13 +66,15 @@ export default function MessageList() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const userScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to check if user is near the bottom of the scroll
   const checkIfAtBottom = () => {
     const node = scrollContainerRef.current;
     if (!node) return true;
 
-    const threshold = 100; // pixels from bottom to consider "at bottom"
+    const threshold = 50; // Reduced threshold for smaller chat panel
     const isNearBottom =
       node.scrollHeight - node.scrollTop - node.clientHeight < threshold;
 
@@ -86,10 +88,34 @@ export default function MessageList() {
     setShowScrollButton(!atBottom);
   };
 
+  // Detect user-initiated scrolling (wheel or touch)
+  const handleUserScroll = (e: WheelEvent | TouchEvent) => {
+    // If user scrolls up, immediately disable auto-scroll
+    if (e instanceof WheelEvent && e.deltaY < 0) {
+      userScrollingRef.current = true;
+      setIsAtBottom(false);
+      setShowScrollButton(true);
+    } else if (e instanceof TouchEvent) {
+      userScrollingRef.current = true;
+    }
+
+    // Clear previous timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Re-enable auto-scroll detection after user stops scrolling
+    scrollTimeoutRef.current = setTimeout(() => {
+      userScrollingRef.current = false;
+      handleScroll(); // Update position after user stops
+    }, 150);
+  };
+
   // Scroll to bottom function
   const scrollToBottom = () => {
     const node = scrollContainerRef.current;
     if (node) {
+      setIsAtBottom(true); // Re-enable auto-scroll
       node.scrollTo({
         top: node.scrollHeight,
         behavior: 'smooth'
@@ -97,10 +123,27 @@ export default function MessageList() {
     }
   };
 
+  // Attach wheel and touch listeners for better scroll detection
   useEffect(() => {
-    // Only auto-scroll if user was already at the bottom
     const node = scrollContainerRef.current;
-    if (node && isAtBottom) {
+    if (!node) return;
+
+    node.addEventListener('wheel', handleUserScroll, { passive: true });
+    node.addEventListener('touchmove', handleUserScroll, { passive: true });
+
+    return () => {
+      node.removeEventListener('wheel', handleUserScroll);
+      node.removeEventListener('touchmove', handleUserScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only auto-scroll if user was already at the bottom AND not actively scrolling
+    const node = scrollContainerRef.current;
+    if (node && isAtBottom && !userScrollingRef.current) {
       node.scrollTop = node.scrollHeight;
     }
   }, [messages, loading, hilState, initializing, isAtBottom]);
