@@ -122,15 +122,22 @@ async function agentApiRequest<T>(
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorMessage = `HTTP error! status: ${response.status}`;
+
+      // 404 is expected when no chat history exists, don't log it as an error
+      if (response.status !== 404) {
+        console.error('Agent API request failed:', errorMessage);
+      }
+
+      return { error: errorMessage };
     }
 
     const data = await response.json();
     return { data };
   } catch (error) {
     console.error('Agent API request failed:', error);
-    return { 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    return {
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 }

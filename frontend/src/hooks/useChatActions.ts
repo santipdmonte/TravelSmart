@@ -33,7 +33,20 @@ export function useChatActions() {
     try {
       // Try to get existing agent state first
       const existingState = await getAgentState(itineraryId);
-      
+
+      // Handle 404 as a valid case (no chat history exists yet)
+      if (existingState.error && existingState.error.includes('404')) {
+        // No history yet; backend will initialize on first message
+        dispatch({ type: 'SET_INITIALIZING', payload: false });
+        return true;
+      }
+
+      // Handle other errors
+      if (existingState.error) {
+        dispatch({ type: 'SET_ERROR', payload: existingState.error });
+        return false;
+      }
+
       if (existingState.data && existingState.data.messages.length > 0) {
         // Use existing chat history
         dispatch({ type: 'SET_AGENT_STATE', payload: existingState.data });
