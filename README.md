@@ -8,6 +8,15 @@ Para quienes aman tener el control, nuestro planificador manual sigue ofreciendo
 
 <img width="1886" height="862" alt="Foto_TravelSmart_LinkedIn" src="https://github.com/user-attachments/assets/f7bfee6e-f3dd-45f2-8c3c-8f97175ba3c6" />
 
+## 🏗️ Arquitectura del Proyecto
+
+Este repositorio contiene el **Frontend (Next.js 15)**. 
+Para ver el núcleo de Inteligencia Artificial, Agentes LangGraph y la API en Python, visita el repositorio del Backend:
+
+[![Backend Repository](https://img.shields.io/badge/Backend-FastAPI%20%2B%20LangGraph-blue?style=for-the-badge&logo=python)](https://github.com/santipdmonte/TravelSmart-AI-API)
+
+> **Nota para devs:** La arquitectura está desacoplada. El frontend consume una API RESTful que orquesta múltiples agentes de IA para la generación de itinerarios.
+
 ## 🎯 Sobre el Proyecto
 
 TravelSmart nace de la necesidad de simplificar la planificación de viajes, ofreciendo dos enfoques principales:
